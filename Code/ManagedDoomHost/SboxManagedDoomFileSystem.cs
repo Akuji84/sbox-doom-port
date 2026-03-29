@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using Sandbox;
 
@@ -18,7 +19,20 @@ namespace ManagedDoom
 
         public static byte[] ReadAllBytes(string path)
         {
-            return FileSystem.Mounted.ReadAllBytes(Normalize(path)).ToArray();
+            var normalized = Normalize(path);
+
+            if (TryReadMountedBytes(normalized, out var bytes))
+            {
+                return bytes;
+            }
+
+            var assetPrefixed = Normalize($"Assets/{normalized}");
+            if (TryReadMountedBytes(assetPrefixed, out bytes))
+            {
+                return bytes;
+            }
+
+            throw new FileNotFoundException($"Could not find file '/{normalized}'.");
         }
 
         public static bool DataFileExists(string path)
@@ -88,6 +102,24 @@ namespace ManagedDoom
             var fileName = GetFileName(path);
             var dot = fileName.LastIndexOf('.');
             return dot >= 0 ? fileName[dot..] : string.Empty;
+        }
+
+        private static bool TryReadMountedBytes(string path, out byte[] bytes)
+        {
+            try
+            {
+                if (FileSystem.Mounted.FileExists(path))
+                {
+                    bytes = FileSystem.Mounted.ReadAllBytes(path).ToArray();
+                    return true;
+                }
+            }
+            catch
+            {
+            }
+
+            bytes = null;
+            return false;
         }
     }
 }

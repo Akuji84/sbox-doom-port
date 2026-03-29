@@ -1,11 +1,11 @@
 {
   "Title": "Doom Port",
   "Type": "game",
-  "Org": "local",
+  "Org": "akuji",
   "Ident": "doom_port",
   "Schema": 1,
   "IncludeSourceFiles": false,
-  "Resources": "Assets/doom/*",
+  "Resources": "/doom/*",
   "PackageReferences": [],
   "EditorReferences": null,
   "Mounts": null,
@@ -23,6 +23,24 @@
     "PerMapRanking": false,
     "LeaderboardType": "None",
     "CsProjName": "",
-    "StartupScene": "game.scene"
+    "StartupScene": "game.scene",
+    "Compiler": {
+      "RootNamespace": "Sandbox",
+      "DefineConstants": "SANDBOX",
+      "NoWarn": "1701;1702;1591;",
+      "WarningsAsErrors": "",
+      "TreatWarningsAsErrors": false,
+      "Nullables": false,
+      "ReleaseMode": "Release",
+      "AssemblyReferences": [],
+      "ReplacementDirectives": {
+        ".Server.cs": "SERVER"
+      },
+      "IgnoreFolders": [
+        "editor",
+        "unittest"
+      ],
+      "DistinctAssemblyReferences": []
+    }
   }
 }
