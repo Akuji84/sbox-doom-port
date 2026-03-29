@@ -216,5 +216,7 @@ namespace ManagedDoom
             get => userInput;
             set => userInput = value;
         }
+
+        public IAnalyticsListener AnalyticsListener { get; set; }
     }
 }

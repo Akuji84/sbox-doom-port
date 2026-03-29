@@ -306,6 +306,8 @@ namespace ManagedDoom
 			gameAction = GameAction.Nothing;
 
 			InitNew(options.Skill, options.Episode, options.Map);
+
+			options.AnalyticsListener?.OnNewGame(options.Episode, options.Map, options.Skill);
 		}
 
 		private void DoLoadGame()
@@ -314,6 +316,7 @@ namespace ManagedDoom
 			try
 			{
 				SaveAndLoad.Load(this, SaveAndLoad.GetSlotPath(loadGameSlotNumber));
+				options.AnalyticsListener?.OnLoadGame(loadGameSlotNumber);
 			}
 			catch
 			{
@@ -336,6 +339,7 @@ namespace ManagedDoom
 			{
 				SaveAndLoad.Save(this, saveGameDescription, SaveAndLoad.GetSlotPath(saveGameSlotNumber));
 				world.ConsolePlayer.SendMessage("Game saved.");
+				options.AnalyticsListener?.OnSaveGame(saveGameSlotNumber);
 			}
 			catch
 			{

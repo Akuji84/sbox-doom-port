@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Sandbox;
+using Sandbox.Services;
+
+namespace ManagedDoom
+{
+    public sealed class SboxManagedDoomAnalyticsService : IAnalyticsListener
+    {
+        private const string AnalyticsEndpoint = "https://bugs.akuji.org/api/analytics/event";
+
+        private readonly DateTime _sessionStartUtc = DateTime.UtcNow;
+
+        public void OnNewGame(int episode, int map, GameSkill skill)
+        {
+            _ = SendEventAsync("new_game", new
+            {
+                episode,
+                map,
+                skill = skill.ToString()
+            });
+        }
+
+        public void OnSaveGame(int slotNumber)
+        {
+            _ = SendEventAsync("save_game", new { slotNumber });
+        }
+
+        public void OnLoadGame(int slotNumber)
+        {
+            _ = SendEventAsync("load_game", new { slotNumber });
+        }
+
+        public void OnSessionEnd()
+        {
+            var duration = DateTime.UtcNow - _sessionStartUtc;
+            _ = SendEventAsync("session_end", new
+            {
+                playedSeconds = (int)duration.TotalSeconds
+            });
+        }
+
+        public void OnSessionStart(string map, string currentState)
+        {
+            _ = SendEventAsync("session_start", new
+            {
+                map = map?.Trim() ?? string.Empty,
+                currentState = currentState?.Trim() ?? string.Empty
+            });
+        }
+
+        private static async Task SendEventAsync(string eventType, object details)
+        {
+            try
+            {
+                var token = await Auth.GetToken("sbox-doom-bug-server", CancellationToken.None);
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    Log.Warning("[ManagedDoomHost] Failed to obtain Steam auth token for analytics");
+                    return;
+                }
+
+                var payload = new
+                {
+                    type = eventType,
+                    details,
+                    gameVersion = "sbox-doom-port",
+                    build = "public"
+                };
+
+                var content = Http.CreateJsonContent(payload);
+                var headers = new Dictionary<string, string>
+                {
+                    ["Authorization"] = $"Steam {token}",
+                    ["X-Steam-Id"] = Game.SteamId.ToString()
+                };
+
+                await Http.RequestAsync(
+                    AnalyticsEndpoint,
+                    "POST",
+                    content,
+                    headers);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[ManagedDoomHost] Analytics event '{eventType}' failed: {ex}");
+            }
+        }
+    }
+}

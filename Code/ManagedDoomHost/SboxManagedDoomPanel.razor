@@ -44,6 +44,7 @@
     private string _error;
     private float _tickAccumulator;
     private Task _bugReportTask;
+    private SboxManagedDoomAnalyticsService _analytics;
 
     protected override void OnStart()
     {
@@ -60,6 +61,8 @@
             _input = new SboxManagedDoomInput( config );
             _sound = CreateSoundAdapter( config, content );
             _music = CreateMusicAdapter( config, content );
+            _analytics = new SboxManagedDoomAnalyticsService();
+
             _doom = new ManagedDoom.Doom(
                 args,
                 config,
@@ -69,8 +72,13 @@
                 _music,
                 _input );
 
+            _doom.Options.AnalyticsListener = _analytics;
+
             _video.Render( _doom, ManagedDoom.Fixed.Zero );
             SyncFrame();
+            _analytics.OnSessionStart(
+                BuildSessionStartMap(),
+                _doom.State.ToString() );
             StateHasChanged();
             Log.Info( "[ManagedDoomHost] Bootstrapped Managed Doom." );
         }
@@ -123,6 +131,14 @@
     {
         try
         {
+            _analytics?.OnSessionEnd();
+        }
+        catch
+        {
+        }
+
+        try
+        {
             _config?.Save( ManagedDoom.ConfigUtilities.GetConfigPath() );
         }
         catch
@@ -134,6 +150,22 @@
     {
         _frameTexture = _video.FrameTexture;
         _frameVersion = _video.FrameVersion;
+    }
+
+    private string BuildSessionStartMap()
+    {
+        if ( _doom is null )
+        {
+            return string.Empty;
+        }
+
+        var options = _doom.Options;
+        if ( options.GameMode == ManagedDoom.GameMode.Commercial )
+        {
+            return $"MAP{options.Map:00}";
+        }
+
+        return $"E{options.Episode}M{options.Map}";
     }
 
     private SboxManagedDoomSound CreateSoundAdapter( ManagedDoom.Config config, ManagedDoom.GameContent content )
