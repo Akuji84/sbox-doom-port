@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Sandbox;
+using Sandbox.Services;
 
 namespace ManagedDoom
 {
@@ -63,6 +65,15 @@ namespace ManagedDoom
         {
             try
             {
+                var token = await Auth.GetToken("sbox-doom-bug-server", CancellationToken.None);
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    Log.Warning("[ManagedDoomHost] Failed to obtain Steam auth token");
+                    Complete("bug report failed\nsteam auth unavailable");
+                    return;
+                }
+
                 var payload = new
                 {
                     contact = request.Contact,
@@ -74,10 +85,18 @@ namespace ManagedDoom
                     build = "public"
                 };
 
+                var content = Http.CreateJsonContent(payload);
+                var headers = new Dictionary<string, string>
+                {
+                    ["Authorization"] = $"Steam {token}",
+                    ["X-Steam-Id"] = Game.SteamId.ToString()
+                };
+
                 await Http.RequestAsync(
                     Endpoint,
                     "POST",
-                    Http.CreateJsonContent(payload));
+                    content,
+                    headers);
 
                 Complete("bug report submitted\nthank you");
             }
