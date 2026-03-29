@@ -23,6 +23,7 @@ namespace ManagedDoom.Video
     public sealed class MenuRenderer
     {
         private static readonly char[] cursor = { '_' };
+        private static readonly char[] emptyText = "EMPTY SLOT".ToCharArray();
 
         private Wad wad;
         private DrawScreen screen;
@@ -253,33 +254,88 @@ namespace ManagedDoom.Video
             DrawMenuPatch("M_THERMO", pos, item.SliderY);
         }
 
-        private char[] emptyText = "EMPTY SLOT".ToCharArray();
-
         private void DrawTextBoxMenuItem(TextBoxMenuItem item, int tics)
         {
-            var length = 24;
-            DrawMenuPatch("M_LSLEFT", item.ItemX, item.ItemY);
-            for (var i = 0; i < length; i++)
+            for (var lineIndex = 0; lineIndex < item.VisibleLines; lineIndex++)
             {
-                var x = item.ItemX + 8 * (1 + i);
-                DrawMenuPatch("M_LSCNTR", x, item.ItemY);
-            }
-            DrawMenuPatch("M_LSRGHT", item.ItemX + 8 * (1 + length), item.ItemY);
+                var y = item.ItemY + lineIndex * 16;
 
-            if (!item.Editing)
-            {
-                var text = item.Text != null ? item.Text : emptyText;
-                DrawMenuText(text, item.ItemX + 8, item.ItemY);
-            }
-            else
-            {
-                DrawMenuText(item.Text, item.ItemX + 8, item.ItemY);
-                if (tics / 3 % 2 == 0)
+                DrawMenuPatch("M_LSLEFT", item.ItemX, y);
+                for (var i = 0; i < item.BoxLength; i++)
                 {
-                    var textWidth = screen.MeasureText(item.Text, 1);
-                    DrawMenuText(cursor, item.ItemX + 8 + textWidth, item.ItemY);
+                    var x = item.ItemX + 8 * (1 + i);
+                    DrawMenuPatch("M_LSCNTR", x, y);
+                }
+
+                DrawMenuPatch("M_LSRGHT", item.ItemX + 8 * (1 + item.BoxLength), y);
+            }
+
+            var sourceText = item.Text != null ? item.Text : emptyText;
+            var wrappedLines = WrapText(sourceText, item.BoxLength, item.VisibleLines, item.Editing);
+
+            for (var i = 0; i < wrappedLines.Count; i++)
+            {
+                DrawMenuText(wrappedLines[i], item.ItemX + 8, item.ItemY + i * 16);
+            }
+
+            if (item.Editing && tics / 3 % 2 == 0)
+            {
+                var cursorLine = wrappedLines.Count - 1;
+                if (cursorLine < 0)
+                {
+                    cursorLine = 0;
+                }
+
+                var lineText = wrappedLines.Count > 0 ? wrappedLines[cursorLine] : Array.Empty<char>();
+                var textWidth = screen.MeasureText(lineText, 1);
+                DrawMenuText(cursor, item.ItemX + 8 + textWidth, item.ItemY + cursorLine * 16);
+            }
+        }
+
+        private List<char[]> WrapText(IReadOnlyList<char> text, int width, int maxVisibleLines, bool showTail)
+        {
+            var lines = new List<char[]>();
+            var current = new List<char>(width);
+
+            void FlushCurrent()
+            {
+                lines.Add(current.ToArray());
+                current.Clear();
+            }
+
+            for (var i = 0; i < text.Count; i++)
+            {
+                var ch = text[i];
+
+                if (ch == '\n')
+                {
+                    FlushCurrent();
+                    continue;
+                }
+
+                current.Add(ch);
+                if (current.Count >= width)
+                {
+                    FlushCurrent();
                 }
             }
+
+            if (current.Count > 0 || lines.Count == 0)
+            {
+                FlushCurrent();
+            }
+
+            if (lines.Count <= maxVisibleLines)
+            {
+                return lines;
+            }
+
+            if (showTail)
+            {
+                return lines.GetRange(lines.Count - maxVisibleLines, maxVisibleLines);
+            }
+
+            return lines.GetRange(0, maxVisibleLines);
         }
 
         private void DrawText(IReadOnlyList<string> text)

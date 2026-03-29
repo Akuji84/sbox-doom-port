@@ -21,7 +21,7 @@ namespace ManagedDoom
 {
     public sealed class BugReportMenu : MenuDef
     {
-        private readonly int[] skullY = { 56, 88, 120, 146, 162 };
+        private readonly int[] skullY = { 56, 88, 120, 170, 186 };
         private readonly TextBoxMenuItem contact;
         private readonly TextBoxMenuItem map;
         private readonly TextBoxMenuItem details;
@@ -33,7 +33,7 @@ namespace ManagedDoom
         {
             contact = new TextBoxMenuItem(32, 56, 72, 56);
             map = new TextBoxMenuItem(32, 88, 72, 88);
-            details = new TextBoxMenuItem(32, 120, 72, 120);
+            details = new TextBoxMenuItem(32, 120, 72, 120, 22, 3);
 
             index = 0;
         }
@@ -100,7 +100,7 @@ namespace ManagedDoom
                         Menu.StartSound(Sfx.PISTOL);
                         return true;
                     case 3:
-                        Menu.NotifyBugReportPending();
+                        Menu.SubmitBugReport(ContactText, MapText, DetailsText);
                         Menu.StartSound(Sfx.PISTOL);
                         return true;
                     case 4:
@@ -153,7 +153,7 @@ namespace ManagedDoom
         public IReadOnlyList<string> Title => new[] { "REPORT BUG" };
         public IReadOnlyList<string> Labels => new[] { "EMAIL/DISCORD", "CURRENT MAP", "DETAILS", "SUBMIT", "CANCEL" };
         public IReadOnlyList<int> LabelX => new[] { 72, 72, 72, 72, 72 };
-        public IReadOnlyList<int> LabelY => new[] { 40, 72, 104, 146, 162 };
+        public IReadOnlyList<int> LabelY => new[] { 40, 72, 104, 170, 186 };
 
         public TextBoxMenuItem Contact => contact;
         public TextBoxMenuItem Map => map;

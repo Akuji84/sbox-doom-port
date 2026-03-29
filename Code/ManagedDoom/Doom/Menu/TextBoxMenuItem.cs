@@ -24,15 +24,24 @@ namespace ManagedDoom
     {
         private int itemX;
         private int itemY;
+        private int boxLength;
+        private int visibleLines;
 
         private IReadOnlyList<char> text;
         private TextInput edit;
 
         public TextBoxMenuItem(int skullX, int skullY, int itemX, int itemY)
+            : this(skullX, skullY, itemX, itemY, 24, 1)
+        {
+        }
+
+        public TextBoxMenuItem(int skullX, int skullY, int itemX, int itemY, int boxLength, int visibleLines)
             : base(skullX, skullY, null)
         {
             this.itemX = itemX;
             this.itemY = itemY;
+            this.boxLength = boxLength;
+            this.visibleLines = Math.Max(1, visibleLines);
         }
 
         public TextInput Edit(Action finished)
@@ -71,6 +80,8 @@ namespace ManagedDoom
 
         public int ItemX => itemX;
         public int ItemY => itemY;
+        public int BoxLength => boxLength;
+        public int VisibleLines => visibleLines;
         public bool Editing => edit != null;
     }
 }

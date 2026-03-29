@@ -1,4 +1,5 @@
 @using System
+@using System.Threading.Tasks
 @using ManagedDoom
 @using ManagedDoom.Audio
 @using Sandbox.UI
@@ -42,6 +43,7 @@
     private int _frameVersion;
     private string _error;
     private float _tickAccumulator;
+    private Task _bugReportTask;
 
     protected override void OnStart()
     {
@@ -91,6 +93,7 @@
         {
             _tickAccumulator += Time.Delta;
             DispatchKeyEvents();
+            PumpBugReportSubmission();
             UpdateSound();
             UpdateMusic();
 
@@ -199,6 +202,19 @@
     {
         _error = $"{title}\n{ex}";
         Log.Error( $"[ManagedDoomHost] {title}: {ex}" );
+    }
+
+    private void PumpBugReportSubmission()
+    {
+        if ( _bugReportTask is not null && !_bugReportTask.IsCompleted )
+        {
+            return;
+        }
+
+        if ( SboxManagedDoomBugReportService.TryBeginSubmit( out var request ) )
+        {
+            _bugReportTask = SboxManagedDoomBugReportService.SubmitAsync( request );
+        }
     }
 
     private void DispatchKeyEvents()

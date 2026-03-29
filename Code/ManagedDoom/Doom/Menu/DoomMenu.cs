@@ -39,6 +39,7 @@ namespace ManagedDoom
         private PressAnyKey loadUnavailable;
         private PressAnyKey bugReportPending;
         private YesNoConfirm nightmareConfirm;
+        private bool bugReportAwaitingResult;
 
         private MenuDef current;
 
@@ -76,7 +77,7 @@ namespace ManagedDoom
 
             bugReportPending = new PressAnyKey(
                 this,
-                "bug report submission will be added later\nwhen the server is configured",
+                "sending bug report...",
                 null);
 
             nightmareConfirm = new YesNoConfirm(
@@ -366,6 +367,14 @@ namespace ManagedDoom
                 current.Update();
             }
 
+            if (bugReportAwaitingResult && SboxManagedDoomBugReportService.TryConsumeResult(out var bugReportStatus))
+            {
+                bugReportPending.SetText(bugReportStatus);
+                SetCurrent(bugReportPending);
+                Open();
+                bugReportAwaitingResult = false;
+            }
+
             if (active && !doom.Options.NetGame)
             {
                 doom.PauseGame();
@@ -415,7 +424,55 @@ namespace ManagedDoom
 
         public void NotifyBugReportPending()
         {
+            bugReportPending.SetText("sending bug report...");
             SetCurrent(bugReportPending);
+        }
+
+        public void SubmitBugReport(string contact, string map, string details)
+        {
+            if (string.IsNullOrWhiteSpace(details))
+            {
+                bugReportPending.SetText("please enter bug details");
+                SetCurrent(bugReportPending);
+                Open();
+                return;
+            }
+
+            var currentState = BuildBugReportCurrentState();
+            var saveSlot = BuildBugReportSaveSlot();
+
+            SboxManagedDoomBugReportService.QueueSubmit(
+                contact,
+                map,
+                details,
+                currentState,
+                saveSlot);
+            bugReportPending.SetText("sending bug report...");
+            SetCurrent(bugReportPending);
+            Open();
+            bugReportAwaitingResult = true;
+        }
+
+        private string BuildBugReportCurrentState()
+        {
+            var doomState = doom.State.ToString();
+            var gameState = doom.Game != null ? doom.Game.State.ToString() : "None";
+            return $"{doomState} / {gameState}";
+        }
+
+        private string BuildBugReportSaveSlot()
+        {
+            if (load.LastLoadSlot >= 0)
+            {
+                return $"Load Slot {load.LastLoadSlot + 1}";
+            }
+
+            if (save.LastSaveSlot >= 0)
+            {
+                return $"Save Slot {save.LastSaveSlot + 1}";
+            }
+
+            return "None";
         }
 
         public void ShowHelpScreen()

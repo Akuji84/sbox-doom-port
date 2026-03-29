@@ -31,6 +31,11 @@ namespace ManagedDoom
             this.action = action;
         }
 
+        public void SetText(string value)
+        {
+            text = (value ?? string.Empty).Split('\n');
+        }
+
         public override bool DoEvent(DoomEvent e)
         {
             if (e.Type == EventType.KeyDown)

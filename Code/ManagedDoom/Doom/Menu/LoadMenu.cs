@@ -29,6 +29,7 @@ namespace ManagedDoom
 
         private int index;
         private TextBoxMenuItem choice;
+        private int lastLoadSlot;
 
         public LoadMenu(
             DoomMenu menu,
@@ -43,6 +44,7 @@ namespace ManagedDoom
 
             index = firstChoice;
             choice = items[index];
+            lastLoadSlot = -1;
         }
 
         public override void Open()
@@ -119,6 +121,7 @@ namespace ManagedDoom
                 if (SaveAndLoad.IsSupported)
                 {
                     Menu.Doom.LoadGame(slotNumber);
+                    lastLoadSlot = slotNumber;
                     return true;
                 }
 
@@ -133,5 +136,6 @@ namespace ManagedDoom
         public IReadOnlyList<int> TitleY => titleY;
         public IReadOnlyList<MenuItem> Items => items;
         public MenuItem Choice => choice;
+        public int LastLoadSlot => lastLoadSlot;
     }
 }
