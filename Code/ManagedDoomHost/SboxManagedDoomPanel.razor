@@ -1,0 +1,369 @@
+@using System
+@using ManagedDoom
+@using ManagedDoom.Audio
+@using Sandbox.UI
+@inherits PanelComponent
+
+<root class="managed-doom-root">
+    @if ( _error is not null )
+    {
+        <div class="status">
+            <div class="title">Managed Doom Bootstrap Failed</div>
+            <div class="message">@_error</div>
+        </div>
+    }
+    else if ( _frameTexture is not null )
+    {
+        <div class="frame-wrap">
+            <Image class="doom-frame" Texture="@_frameTexture" @key="_frameVersion" />
+        </div>
+    }
+    else
+    {
+        <div class="status">
+            <div class="title">Booting Managed Doom</div>
+            <div class="message">Loading Freedoom and initializing renderer...</div>
+        </div>
+    }
+</root>
+
+@code {
+    private const string WadPath = "doom/freedoom1.wad";
+    private const float TickStep = 1.0f / 35.0f;
+    private const string RuntimeFailureTitle = "Managed Doom Runtime Failed";
+
+    private ManagedDoom.Doom _doom;
+    private ManagedDoom.Config _config;
+    private SboxManagedDoomVideo _video;
+    private SboxManagedDoomInput _input;
+    private SboxManagedDoomSound _sound;
+    private SboxManagedDoomMusic _music;
+    private global::Sandbox.Texture _frameTexture;
+    private int _frameVersion;
+    private string _error;
+    private float _tickAccumulator;
+
+    protected override void OnStart()
+    {
+        try
+        {
+            var args = new ManagedDoom.CommandLineArgs( new[] { "-iwad", WadPath } );
+            ManagedDoom.ConfigUtilities.SetHostWadPaths( WadPath );
+
+            var config = new ManagedDoom.Config( ManagedDoom.ConfigUtilities.GetConfigPath() );
+            _config = config;
+            var content = new ManagedDoom.GameContent( args );
+
+            _video = new SboxManagedDoomVideo( config, content );
+            _input = new SboxManagedDoomInput( config );
+            _sound = CreateSoundAdapter( config, content );
+            _music = CreateMusicAdapter( config, content );
+            _doom = new ManagedDoom.Doom(
+                args,
+                config,
+                content,
+                _video,
+                _sound,
+                _music,
+                _input );
+
+            _video.Render( _doom, ManagedDoom.Fixed.Zero );
+            SyncFrame();
+            StateHasChanged();
+            Log.Info( "[ManagedDoomHost] Bootstrapped Managed Doom." );
+        }
+        catch ( Exception ex )
+        {
+            _error = ex.ToString();
+            Log.Error( $"[ManagedDoomHost] Bootstrap failed: {_error}" );
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnUpdate()
+    {
+        if ( _doom is null || _video is null || _error is not null )
+        {
+            return;
+        }
+
+        try
+        {
+            _tickAccumulator += Time.Delta;
+            DispatchKeyEvents();
+            UpdateSound();
+            UpdateMusic();
+
+            var updated = false;
+            while ( _tickAccumulator >= TickStep )
+            {
+                _doom.Update();
+                _tickAccumulator -= TickStep;
+                updated = true;
+            }
+
+            if ( updated )
+            {
+                _video.Render( _doom, ManagedDoom.Fixed.Zero );
+                SyncFrame();
+                StateHasChanged();
+            }
+        }
+        catch ( Exception ex )
+        {
+            FailRuntime( RuntimeFailureTitle, ex );
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnDestroy()
+    {
+        try
+        {
+            _config?.Save( ManagedDoom.ConfigUtilities.GetConfigPath() );
+        }
+        catch
+        {
+        }
+    }
+
+    private void SyncFrame()
+    {
+        _frameTexture = _video.FrameTexture;
+        _frameVersion = _video.FrameVersion;
+    }
+
+    private SboxManagedDoomSound CreateSoundAdapter( ManagedDoom.Config config, ManagedDoom.GameContent content )
+    {
+        try
+        {
+            return new SboxManagedDoomSound( config, content );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Sound disabled after initialization failure: {ex}" );
+            return null;
+        }
+    }
+
+    private SboxManagedDoomMusic CreateMusicAdapter( ManagedDoom.Config config, ManagedDoom.GameContent content )
+    {
+        try
+        {
+            return new SboxManagedDoomMusic( config, content );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Music disabled after initialization failure: {ex}" );
+            return null;
+        }
+    }
+
+    private void UpdateSound()
+    {
+        if ( _sound is null )
+        {
+            return;
+        }
+
+        try
+        {
+            _sound.Update();
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Sound disabled after runtime failure: {ex}" );
+            _sound = null;
+        }
+    }
+
+    private void UpdateMusic()
+    {
+        if ( _music is null )
+        {
+            return;
+        }
+
+        try
+        {
+            _music.Update();
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Music disabled after runtime failure: {ex}" );
+            _music = null;
+        }
+    }
+
+    private void FailRuntime( string title, Exception ex )
+    {
+        _error = $"{title}\n{ex}";
+        Log.Error( $"[ManagedDoomHost] {title}: {ex}" );
+    }
+
+    private void DispatchKeyEvents()
+    {
+        PostLetterKeys();
+        PostNumberKeys();
+        PostPunctuationKeys();
+        PostShiftedSymbolKeys();
+
+        PostKey( "TAB", ManagedDoom.DoomKey.Escape );
+        PostKey( "ENTER", ManagedDoom.DoomKey.Enter );
+        PostKey( "RETURN", ManagedDoom.DoomKey.Enter );
+        PostKey( "SPACE", ManagedDoom.DoomKey.Space );
+        PostKey( "BACKSPACE", ManagedDoom.DoomKey.Backspace );
+
+        PostKey( "UP", ManagedDoom.DoomKey.Up );
+        PostKey( "DOWN", ManagedDoom.DoomKey.Down );
+        PostKey( "LEFT", ManagedDoom.DoomKey.Left );
+        PostKey( "RIGHT", ManagedDoom.DoomKey.Right );
+        PostKey( "W", ManagedDoom.DoomKey.Up );
+        PostKey( "S", ManagedDoom.DoomKey.Down );
+        PostKey( "A", ManagedDoom.DoomKey.Left );
+        PostKey( "D", ManagedDoom.DoomKey.Right );
+
+        PostKey( "CTRL", ManagedDoom.DoomKey.LControl );
+        PostKey( "LCTRL", ManagedDoom.DoomKey.LControl );
+        PostKey( "RCONTROL", ManagedDoom.DoomKey.RControl );
+        PostKey( "RCTRL", ManagedDoom.DoomKey.RControl );
+        PostKey( "SHIFT", ManagedDoom.DoomKey.LShift );
+        PostKey( "RSHIFT", ManagedDoom.DoomKey.RShift );
+        PostKey( "ALT", ManagedDoom.DoomKey.LAlt );
+        PostKey( "RALT", ManagedDoom.DoomKey.RAlt );
+
+        PostKey( "F1", ManagedDoom.DoomKey.F1 );
+        PostKey( "F2", ManagedDoom.DoomKey.F2 );
+        PostKey( "F3", ManagedDoom.DoomKey.F3 );
+        PostKey( "F4", ManagedDoom.DoomKey.F4 );
+        PostKey( "F5", ManagedDoom.DoomKey.F5 );
+        PostKey( "F6", ManagedDoom.DoomKey.F6 );
+        PostKey( "F7", ManagedDoom.DoomKey.F7 );
+        PostKey( "F8", ManagedDoom.DoomKey.F8 );
+        PostKey( "F9", ManagedDoom.DoomKey.F9 );
+        PostKey( "F10", ManagedDoom.DoomKey.F10 );
+        PostKey( "F11", ManagedDoom.DoomKey.F11 );
+    }
+
+    private void PostLetterKeys()
+    {
+        PostKey( "A", ManagedDoom.DoomKey.A );
+        PostKey( "B", ManagedDoom.DoomKey.B );
+        PostKey( "C", ManagedDoom.DoomKey.C );
+        PostKey( "D", ManagedDoom.DoomKey.D );
+        PostKey( "E", ManagedDoom.DoomKey.E );
+        PostKey( "F", ManagedDoom.DoomKey.F );
+        PostKey( "G", ManagedDoom.DoomKey.G );
+        PostKey( "H", ManagedDoom.DoomKey.H );
+        PostKey( "I", ManagedDoom.DoomKey.I );
+        PostKey( "J", ManagedDoom.DoomKey.J );
+        PostKey( "K", ManagedDoom.DoomKey.K );
+        PostKey( "L", ManagedDoom.DoomKey.L );
+        PostKey( "M", ManagedDoom.DoomKey.M );
+        PostKey( "N", ManagedDoom.DoomKey.N );
+        PostKey( "O", ManagedDoom.DoomKey.O );
+        PostKey( "P", ManagedDoom.DoomKey.P );
+        PostKey( "Q", ManagedDoom.DoomKey.Q );
+        PostKey( "R", ManagedDoom.DoomKey.R );
+        PostKey( "S", ManagedDoom.DoomKey.S );
+        PostKey( "T", ManagedDoom.DoomKey.T );
+        PostKey( "U", ManagedDoom.DoomKey.U );
+        PostKey( "V", ManagedDoom.DoomKey.V );
+        PostKey( "W", ManagedDoom.DoomKey.W );
+        PostKey( "X", ManagedDoom.DoomKey.X );
+        PostKey( "Y", ManagedDoom.DoomKey.Y );
+        PostKey( "Z", ManagedDoom.DoomKey.Z );
+    }
+
+    private void PostNumberKeys()
+    {
+        PostKeyUnlessShifted( "0", ManagedDoom.DoomKey.Num0 );
+        PostKeyUnlessShifted( "1", ManagedDoom.DoomKey.Num1 );
+        PostKeyUnlessShifted( "2", ManagedDoom.DoomKey.Num2 );
+        PostKeyUnlessShifted( "3", ManagedDoom.DoomKey.Num3 );
+        PostKeyUnlessShifted( "4", ManagedDoom.DoomKey.Num4 );
+        PostKeyUnlessShifted( "5", ManagedDoom.DoomKey.Num5 );
+        PostKeyUnlessShifted( "6", ManagedDoom.DoomKey.Num6 );
+        PostKeyUnlessShifted( "7", ManagedDoom.DoomKey.Num7 );
+        PostKeyUnlessShifted( "8", ManagedDoom.DoomKey.Num8 );
+        PostKeyUnlessShifted( "9", ManagedDoom.DoomKey.Num9 );
+    }
+
+    private void PostPunctuationKeys()
+    {
+        PostKeyUnlessShifted( "[", ManagedDoom.DoomKey.LBracket );
+        PostKeyUnlessShifted( "]", ManagedDoom.DoomKey.RBracket );
+        PostKeyUnlessShifted( "SEMICOLON", ManagedDoom.DoomKey.Semicolon );
+        PostKeyUnlessShifted( "'", ManagedDoom.DoomKey.Apostrophe );
+        PostKeyUnlessShifted( "`", ManagedDoom.DoomKey.Backtick );
+        PostKeyUnlessShifted( ",", ManagedDoom.DoomKey.Comma );
+        PostKeyUnlessShifted( ".", ManagedDoom.DoomKey.Period );
+        PostKeyUnlessShifted( "/", ManagedDoom.DoomKey.Slash );
+        PostKeyUnlessShifted( "\\", ManagedDoom.DoomKey.Backslash );
+        PostKeyUnlessShifted( "-", ManagedDoom.DoomKey.Hyphen );
+        PostKeyUnlessShifted( "=", ManagedDoom.DoomKey.Equal );
+    }
+
+    private void PostShiftedSymbolKeys()
+    {
+        PostShiftedSymbol( "1", ManagedDoom.DoomKey.Exclamation );
+        PostShiftedSymbol( "2", ManagedDoom.DoomKey.At );
+        PostShiftedSymbol( "3", ManagedDoom.DoomKey.Hash );
+        PostShiftedSymbol( "4", ManagedDoom.DoomKey.Dollar );
+        PostShiftedSymbol( "5", ManagedDoom.DoomKey.Percent );
+        PostShiftedSymbol( "6", ManagedDoom.DoomKey.Caret );
+        PostShiftedSymbol( "7", ManagedDoom.DoomKey.Ampersand );
+        PostShiftedSymbol( "8", ManagedDoom.DoomKey.Multiply );
+        PostShiftedSymbol( "9", ManagedDoom.DoomKey.LParen );
+        PostShiftedSymbol( "0", ManagedDoom.DoomKey.RParen );
+        PostShiftedSymbol( "[", ManagedDoom.DoomKey.LBrace );
+        PostShiftedSymbol( "]", ManagedDoom.DoomKey.RBrace );
+        PostShiftedSymbol( "SEMICOLON", ManagedDoom.DoomKey.Colon );
+        PostShiftedSymbol( "'", ManagedDoom.DoomKey.Quote );
+        PostShiftedSymbol( "`", ManagedDoom.DoomKey.Tilde );
+        PostShiftedSymbol( ",", ManagedDoom.DoomKey.LessThan );
+        PostShiftedSymbol( ".", ManagedDoom.DoomKey.GreaterThan );
+        PostShiftedSymbol( "/", ManagedDoom.DoomKey.Question );
+        PostShiftedSymbol( "\\", ManagedDoom.DoomKey.Pipe );
+        PostShiftedSymbol( "-", ManagedDoom.DoomKey.Underscore );
+        PostShiftedSymbol( "=", ManagedDoom.DoomKey.Plus );
+    }
+
+    private void PostKey( string keyName, ManagedDoom.DoomKey doomKey )
+    {
+        if ( Input.Keyboard.Pressed( keyName ) )
+        {
+            _doom.PostEvent( new ManagedDoom.DoomEvent( ManagedDoom.EventType.KeyDown, doomKey ) );
+        }
+
+        if ( Input.Keyboard.Released( keyName ) )
+        {
+            _doom.PostEvent( new ManagedDoom.DoomEvent( ManagedDoom.EventType.KeyUp, doomKey ) );
+        }
+    }
+
+    private void PostKeyUnlessShifted( string keyName, ManagedDoom.DoomKey doomKey )
+    {
+        if ( IsShiftDown() )
+        {
+            return;
+        }
+
+        PostKey( keyName, doomKey );
+    }
+
+    private void PostShiftedSymbol( string keyName, ManagedDoom.DoomKey doomKey )
+    {
+        if ( !IsShiftDown() )
+        {
+            return;
+        }
+
+        PostKey( keyName, doomKey );
+    }
+
+    private bool IsShiftDown()
+    {
+        return Input.Keyboard.Down( "SHIFT" ) || Input.Keyboard.Down( "RSHIFT" );
+    }
+}
