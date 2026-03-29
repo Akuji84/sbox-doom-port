@@ -38,6 +38,7 @@ namespace ManagedDoom
         private PressAnyKey saveUnavailable;
         private PressAnyKey loadUnavailable;
         private PressAnyKey bugReportPending;
+        private PressAnyKey multiplayerComingSoon;
         private YesNoConfirm nightmareConfirm;
         private bool bugReportAwaitingResult;
 
@@ -78,6 +79,11 @@ namespace ManagedDoom
             bugReportPending = new PressAnyKey(
                 this,
                 "sending bug report...",
+                null);
+
+            multiplayerComingSoon = new PressAnyKey(
+                this,
+                "MULTIPLAYER COMING SOON",
                 null);
 
             nightmareConfirm = new YesNoConfirm(
@@ -207,6 +213,8 @@ namespace ManagedDoom
                     () => music.Volume,
                     vol => music.Volume = vol));
 
+            bugReport = new BugReportMenu(this);
+
             var video = doom.Options.Video;
             var userInput = doom.Options.UserInput;
             optionMenu = new SelectableMenu(
@@ -236,12 +244,10 @@ namespace ManagedDoom
                     null,
                     volume),
 
-                new TextMenuItem(
-                    "REPORT BUG", 28, 144, 60, 149,
+                new SimpleMenuItem(
+                    "M_RPBUG", 28, 144, 60, 149,
                     null,
-                    bugReport)
-                    .WithScale(1)
-                    .WithYOffset(7));
+                    bugReport));
 
             load = new LoadMenu(
                 this,
@@ -265,8 +271,6 @@ namespace ManagedDoom
                 new TextBoxMenuItem(48, 113, 72, 125),
                 new TextBoxMenuItem(48, 129, 72, 141));
 
-            bugReport = new BugReportMenu(this);
-
             help = new HelpScreen(this);
 
             if (doom.Options.GameMode == GameMode.Commercial)
@@ -281,9 +285,8 @@ namespace ManagedDoom
                 new SimpleMenuItem("M_SAVEG", 65, 115, 97, 120, null, save,
                     () => !(doom.State == DoomState.Game &&
                         doom.Game.State != GameState.Level)),
-                new TextMenuItem("REPORT BUG", 65, 131, 97, 136, null, bugReport)
-                    .WithScale(1)
-                    .WithYOffset(7));
+                new SimpleMenuItem("M_MULTI", 65, 131, 97, 136, null, multiplayerComingSoon),
+                new SimpleMenuItem("M_RPBUG", 65, 147, 97, 152, null, bugReport));
             }
             else
             {
@@ -298,9 +301,8 @@ namespace ManagedDoom
                     () => !(doom.State == DoomState.Game &&
                         doom.Game.State != GameState.Level)),
                 new SimpleMenuItem("M_RDTHIS", 65, 123, 97, 128, null, help),
-                new TextMenuItem("REPORT BUG", 65, 139, 97, 144, null, bugReport)
-                    .WithScale(1)
-                    .WithYOffset(7));
+                new SimpleMenuItem("M_MULTI", 65, 139, 97, 144, null, multiplayerComingSoon),
+                new SimpleMenuItem("M_RPBUG", 65, 155, 97, 160, null, bugReport));
             }
 
             current = main;

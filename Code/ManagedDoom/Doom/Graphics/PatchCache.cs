@@ -22,6 +22,8 @@ namespace ManagedDoom
 {
     public sealed class PatchCache
     {
+        private static readonly Dictionary<string, Patch> customPatches = new Dictionary<string, Patch>();
+
         private Wad wad;
         private Dictionary<string, Patch> cache;
 
@@ -32,6 +34,11 @@ namespace ManagedDoom
             cache = new Dictionary<string, Patch>();
         }
 
+        public static void RegisterCustom(string name, Patch patch)
+        {
+            customPatches[name] = patch;
+        }
+
         public Patch this[string name]
         {
             get
@@ -39,8 +46,15 @@ namespace ManagedDoom
                 Patch patch;
                 if (!cache.TryGetValue(name, out patch))
                 {
-                    patch = Patch.FromWad(wad, name);
-                    cache.Add(name, patch);
+                    if (customPatches.TryGetValue(name, out patch))
+                    {
+                        cache[name] = patch;
+                    }
+                    else
+                    {
+                        patch = Patch.FromWad(wad, name);
+                        cache.Add(name, patch);
+                    }
                 }
                 return patch;
             }

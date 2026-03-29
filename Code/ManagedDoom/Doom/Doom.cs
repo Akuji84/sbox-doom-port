@@ -60,6 +60,9 @@ namespace ManagedDoom
 
         private bool mouseGrabbed;
 
+        private int tabHintTics;
+        private bool menuEverOpened;
+
         public Doom(CommandLineArgs args, Config config, GameContent content, IVideo video, ISound sound, IMusic music, IUserInput userInput)
         {
             video = video ?? NullVideo.GetInstance();
@@ -107,6 +110,9 @@ namespace ManagedDoom
             quitMessage = null;
 
             mouseGrabbed = false;
+
+            tabHintTics = 0;
+            menuEverOpened = false;
 
             CheckGameArgs();
         }
@@ -383,6 +389,16 @@ namespace ManagedDoom
 
             if (!wiping)
             {
+                if (menu.Active)
+                {
+                    menuEverOpened = true;
+                }
+
+                if (currentState == DoomState.Opening && !menuEverOpened && !menu.Active)
+                {
+                    tabHintTics++;
+                }
+
                 switch (currentState)
                 {
                     case DoomState.Opening:
@@ -555,5 +571,7 @@ namespace ManagedDoom
         public WipeEffect WipeEffect => wipeEffect;
         public bool Wiping => wiping;
         public string QuitMessage => quitMessage;
+        public bool ShowTabHint => currentState == DoomState.Opening && !menuEverOpened && tabHintTics >= 245;
+        public int TabHintTics => tabHintTics;
     }
 }

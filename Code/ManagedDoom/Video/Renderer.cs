@@ -125,6 +125,25 @@ namespace ManagedDoom.Video
             }
         }
 
+        private void RenderTabHint(Doom doom)
+        {
+            if (!doom.ShowTabHint)
+            {
+                return;
+            }
+
+            if ((doom.TabHintTics / 17) % 2 != 0)
+            {
+                return;
+            }
+
+            var scale = screen.Width / 320;
+            var text = "PRESS TAB TO OPEN MENU".ToCharArray();
+            var x = (screen.Width - screen.MeasureText(text, scale)) / 2;
+            var y = (screen.Height - 7 * scale) / 2;
+            screen.DrawText(text, x, y, scale);
+        }
+
         public void RenderMenu(Doom doom)
         {
             if (doom.Menu.Active)
@@ -191,6 +210,7 @@ namespace ManagedDoom.Video
             }
 
             RenderDoom(doom, frameFrac);
+            RenderTabHint(doom);
             RenderMenu(doom);
 
             var colors = palette[0];

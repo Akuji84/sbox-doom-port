@@ -57,6 +57,8 @@
             _config = config;
             var content = new ManagedDoom.GameContent( args );
 
+            RegisterPngPatches( content );
+
             _video = new SboxManagedDoomVideo( config, content );
             _input = new SboxManagedDoomInput( config );
             _sound = CreateSoundAdapter( config, content );
@@ -413,5 +415,26 @@
     private bool IsShiftDown()
     {
         return Input.Keyboard.Down( "SHIFT" ) || Input.Keyboard.Down( "RSHIFT" );
+    }
+
+    private static void RegisterPngPatches( ManagedDoom.GameContent content )
+    {
+        var playpal = content.Wad.ReadLump( "PLAYPAL" );
+        RegisterOnePngPatch( "M_MULTI", "doom/multiplayerbutton.png", playpal );
+        RegisterOnePngPatch( "M_RPBUG", "doom/reportbug.png", playpal );
+    }
+
+    private static void RegisterOnePngPatch( string name, string pngPath, byte[] playpal )
+    {
+        try
+        {
+            var pngBytes = ManagedDoom.SboxManagedDoomFileSystem.ReadAllBytes( pngPath );
+            var patch = ManagedDoom.PngPatchLoader.Load( name, pngBytes, playpal );
+            ManagedDoom.PatchCache.RegisterCustom( name, patch );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Failed to load custom patch {name}: {ex}" );
+        }
     }
 }
