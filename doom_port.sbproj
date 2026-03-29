@@ -1,8 +1,8 @@
 {
-  "Title": "My Project 1",
+  "Title": "Doom Port",
   "Type": "game",
   "Org": "local",
-  "Ident": "my_project_1",
+  "Ident": "doom_port",
   "Schema": 1,
   "IncludeSourceFiles": false,
   "Resources": "Assets/doom/*",

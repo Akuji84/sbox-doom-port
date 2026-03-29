@@ -7,7 +7,7 @@
 .vscode/*
 .claude/*
 *.csproj
-!Code/my_project_1.csproj
+!Code/doom_port.csproj
 obj
 bin
 Properties/*

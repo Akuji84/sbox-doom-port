@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<AssemblyName>my_project_1</AssemblyName>
-		<PackageId>my_project_1</PackageId>
+		<AssemblyName>doom_port</AssemblyName>
+		<PackageId>doom_port</PackageId>
 		<LangVersion>14</LangVersion>
 		<NoWarn>1701;1702;1591;</NoWarn>
 		<WarningsAsErrors></WarningsAsErrors>
@@ -13,7 +13,7 @@
 		<DefineConstants>SANDBOX</DefineConstants>
 		<AllowUnsafeBlocks>False</AllowUnsafeBlocks>
 		<OutputPath>../../../../../../../Program Files (x86)/Steam/steamapps/common/sbox/.vs/output/</OutputPath>
-		<DocumentationFile>../../../../../../../Program Files (x86)/Steam/steamapps/common/sbox/.vs/output/my_project_1.xml</DocumentationFile>
+		<DocumentationFile>../../../../../../../Program Files (x86)/Steam/steamapps/common/sbox/.vs/output/doom_port.xml</DocumentationFile>
 		<RootNamespace>Sandbox</RootNamespace>
 		<Nullable>disable</Nullable>
 		<DefaultItemExcludes>$(DefaultItemExcludes);**/editor/**;**/unittest/**</DefaultItemExcludes>

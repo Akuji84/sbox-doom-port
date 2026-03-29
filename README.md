@@ -12,9 +12,9 @@ Current features:
 ## Project layout
 
 Important paths:
-- game project: [my_project_1.sbproj](./my_project_1.sbproj)
+- game project: [doom_port.sbproj](./doom_port.sbproj)
 - main scene: [Assets/game.scene](./Assets/game.scene)
-- main C# project: [Code/my_project_1.csproj](./Code/my_project_1.csproj)
+- main C# project: [Code/doom_port.csproj](./Code/doom_port.csproj)
 - vendored Doom runtime: [Code/ManagedDoom](./Code/ManagedDoom)
 - `s&box` host adapters: [Code/ManagedDoomHost](./Code/ManagedDoomHost)
 
