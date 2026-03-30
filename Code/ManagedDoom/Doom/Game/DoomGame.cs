@@ -484,6 +484,8 @@ namespace ManagedDoom
 				Array.Copy(players[i].Frags, imInfo.Players[i].Frags, Player.MaxPlayerCount);
 			}
 
+			options.AnalyticsListener?.OnLevelCompleted(options.Episode, options.Map, world.LevelTime);
+
 			gameState = GameState.Intermission;
 			intermission = new Intermission(options, imInfo);
 		}

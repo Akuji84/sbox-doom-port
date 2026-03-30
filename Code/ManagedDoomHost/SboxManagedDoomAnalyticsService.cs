@@ -12,6 +12,9 @@ namespace ManagedDoom
         private const string AnalyticsEndpoint = "https://bugs.akuji.org/api/analytics/event";
 
         private readonly DateTime _sessionStartUtc = DateTime.UtcNow;
+        private readonly object _leaderboardSync = new();
+        private readonly Dictionary<string, int> _sessionBestTimes = new(StringComparer.OrdinalIgnoreCase);
+        private int _sessionLevelsCompleted;
 
         public void OnNewGame(int episode, int map, GameSkill skill)
         {
@@ -51,6 +54,46 @@ namespace ManagedDoom
             });
         }
 
+        public void OnLevelCompleted(int episode, int map, int levelTimeTics)
+        {
+            var mapKey = BuildMapKey(episode, map);
+            var levelSeconds = Math.Max(0, levelTimeTics / GameConst.TicRate);
+
+            lock (_leaderboardSync)
+            {
+                _sessionLevelsCompleted++;
+
+                if (!_sessionBestTimes.TryGetValue(mapKey, out var existing) || levelSeconds < existing)
+                {
+                    _sessionBestTimes[mapKey] = levelSeconds;
+                }
+            }
+
+            _ = SendEventAsync("level_completed", new
+            {
+                episode,
+                map,
+                mapKey,
+                levelSeconds
+            });
+        }
+
+        public int GetCompletedLevelsTotal()
+        {
+            lock (_leaderboardSync)
+            {
+                return _sessionLevelsCompleted;
+            }
+        }
+
+        public IReadOnlyDictionary<string, int> GetBestTimesSnapshot()
+        {
+            lock (_leaderboardSync)
+            {
+                return new Dictionary<string, int>(_sessionBestTimes, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
         private static async Task SendEventAsync(string eventType, object details)
         {
             try
@@ -88,6 +131,16 @@ namespace ManagedDoom
             {
                 Log.Warning($"[ManagedDoomHost] Analytics event '{eventType}' failed: {ex}");
             }
+        }
+
+        private static string BuildMapKey(int episode, int map)
+        {
+            if (episode <= 0)
+            {
+                return $"map{map:00}";
+            }
+
+            return $"e{episode}m{map}";
         }
     }
 }

@@ -64,6 +64,12 @@ namespace ManagedDoom.Video
                 DrawBugReportMenu(bugReport);
             }
 
+            var leaderboard = menu.Current as LeaderboardMenu;
+            if (leaderboard != null)
+            {
+                DrawLeaderboardMenu(leaderboard);
+            }
+
             var yesNo = menu.Current as YesNoConfirm;
             if (yesNo != null)
             {
@@ -169,6 +175,57 @@ namespace ManagedDoom.Video
             var skull = bugReport.Menu.Tics / 8 % 2 == 0 ? "M_SKULL1" : "M_SKULL2";
             DrawMenuPatch(skull, bugReport.SkullX, bugReport.SkullY);
         }
+
+        private void DrawLeaderboardMenu(LeaderboardMenu leaderboard)
+        {
+            var scale = screen.Width / 320;
+            var title = leaderboard.Title[0].ToCharArray();
+            var titleX = (screen.Width - screen.MeasureText(title, scale)) / 2;
+            screen.DrawText(title, titleX, scale * 20, scale);
+
+            var lines = leaderboard.Lines;
+            const int boxX = 40;
+            const int boxY = 46;
+            const int boxWidth = 28;
+
+            for (var i = 0; i < lines.Count; i++)
+            {
+                DrawLeaderboardStatLine(lines[i], boxX, boxY + 4 + i * 8, boxWidth);
+            }
+
+            var hint = leaderboard.Hint;
+            for (var i = 0; i < hint.Count; i++)
+            {
+                var hintChars = hint[i].ToCharArray();
+                var hintX = (screen.Width - screen.MeasureText(hintChars, scale)) / 2;
+                var hintY = scale * (128 + i * 8);
+                screen.DrawText(hintChars, hintX, hintY, scale);
+            }
+        }
+
+        private void DrawLeaderboardStatLine(string line, int boxX, int y, int boxWidth)
+        {
+            var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+            {
+                return;
+            }
+
+            var label = parts[0].ToCharArray();
+            var labelX = boxX + 20;
+            DrawMenuText(label, labelX, y);
+
+            if (parts.Length == 1)
+            {
+                return;
+            }
+
+            var value = string.Join(" ", parts, 1, parts.Length - 1).ToCharArray();
+            var valueRight = boxX + 8 + boxWidth * 8 - 20;
+            var valueX = valueRight - screen.MeasureText(value, 1);
+            DrawMenuText(value, valueX, y);
+        }
+
 
         private void DrawMenuItem(DoomMenu menu, MenuItem item)
         {

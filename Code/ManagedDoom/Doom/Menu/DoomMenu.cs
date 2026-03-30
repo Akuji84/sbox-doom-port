@@ -31,6 +31,7 @@ namespace ManagedDoom
         private LoadMenu load;
         private SaveMenu save;
         private BugReportMenu bugReport;
+        private LeaderboardMenu leaderboard;
         private HelpScreen help;
 
         private PressAnyKey thisIsShareware;
@@ -214,6 +215,7 @@ namespace ManagedDoom
                     vol => music.Volume = vol));
 
             bugReport = new BugReportMenu(this);
+            leaderboard = new LeaderboardMenu(this);
 
             var video = doom.Options.Video;
             var userInput = doom.Options.UserInput;
@@ -281,12 +283,13 @@ namespace ManagedDoom
                 0,
                 new SimpleMenuItem("M_NGAME", 65, 67, 97, 72, null, skillMenu),
                 new SimpleMenuItem("M_OPTION", 65, 83, 97, 88, null, optionMenu),
-                new SimpleMenuItem("M_LOADG", 65, 99, 97, 104, null, load),
-                new SimpleMenuItem("M_SAVEG", 65, 115, 97, 120, null, save,
+                new SimpleMenuItem("M_LEADB", 65, 99, 97, 104, null, leaderboard),
+                new SimpleMenuItem("M_LOADG", 65, 115, 97, 120, null, load),
+                new SimpleMenuItem("M_SAVEG", 65, 131, 97, 136, null, save,
                     () => !(doom.State == DoomState.Game &&
                         doom.Game.State != GameState.Level)),
-                new SimpleMenuItem("M_MULTI", 65, 131, 97, 136, null, multiplayerComingSoon),
-                new SimpleMenuItem("M_RPBUG", 65, 147, 97, 152, null, bugReport));
+                new SimpleMenuItem("M_MULTI", 65, 147, 97, 152, null, multiplayerComingSoon),
+                new SimpleMenuItem("M_RPBUG", 65, 163, 97, 168, null, bugReport));
             }
             else
             {
@@ -296,13 +299,14 @@ namespace ManagedDoom
                 0,
                 new SimpleMenuItem("M_NGAME", 65, 59, 97, 64, null, episodeMenu),
                 new SimpleMenuItem("M_OPTION", 65, 75, 97, 80, null, optionMenu),
-                new SimpleMenuItem("M_LOADG", 65, 91, 97, 96, null, load),
-                new SimpleMenuItem("M_SAVEG", 65, 107, 97, 112, null, save,
+                new SimpleMenuItem("M_LEADB", 65, 91, 97, 96, null, leaderboard),
+                new SimpleMenuItem("M_LOADG", 65, 107, 97, 112, null, load),
+                new SimpleMenuItem("M_SAVEG", 65, 123, 97, 128, null, save,
                     () => !(doom.State == DoomState.Game &&
                         doom.Game.State != GameState.Level)),
-                new SimpleMenuItem("M_RDTHIS", 65, 123, 97, 128, null, help),
-                new SimpleMenuItem("M_MULTI", 65, 139, 97, 144, null, multiplayerComingSoon),
-                new SimpleMenuItem("M_RPBUG", 65, 155, 97, 160, null, bugReport));
+                new SimpleMenuItem("M_RDTHIS", 65, 139, 97, 144, null, help),
+                new SimpleMenuItem("M_MULTI", 65, 155, 97, 160, null, multiplayerComingSoon),
+                new SimpleMenuItem("M_RPBUG", 65, 171, 97, 176, null, bugReport));
             }
 
             current = main;

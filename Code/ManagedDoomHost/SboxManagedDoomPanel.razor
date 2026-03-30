@@ -1,4 +1,5 @@
 @using System
+@using System.Collections.Generic
 @using System.Threading.Tasks
 @using ManagedDoom
 @using ManagedDoom.Audio
@@ -31,6 +32,7 @@
 @code {
     private const string WadPath = "doom/freedoom1.wad";
     private const float TickStep = 1.0f / 35.0f;
+    private const float LeaderboardSyncIntervalSeconds = 30.0f;
     private const string RuntimeFailureTitle = "Managed Doom Runtime Failed";
 
     private ManagedDoom.Doom _doom;
@@ -44,7 +46,28 @@
     private string _error;
     private float _tickAccumulator;
     private Task _bugReportTask;
+    private Task _leaderboardTask;
+    private Task _leaderboardStatsTask;
+    private Task _leaderboardProfileTask;
     private SboxManagedDoomAnalyticsService _analytics;
+    private float _leaderboardSyncAccumulator;
+    private float _timePlayedAccumulator;
+    private int _sessionKillsTotal;
+    private int _sessionDeathsTotal;
+    private int _sessionItemsTotal;
+    private int _sessionSecretsTotal;
+    private int _sessionTimePlayedTotalSeconds;
+    private int _ackedKillsTotal;
+    private int _ackedDeathsTotal;
+    private int _ackedItemsTotal;
+    private int _ackedSecretsTotal;
+    private int _ackedTimePlayedTotalSeconds;
+    private int _ackedLevelsCompletedTotal;
+    private int _lastObservedKills;
+    private int _lastObservedItems;
+    private int _lastObservedSecrets;
+    private bool _hasObservedStatBaseline;
+    private PlayerState _lastObservedPlayerState;
 
     protected override void OnStart()
     {
@@ -81,6 +104,7 @@
             _analytics.OnSessionStart(
                 BuildSessionStartMap(),
                 _doom.State.ToString() );
+            QueueLeaderboardProfileSync();
             StateHasChanged();
             Log.Info( "[ManagedDoomHost] Bootstrapped Managed Doom." );
         }
@@ -104,6 +128,8 @@
             _tickAccumulator += Time.Delta;
             DispatchKeyEvents();
             PumpBugReportSubmission();
+            PumpLeaderboardRefresh();
+            PumpLeaderboardProfileSync();
             UpdateSound();
             UpdateMusic();
 
@@ -121,6 +147,9 @@
                 SyncFrame();
                 StateHasChanged();
             }
+
+            CaptureLeaderboardSessionState();
+            PumpLeaderboardStatsSubmission();
         }
         catch ( Exception ex )
         {
@@ -131,6 +160,15 @@
 
     protected override void OnDestroy()
     {
+        try
+        {
+            CaptureLeaderboardSessionState();
+            FlushLeaderboardStats();
+        }
+        catch
+        {
+        }
+
         try
         {
             _analytics?.OnSessionEnd();
@@ -249,6 +287,229 @@
         {
             _bugReportTask = SboxManagedDoomBugReportService.SubmitAsync( request );
         }
+    }
+
+    private void PumpLeaderboardRefresh()
+    {
+        if ( _leaderboardTask is not null && !_leaderboardTask.IsCompleted )
+        {
+            return;
+        }
+
+        if ( SboxManagedDoomLeaderboardService.TryBeginRefresh() )
+        {
+            _leaderboardTask = SboxManagedDoomLeaderboardService.RefreshAsync();
+        }
+    }
+
+    private void QueueLeaderboardProfileSync()
+    {
+        if ( _leaderboardProfileTask is not null && !_leaderboardProfileTask.IsCompleted )
+        {
+            return;
+        }
+
+        _leaderboardProfileTask = SubmitLeaderboardProfileAsync();
+    }
+
+    private void PumpLeaderboardProfileSync()
+    {
+        if ( _leaderboardProfileTask is null || !_leaderboardProfileTask.IsCompleted )
+        {
+            return;
+        }
+
+        if ( _leaderboardProfileTask.IsFaulted )
+        {
+            Log.Warning( $"[ManagedDoomHost] Leaderboard profile sync failed: {_leaderboardProfileTask.Exception}" );
+        }
+
+        _leaderboardProfileTask = null;
+    }
+
+    private async Task SubmitLeaderboardProfileAsync()
+    {
+        var displayName = GetLeaderboardDisplayName();
+        await SboxManagedDoomLeaderboardService.SyncProfileAsync( displayName );
+        Log.Info( $"[ManagedDoomHost] Leaderboard profile sync succeeded for '{displayName}'." );
+    }
+
+    private void CaptureLeaderboardSessionState()
+    {
+        if ( _doom is null || _error is not null )
+        {
+            return;
+        }
+
+        _leaderboardSyncAccumulator += Time.Delta;
+        _timePlayedAccumulator += Time.Delta;
+
+        while ( _timePlayedAccumulator >= 1.0f )
+        {
+            _sessionTimePlayedTotalSeconds++;
+            _timePlayedAccumulator -= 1.0f;
+        }
+
+        var player = TryGetConsolePlayer();
+        if ( player is null )
+        {
+            _hasObservedStatBaseline = false;
+            return;
+        }
+
+        var observedKills = Math.Max( 0, player.KillCount );
+        var observedItems = Math.Max( 0, player.ItemCount );
+        var observedSecrets = Math.Max( 0, player.SecretCount );
+
+        if ( !_hasObservedStatBaseline )
+        {
+            _lastObservedKills = observedKills;
+            _lastObservedItems = observedItems;
+            _lastObservedSecrets = observedSecrets;
+            _lastObservedPlayerState = player.PlayerState;
+            _hasObservedStatBaseline = true;
+        }
+        else
+        {
+            AccumulatePositiveDiff( ref _sessionKillsTotal, ref _lastObservedKills, observedKills );
+            AccumulatePositiveDiff( ref _sessionItemsTotal, ref _lastObservedItems, observedItems );
+            AccumulatePositiveDiff( ref _sessionSecretsTotal, ref _lastObservedSecrets, observedSecrets );
+
+            if ( _lastObservedPlayerState != PlayerState.Dead && player.PlayerState == PlayerState.Dead )
+            {
+                _sessionDeathsTotal++;
+            }
+
+            _lastObservedPlayerState = player.PlayerState;
+        }
+    }
+
+    private void PumpLeaderboardStatsSubmission()
+    {
+        if ( _leaderboardStatsTask is not null && !_leaderboardStatsTask.IsCompleted )
+        {
+            return;
+        }
+
+        if ( _leaderboardSyncAccumulator < LeaderboardSyncIntervalSeconds )
+        {
+            return;
+        }
+
+        _leaderboardSyncAccumulator -= LeaderboardSyncIntervalSeconds;
+        var request = BuildLeaderboardStatsRequest();
+        _leaderboardStatsTask = SubmitLeaderboardStatsAsync( request );
+    }
+
+    private async Task SubmitLeaderboardStatsAsync( StatsUpdateRequest request )
+    {
+        try
+        {
+            await SboxManagedDoomLeaderboardService.SubmitStatsAsync( request );
+            AcknowledgeLeaderboardStats( request );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Leaderboard stats sync failed: {ex}" );
+        }
+    }
+
+    private void FlushLeaderboardStats()
+    {
+        var request = BuildLeaderboardStatsRequest();
+
+        if ( request.KillsDelta == 0 &&
+             request.DeathsDelta == 0 &&
+             request.ItemsDelta == 0 &&
+             request.SecretsDelta == 0 &&
+             request.TimePlayedSecondsDelta == 0 &&
+             request.LevelsCompletedDelta == 0 &&
+             request.BestTimes.Count == 0 )
+        {
+            return;
+        }
+
+        try
+        {
+            SboxManagedDoomLeaderboardService.SubmitStatsAsync( request ).GetAwaiter().GetResult();
+            AcknowledgeLeaderboardStats( request );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Leaderboard stats flush failed: {ex}" );
+        }
+    }
+
+    private StatsUpdateRequest BuildLeaderboardStatsRequest()
+    {
+        var levelsCompletedTotal = _analytics?.GetCompletedLevelsTotal() ?? 0;
+        var bestTimes = new Dictionary<string, int>(
+            _analytics?.GetBestTimesSnapshot() ?? new Dictionary<string, int>(),
+            StringComparer.OrdinalIgnoreCase );
+
+        return new StatsUpdateRequest
+        {
+            Kills = _sessionKillsTotal,
+            KillsDelta = Math.Max( 0, _sessionKillsTotal - _ackedKillsTotal ),
+            Deaths = _sessionDeathsTotal,
+            DeathsDelta = Math.Max( 0, _sessionDeathsTotal - _ackedDeathsTotal ),
+            Items = _sessionItemsTotal,
+            ItemsDelta = Math.Max( 0, _sessionItemsTotal - _ackedItemsTotal ),
+            Secrets = _sessionSecretsTotal,
+            SecretsDelta = Math.Max( 0, _sessionSecretsTotal - _ackedSecretsTotal ),
+            TimePlayedSeconds = _sessionTimePlayedTotalSeconds,
+            TimePlayedSecondsDelta = Math.Max( 0, _sessionTimePlayedTotalSeconds - _ackedTimePlayedTotalSeconds ),
+            LevelsCompleted = levelsCompletedTotal,
+            LevelsCompletedDelta = Math.Max( 0, levelsCompletedTotal - _ackedLevelsCompletedTotal ),
+            BestTimes = bestTimes
+        };
+    }
+
+    private void AcknowledgeLeaderboardStats( StatsUpdateRequest request )
+    {
+        _ackedKillsTotal = Math.Max( _ackedKillsTotal, request.Kills );
+        _ackedDeathsTotal = Math.Max( _ackedDeathsTotal, request.Deaths );
+        _ackedItemsTotal = Math.Max( _ackedItemsTotal, request.Items );
+        _ackedSecretsTotal = Math.Max( _ackedSecretsTotal, request.Secrets );
+        _ackedTimePlayedTotalSeconds = Math.Max( _ackedTimePlayedTotalSeconds, request.TimePlayedSeconds );
+        _ackedLevelsCompletedTotal = Math.Max( _ackedLevelsCompletedTotal, request.LevelsCompleted );
+    }
+
+    private Player TryGetConsolePlayer()
+    {
+        if ( _doom?.Game?.Options is null )
+        {
+            return null;
+        }
+
+        var options = _doom.Game.Options;
+        if ( options.ConsolePlayer < 0 || options.ConsolePlayer >= options.Players.Length )
+        {
+            return null;
+        }
+
+        return options.Players[options.ConsolePlayer];
+    }
+
+    private static string GetLeaderboardDisplayName()
+    {
+        var displayName = Sandbox.Utility.Steam.PersonaName;
+        if ( string.IsNullOrWhiteSpace( displayName ) )
+        {
+            return $"Steam {Game.SteamId}";
+        }
+
+        return displayName.Trim();
+    }
+
+    private static void AccumulatePositiveDiff( ref int runningTotal, ref int lastObserved, int current )
+    {
+        if ( current > lastObserved )
+        {
+            runningTotal += current - lastObserved;
+        }
+
+        lastObserved = current;
     }
 
     private void DispatchKeyEvents()
@@ -422,6 +683,7 @@
         var playpal = content.Wad.ReadLump( "PLAYPAL" );
         RegisterOnePngPatch( "M_MULTI", "doom/multiplayerbutton.png", playpal );
         RegisterOnePngPatch( "M_RPBUG", "doom/reportbug.png", playpal );
+        RegisterOnePngPatch( "M_LEADB", "doom/leaderboardtext.png", playpal );
     }
 
     private static void RegisterOnePngPatch( string name, string pngPath, byte[] playpal )
