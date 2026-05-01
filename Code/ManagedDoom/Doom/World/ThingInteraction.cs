@@ -155,6 +155,12 @@ namespace ManagedDoom
 				return;
 			}
 
+			if (world.Options.ShouldSuppressLocalDamageToThing?.Invoke(target) == true)
+			{
+				world.Options.SuppressedLocalDamagePresentationListener?.Invoke(target, damage);
+				return;
+			}
+
 			if ((target.Flags & MobjFlags.SkullFly) != 0)
 			{
 				target.MomX = target.MomY = target.MomZ = Fixed.Zero;

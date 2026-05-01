@@ -22,6 +22,15 @@ using ManagedDoom.UserInput;
 
 namespace ManagedDoom
 {
+    public sealed class HitscanImpactEvent
+    {
+        public bool Blood { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+        public int Damage { get; set; }
+    }
+
     public sealed class GameOptions
     {
         private GameVersion gameVersion;
@@ -216,6 +225,18 @@ namespace ManagedDoom
             get => userInput;
             set => userInput = value;
         }
+
+        public Func<Player, bool> ShouldSuppressLocalHitscanDamage { get; set; }
+
+        public Func<Mobj, bool> ShouldSuppressLocalDamageToThing { get; set; }
+
+        public Func<Player, bool> ShouldSuppressLocalPickup { get; set; }
+
+        public Action<Mobj, Player> SuppressedLocalPickupPresentationListener { get; set; }
+
+        public Action<Mobj, int> SuppressedLocalDamagePresentationListener { get; set; }
+
+        public Action<HitscanImpactEvent> HitscanImpactListener { get; set; }
 
         public IAnalyticsListener AnalyticsListener { get; set; }
     }

@@ -70,6 +70,12 @@ namespace ManagedDoom.Video
                 DrawLeaderboardMenu(leaderboard);
             }
 
+            var multiplayerInfo = menu.Current as MultiplayerInfoMenu;
+            if (multiplayerInfo != null)
+            {
+                DrawMultiplayerInfoMenu(multiplayerInfo);
+            }
+
             var yesNo = menu.Current as YesNoConfirm;
             if (yesNo != null)
             {
@@ -200,6 +206,23 @@ namespace ManagedDoom.Video
                 var hintX = (screen.Width - screen.MeasureText(hintChars, scale)) / 2;
                 var hintY = scale * (128 + i * 8);
                 screen.DrawText(hintChars, hintX, hintY, scale);
+            }
+        }
+
+        private void DrawMultiplayerInfoMenu(MultiplayerInfoMenu multiplayerInfo)
+        {
+            var scale = screen.Width / 320;
+            var title = multiplayerInfo.Title[0].ToCharArray();
+            var titleX = (screen.Width - screen.MeasureText(title, scale)) / 2;
+            screen.DrawText(title, titleX, scale * 20, scale);
+
+            var lines = multiplayerInfo.Lines;
+            for (var i = 0; i < lines.Count; i++)
+            {
+                var text = lines[i].ToCharArray();
+                var x = (screen.Width - screen.MeasureText(text, scale)) / 2;
+                var y = scale * (60 + i * 12);
+                screen.DrawText(text, x, y, scale);
             }
         }
 

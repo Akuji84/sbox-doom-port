@@ -6,7 +6,7 @@
 @using Sandbox.UI
 @inherits PanelComponent
 
-<root class="managed-doom-root">
+<root class="managed-doom-root @(SboxManagedDoomMultiplayerPanelService.IsOpen ? "mp-active" : "")">
     @if ( _error is not null )
     {
         <div class="status">
@@ -19,6 +19,114 @@
         <div class="frame-wrap">
             <Image class="doom-frame" Texture="@_frameTexture" @key="_frameVersion" />
         </div>
+
+        @if ( SboxManagedDoomMultiplayerPanelService.IsOpen )
+        {
+            <div class="mp-overlay" @key="SboxManagedDoomMultiplayerPanelService.Version">
+                <div class="mp-box">
+                    <div class="mp-header">
+                        <div class="mp-header-label">MULTIPLAYER</div>
+                        <div class="mp-header-line"></div>
+                    </div>
+
+                    @if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.Main )
+                    {
+                        <div class="mp-desc">SELECT AN OPTION</div>
+
+                        <div class="mp-buttons">
+                            <div class="mp-btn" onclick="@StartHostingAsync">HOST GAME</div>
+                        </div>
+
+                        <div class="mp-close" onclick="@CloseMultiplayerOverlay">PRESS ESC OR CLICK TO CLOSE</div>
+                    }
+                    else if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo )
+                    {
+                        <div class="mp-info-title">HOST GAME</div>
+                        <div class="mp-info-desc">@SboxManagedDoomMultiplayerPanelService.HostStatus</div>
+
+                        <div class="mp-slots">
+                            <div class="mp-slots-label">PLAYER SLOTS</div>
+                            @for ( var i = 0; i < 2; i++ )
+                            {
+                                var isFilled = i < SboxManagedDoomMultiplayerPanelService.HostedPlayerNames.Count;
+                                var playerName = isFilled
+                                    ? SboxManagedDoomMultiplayerPanelService.HostedPlayerNames[i]
+                                    : "EMPTY SLOT";
+                                var tag = i == 0 && isFilled ? "HOST" : (isFilled ? "JOINED" : "OPEN");
+                                var tagClass = isFilled && i == 0 ? "mp-slot-tag" : (isFilled ? "mp-slot-tag mp-slot-joined" : "mp-slot-tag mp-slot-open");
+
+                                <div class="mp-slot">
+                                    <div class="mp-slot-num">@(i + 1)</div>
+                                    <div class="mp-slot-name">@playerName</div>
+                                    <div class="@tagClass">@tag</div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mp-buttons">
+                            <div class="mp-btn" onclick="@StartHostedMatch">START GAME</div>
+                            <div class="mp-btn mp-btn-dim" onclick="@BackToMultiplayerMain">BACK</div>
+                        </div>
+
+                        <div class="mp-close" onclick="@CloseMultiplayerOverlay">PRESS ESC OR CLICK TO CLOSE</div>
+                    }
+                    else if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.JoinLobby )
+                    {
+                        <div class="mp-info-title">JOINED GAME</div>
+                        <div class="mp-info-desc">@SboxManagedDoomMultiplayerPanelService.JoinedLobbyName</div>
+
+                        <div class="mp-slots">
+                            <div class="mp-slots-label">PLAYER SLOTS</div>
+                            @for ( var i = 0; i < 2; i++ )
+                            {
+                                var isFilled = i < SboxManagedDoomMultiplayerPanelService.JoinedPlayerNames.Count;
+                                var playerName = isFilled
+                                    ? SboxManagedDoomMultiplayerPanelService.JoinedPlayerNames[i]
+                                    : "EMPTY SLOT";
+                                var tag = i == 0 && isFilled ? "HOST" : (isFilled ? "JOINED" : "OPEN");
+                                var tagClass = i == 0 && isFilled ? "mp-slot-tag" : (isFilled ? "mp-slot-tag mp-slot-joined" : "mp-slot-tag mp-slot-open");
+
+                                <div class="mp-slot">
+                                    <div class="mp-slot-num">@(i + 1)</div>
+                                    <div class="mp-slot-name">@playerName</div>
+                                    <div class="@tagClass">@tag</div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mp-buttons">
+                            <div class="mp-btn mp-btn-dim" onclick="@BackToMultiplayerMain">BACK</div>
+                        </div>
+
+                        <div class="mp-close" onclick="@CloseMultiplayerOverlay">PRESS ESC OR CLICK TO CLOSE</div>
+                    }
+                    else if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.MatchMenu )
+                    {
+                        <div class="mp-info-title">MULTIPLAYER MENU</div>
+                        <div class="mp-info-desc">@SboxManagedDoomMultiplayerPanelService.MatchStatus</div>
+
+                        <div class="mp-buttons">
+                            <div class="mp-btn" onclick="@ShowMultiplayerPvpMode">PVP</div>
+                            <div class="mp-btn" onclick="@ReturnMultiplayerGroupToLobby">BACK</div>
+                            <div class="mp-btn mp-btn-dim" onclick="@LeaveMultiplayerMatch">LEAVE</div>
+                        </div>
+
+                        <div class="mp-close" onclick="@CloseMultiplayerOverlay">PRESS ESC OR CLICK TO CLOSE</div>
+                    }
+                    else
+                    {
+                        <div class="mp-info-title">MULTIPLAYER STATUS</div>
+                        <div class="mp-info-desc">@SboxManagedDoomMultiplayerPanelService.JoinStatus</div>
+
+                        <div class="mp-buttons">
+                            <div class="mp-btn mp-btn-dim" onclick="@BackToMultiplayerMain">BACK</div>
+                        </div>
+
+                        <div class="mp-close" onclick="@CloseMultiplayerOverlay">PRESS ESC OR CLICK TO CLOSE</div>
+                    }
+                </div>
+            </div>
+        }
     }
     else
     {
@@ -34,6 +142,13 @@
     private const float TickStep = 1.0f / 35.0f;
     private const float LeaderboardSyncIntervalSeconds = 30.0f;
     private const string RuntimeFailureTitle = "Managed Doom Runtime Failed";
+    private const string LobbyDataStartedKey = "md_started";
+    private const string LobbyDataNameKey = "md_name";
+    private static readonly int PvpLocalSnapDistance = ManagedDoom.Fixed.FromInt(48).Data;
+    private static readonly int PvpLocalReconcileDistance = ManagedDoom.Fixed.FromInt(2).Data;
+    private static readonly int PvpRemoteSnapDistance = ManagedDoom.Fixed.FromInt(64).Data;
+    private const int SharedSimulationPvpCommandLeadTics = 2;
+    private const bool EnableSharedSimulationPvp = false;
 
     private ManagedDoom.Doom _doom;
     private ManagedDoom.Config _config;
@@ -50,6 +165,8 @@
     private Task _leaderboardStatsTask;
     private Task _leaderboardProfileTask;
     private SboxManagedDoomAnalyticsService _analytics;
+    private SboxManagedDoomMultiplayerSessionComponent _multiplayerSession;
+    private readonly SboxManagedDoomMultiplayerModeController _multiplayerModeController = new();
     private float _leaderboardSyncAccumulator;
     private float _timePlayedAccumulator;
     private int _sessionKillsTotal;
@@ -68,9 +185,77 @@
     private int _lastObservedSecrets;
     private bool _hasObservedStatBaseline;
     private PlayerState _lastObservedPlayerState;
+    private SboxManagedDoomMultiplayerLobbyListener _multiplayerLobbyListener;
+    private global::Sandbox.GameObject _multiplayerSessionObject;
+    private bool _ignoreStartedMultiplayerMatch;
+    private readonly ManagedDoom.TicCmd _replicaLocalPvpCommand = new();
+    private readonly Dictionary<ManagedDoom.MapThing, int> _pvpMapThingIndexes = new();
+    private readonly HashSet<int> _initialPvpPickupThingIndexes = new();
+    private readonly HashSet<int> _initialPvpDestroyableThingIndexes = new();
+    private string _lastPublishedRemovedPickupThingIndexes = string.Empty;
+    private string _lastAppliedRemovedPickupThingIndexes = string.Empty;
+    private string _lastPublishedDestroyedWorldThingIndexes = string.Empty;
+    private string _lastAppliedDestroyedWorldThingIndexes = string.Empty;
+    private string _lastPublishedPvpSectorState = string.Empty;
+    private string _lastAppliedPvpSectorState = string.Empty;
+    private string _lastPublishedPvpLineState = string.Empty;
+    private string _lastAppliedPvpLineState = string.Empty;
+    private string _lastPublishedPvpProjectileState = string.Empty;
+    private string _lastAppliedPvpProjectileState = string.Empty;
+    private readonly bool[] _weaponEventSnapshotInitialized = new bool[2];
+    private readonly bool[,] _lastPublishedWeaponOwned = new bool[2, (int)ManagedDoom.WeaponType.Count];
+    private readonly int[,] _lastPublishedAmmo = new int[2, (int)ManagedDoom.AmmoType.Count];
+    private readonly ManagedDoom.WeaponType[] _lastPublishedReadyWeapon = new ManagedDoom.WeaponType[2];
+    private readonly ManagedDoom.PlayerState[] _lastPublishedWeaponPlayerState = new ManagedDoom.PlayerState[2];
+    private readonly int[] _lastConsumedWeaponEventSerial = new int[2];
+    private readonly ManagedDoom.WeaponType?[] _pendingLocalWeaponTargets = new ManagedDoom.WeaponType?[2];
+    private readonly int[] _weaponRespawnSettleTics = new int[2];
+    private readonly bool[] _combatEventSnapshotInitialized = new bool[2];
+    private readonly int[] _lastPublishedCombatHealth = new int[2];
+    private readonly int[] _lastPublishedCombatDamageCount = new int[2];
+    private readonly ManagedDoom.PlayerState[] _lastPublishedCombatPlayerState = new ManagedDoom.PlayerState[2];
+    private readonly int[,] _lastPublishedCombatFrags = new int[2, ManagedDoom.Player.MaxPlayerCount];
+    private readonly int[] _lastConsumedCombatEventSerial = new int[2];
+    private readonly List<ManagedDoom.HitscanImpactEvent> _pendingAuthoritativeHitscanEvents = new();
+    private readonly bool[] _pickupPresentationSnapshotInitialized = new bool[2];
+    private readonly int[] _lastPublishedPresentationHealth = new int[2];
+    private readonly int[] _lastPublishedPresentationArmor = new int[2];
+    private readonly int[] _lastPublishedPresentationBonusCount = new int[2];
+    private int _lastConsumedHitscanEventSerial;
+    private int _lastConsumedEffectEventSerial;
+    private readonly Dictionary<ManagedDoom.Sfx, DateTime> _predictedLocalSfxTimes = new();
+    private readonly Dictionary<int, DateTime> _predictedPickupThingTimes = new();
+    private readonly Dictionary<int, int> _predictedBarrelDamageTotals = new();
+    private readonly Dictionary<int, DateTime> _predictedBarrelDamageTimes = new();
+    private readonly Dictionary<int, DateTime> _predictedBarrelExplosionTimes = new();
+    private readonly List<RecentHitscanImpact> _recentLocalHitscanImpacts = new();
+    private readonly Dictionary<ManagedDoom.Mobj, DateTime> _transientPresentationMobjs = new();
+    private DateTime _suppressReplicatedItemPickupSfxUntilUtc = DateTime.MinValue;
+    private int _lastHandledPvpWinnerSerial;
+    private string _activePvpWinnerMessage = string.Empty;
+    private DateTime _activePvpWinnerMessageUntilUtc = DateTime.MinValue;
+    private DateTime _pendingPvpRoundRestartAtUtc = DateTime.MinValue;
+    private string _lastReportedPvpChecksumMismatchSignature = string.Empty;
+    private string _lastReportedJoinedLobbyAnalyticsKey = string.Empty;
+    private readonly ManagedDoom.Mobj[] _lastObservedSharedSimulationPlayerMobjs = new ManagedDoom.Mobj[2];
+    private readonly ManagedDoom.PlayerState[] _lastObservedSharedSimulationPlayerStates = new ManagedDoom.PlayerState[2];
+    private int _lastLoggedSharedSimulationMismatchLevelTime = -1;
+    private readonly Dictionary<int, SharedSimulationTicCommand> _sharedSimulationLocalPvpCommands = new();
+    private bool _sharedSimulationPvpReadyReported;
+    private int _lastHandledSharedSimulationPvpStartSerial;
+    private int _nextSharedSimulationPvpTic;
+    private int _lastQueuedSharedSimulationLocalPvpTic = -1;
+    private int _activeSharedSimulationPvpCommandTic = -1;
+    private readonly LocalPlayerPresentationSnapshot[] _localPlayerPresentationSnapshots =
+    {
+        new(),
+        new()
+    };
 
     protected override void OnStart()
     {
+        SboxManagedDoomMultiplayerPanelService.Reset();
+
         try
         {
             var args = new ManagedDoom.CommandLineArgs( new[] { "-iwad", WadPath } );
@@ -83,6 +268,7 @@
             RegisterPngPatches( content );
 
             _video = new SboxManagedDoomVideo( config, content );
+            _video.OverlayDrawer = DrawDoomPvpScoreboardOverlay;
             _input = new SboxManagedDoomInput( config );
             _sound = CreateSoundAdapter( config, content );
             _music = CreateMusicAdapter( config, content );
@@ -98,6 +284,12 @@
                 _input );
 
             _doom.Options.AnalyticsListener = _analytics;
+            _doom.Options.ShouldSuppressLocalHitscanDamage = ShouldSuppressLocalHitscanDamage;
+            _doom.Options.ShouldSuppressLocalDamageToThing = ShouldSuppressLocalDamageToThing;
+            _doom.Options.ShouldSuppressLocalPickup = ShouldSuppressLocalPickup;
+            _doom.Options.SuppressedLocalPickupPresentationListener = OnSuppressedLocalPickupPresentation;
+            _doom.Options.SuppressedLocalDamagePresentationListener = OnSuppressedLocalDamagePresentation;
+            _doom.Options.HitscanImpactListener = OnHitscanImpact;
 
             _video.Render( _doom, ManagedDoom.Fixed.Zero );
             SyncFrame();
@@ -125,6 +317,34 @@
 
         try
         {
+            var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+
+            if ( session?.PvpLaunchSerial > _multiplayerModeController.HandledPvpLaunchSerial )
+            {
+                TryEnterMultiplayerPvpMatch();
+            }
+            else if ( session?.PvpActive == true
+                && !_multiplayerModeController.PvpMatchLoaded
+                && !_multiplayerModeController.PvpLaunchPending )
+            {
+                TryEnterMultiplayerPvpMatch();
+            }
+
+            ReportMultiplayerAnalytics( session );
+
+            if ( SboxManagedDoomMultiplayerSessionComponent.Current?.MatchStarted != true )
+            {
+                _ignoreStartedMultiplayerMatch = false;
+            }
+
+            if ( SboxManagedDoomMultiplayerSessionComponent.Current?.MatchStarted == true
+                && !_ignoreStartedMultiplayerMatch
+                && SboxManagedDoomMultiplayerPanelService.View != SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.MatchMenu )
+            {
+                SboxManagedDoomMultiplayerPanelService.ShowMatchMenu( SboxManagedDoomMultiplayerModeCatalog.SelectModeStatus );
+                StateHasChanged();
+            }
+
             _tickAccumulator += Time.Delta;
             DispatchKeyEvents();
             PumpBugReportSubmission();
@@ -134,15 +354,83 @@
             UpdateMusic();
 
             var updated = false;
-            while ( _tickAccumulator >= TickStep )
+            if ( !SboxManagedDoomMultiplayerPanelService.IsOpen )
             {
-                _doom.Update();
-                _tickAccumulator -= TickStep;
-                updated = true;
+                while ( _tickAccumulator >= TickStep )
+                {
+                    var activeSession = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+                    if ( UseSharedSimulationPvp( activeSession ) )
+                    {
+                        if ( !EnsureSharedSimulationPvpStartBarrier( activeSession ) )
+                        {
+                            break;
+                        }
+
+                        QueueSharedSimulationPvpLocalCommands( activeSession );
+                        if ( !CanAdvanceSharedSimulationPvpTic( activeSession ) )
+                        {
+                            break;
+                        }
+
+                        _activeSharedSimulationPvpCommandTic = _nextSharedSimulationPvpTic;
+                    }
+                    else if ( activeSession?.PvpActive == true )
+                    {
+                        ApplyOwnedRemotePlayerMovementForHost( activeSession );
+                    }
+
+                    _doom.Update();
+                    if ( _activeSharedSimulationPvpCommandTic >= 0 )
+                    {
+                        TrackSharedSimulationPvpPlayerRespawns();
+                        _nextSharedSimulationPvpTic++;
+                        _activeSharedSimulationPvpCommandTic = -1;
+                        CleanupSharedSimulationPvpLocalCommands();
+                    }
+
+                    _tickAccumulator -= TickStep;
+                    updated = true;
+                }
+            }
+            else
+            {
+                _tickAccumulator = 0;
+                if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.Main
+                    && Networking.IsActive
+                    && ( _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current ) is not null )
+                {
+                    RefreshMultiplayerSessionView();
+                }
+                UpdateMultiplayerRostersFromConnections();
+                StateHasChanged();
             }
 
             if ( updated )
             {
+                UpdatePvpLoadedState();
+
+                if ( (_multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current)?.PvpActive == true )
+                {
+                    var activeSession = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+                    if ( UseSharedSimulationPvp( activeSession ) )
+                    {
+                        PumpSharedSimulationPvpChecksum( activeSession );
+                    }
+                    else
+                    {
+                        PublishOwnedLocalPvpMovementState( activeSession );
+                        PumpAuthoritativePvpState();
+                        PumpAuthoritativePvpHitscanEvents();
+                        PumpAuthoritativePvpProjectileState();
+                        PumpAuthoritativePvpPickupState();
+                        PumpAuthoritativePvpDestroyedWorldThingState();
+                        PumpAuthoritativePvpWorldState();
+                        UpdatePvpRoundWinState( activeSession );
+                    }
+                }
+
+                CleanupExpiredPredictionState();
+                CleanupExpiredTransientPresentationMobjs();
                 _video.Render( _doom, ManagedDoom.Fixed.Zero );
                 SyncFrame();
                 StateHasChanged();
@@ -150,6 +438,7 @@
 
             CaptureLeaderboardSessionState();
             PumpLeaderboardStatsSubmission();
+            _analytics?.PumpSessionHeartbeat( BuildSessionStartMap(), _doom.State.ToString() );
         }
         catch ( Exception ex )
         {
@@ -160,6 +449,8 @@
 
     protected override void OnDestroy()
     {
+        SboxManagedDoomMultiplayerPanelService.Reset();
+
         try
         {
             CaptureLeaderboardSessionState();
@@ -183,6 +474,23 @@
         }
         catch
         {
+        }
+
+        CleanupTransientPresentationMobjs( force: true );
+        DestroyMultiplayerSessionObject();
+        if ( _video is not null )
+        {
+            _video.OverlayDrawer = null;
+        }
+
+        if ( _doom?.Options is not null )
+        {
+            _doom.Options.ShouldSuppressLocalHitscanDamage = null;
+            _doom.Options.ShouldSuppressLocalDamageToThing = null;
+            _doom.Options.ShouldSuppressLocalPickup = null;
+            _doom.Options.SuppressedLocalPickupPresentationListener = null;
+            _doom.Options.SuppressedLocalDamagePresentationListener = null;
+            _doom.Options.HitscanImpactListener = null;
         }
     }
 
@@ -514,6 +822,11 @@
 
     private void DispatchKeyEvents()
     {
+        if ( SboxManagedDoomMultiplayerPanelService.IsOpen )
+        {
+            return;
+        }
+
         PostLetterKeys();
         PostNumberKeys();
         PostPunctuationKeys();
@@ -699,4 +1012,4219 @@
             Log.Warning( $"[ManagedDoomHost] Failed to load custom patch {name}: {ex}" );
         }
     }
+
+    private void ShowHostMultiplayerInfo()
+    {
+        Log.Info( "[MP-UI] ShowHostMultiplayerInfo clicked" );
+        SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo );
+        StateHasChanged();
+    }
+
+    private void ShowJoinMultiplayerInfo()
+    {
+        Log.Info( "[MP-UI] ShowJoinMultiplayerInfo clicked" );
+        RefreshMultiplayerSessionView();
+    }
+
+    private void ShowRefreshMultiplayerInfo()
+    {
+        Log.Info( "[MP-UI] ShowRefreshMultiplayerInfo clicked" );
+        SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.JoinInfo );
+        StateHasChanged();
+    }
+
+    private void BackToMultiplayerMain()
+    {
+        Log.Info( "[MP-UI] BackToMultiplayerMain clicked" );
+
+        if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo
+            && Networking.IsHost
+            && Networking.IsActive )
+        {
+            try
+            {
+                Networking.Disconnect();
+            }
+            catch ( Exception ex )
+            {
+                Log.Warning( $"[ManagedDoomHost] Failed to close hosted lobby on back: {ex}" );
+            }
+
+            DestroyMultiplayerSessionObject();
+        }
+
+        if ( Networking.IsActive && ( _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current ) is not null )
+        {
+            RefreshMultiplayerSessionView();
+            return;
+        }
+
+        SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.Main );
+        StateHasChanged();
+    }
+
+    private void CloseMultiplayerOverlay()
+    {
+        Log.Info( "[MP-UI] CloseMultiplayerOverlay clicked" );
+        SboxManagedDoomMultiplayerPanelService.Close();
+        StateHasChanged();
+    }
+
+    private async Task StartHostingAsync()
+    {
+        Log.Info( "[MP-UI] StartHostingAsync clicked" );
+
+        try
+        {
+            var hostName = GetLeaderboardDisplayName();
+            await BootstrapHostedMultiplayerSessionAsync( hostName );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Failed to create multiplayer lobby: {ex}" );
+            SboxManagedDoomMultiplayerPanelService.SetHostStatus( "FAILED TO CREATE LOBBY." );
+            StateHasChanged();
+        }
+    }
+
+    private async System.Threading.Tasks.Task BootstrapHostedMultiplayerSessionAsync( string hostName )
+    {
+        EnsureMultiplayerLobbyListener();
+        SboxManagedDoomMultiplayerPanelService.BeginHosting( hostName );
+        StateHasChanged();
+
+        await EnsureHostedLobbyTransportAsync( hostName );
+        EnsureMultiplayerSessionBootstrap( hostName );
+        _multiplayerSession?.MarkPlayerActiveRpc( hostName );
+        PublishHostedLobbyDiscoveryState();
+        _analytics?.OnHostedLobbyStarted( _multiplayerSession?.LobbyName ?? $"{hostName}'s server" );
+
+        SboxManagedDoomMultiplayerPanelService.SetHostStatus( "LOBBY ACTIVE. WAITING FOR PLAYERS TO JOIN." );
+        UpdateMultiplayerRostersFromConnections();
+        StateHasChanged();
+    }
+
+    private static async System.Threading.Tasks.Task EnsureHostedLobbyTransportAsync( string hostName )
+    {
+        if ( Networking.IsActive )
+        {
+            return;
+        }
+
+        await System.Threading.Tasks.Task.Delay( 100 );
+        Networking.CreateLobby( new Sandbox.Network.LobbyConfig
+        {
+            Name = $"{hostName}'s server",
+            Privacy = Sandbox.Network.LobbyPrivacy.Public,
+            MaxPlayers = 2
+        } );
+    }
+
+    private void EnsureMultiplayerLobbyListener()
+    {
+        if ( _multiplayerLobbyListener is not null )
+        {
+            return;
+        }
+
+        _multiplayerLobbyListener = GameObject.AddComponent<SboxManagedDoomMultiplayerLobbyListener>();
+    }
+
+    private void EnsureMultiplayerSessionBootstrap( string hostName )
+    {
+        if ( _multiplayerSession is not null )
+        {
+            _multiplayerSession.LobbyName = $"{hostName}'s server";
+            return;
+        }
+
+        var sessionObject = new global::Sandbox.GameObject();
+        sessionObject.NetworkMode = global::Sandbox.NetworkMode.Object;
+        _multiplayerSessionObject = sessionObject;
+        _multiplayerSession = sessionObject.AddComponent<SboxManagedDoomMultiplayerSessionComponent>();
+        _multiplayerSession.LobbyName = $"{hostName}'s server";
+        sessionObject.NetworkSpawn();
+    }
+
+    private void DestroyMultiplayerSessionObject()
+    {
+        try
+        {
+            _multiplayerSessionObject?.Destroy();
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Failed to destroy multiplayer session object: {ex}" );
+        }
+
+        _multiplayerSessionObject = null;
+        _multiplayerSession = null;
+    }
+
+    private void PublishHostedLobbyDiscoveryState()
+    {
+        if ( !Networking.IsHost )
+        {
+            return;
+        }
+
+        try
+        {
+            var lobbyName = _multiplayerSession?.LobbyName;
+            Networking.SetData( LobbyDataStartedKey, _multiplayerSession?.PvpActive == true ? "1" : "0" );
+            Networking.SetData(
+                LobbyDataNameKey,
+                string.IsNullOrWhiteSpace( lobbyName ) ? "DOOM PORT" : lobbyName.Trim() );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[ManagedDoomHost] Failed to publish lobby discovery state: {ex}" );
+        }
+    }
+
+    private void RefreshMultiplayerSessionView()
+    {
+        Log.Info( "[MP-UI] RefreshMultiplayerSessionView clicked" );
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( Networking.IsActive && session is not null )
+        {
+            var roster = BuildConnectedPlayerRoster();
+            if ( roster.Count == 0 )
+            {
+                roster.Add( GetLeaderboardDisplayName() );
+            }
+
+            if ( session.MatchStarted )
+            {
+                SboxManagedDoomMultiplayerPanelService.ShowMatchMenu( session.PvpActive
+                    ? $"MATCH ACTIVE ON {session.LobbyName.ToUpperInvariant()}"
+                    : $"CONNECTED TO {session.LobbyName.ToUpperInvariant()}" );
+                StateHasChanged();
+                return;
+            }
+
+            if ( Networking.IsHost )
+            {
+                SboxManagedDoomMultiplayerPanelService.SetHostedPlayers( roster );
+                SboxManagedDoomMultiplayerPanelService.SetHostStatus( roster.Count > 1
+                    ? "PLAYERS CONNECTED. START WHEN READY."
+                    : "SESSION ACTIVE. WAITING FOR PLAYERS." );
+                SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo );
+            }
+            else
+            {
+                session.MarkPlayerActiveRpc( GetLeaderboardDisplayName() );
+                SboxManagedDoomMultiplayerPanelService.ShowJoinedLobby( session.LobbyName, roster );
+            }
+
+            StateHasChanged();
+            return;
+        }
+
+        SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.JoinInfo );
+        SboxManagedDoomMultiplayerPanelService.SetJoinStatus( "USE S&BOX TO JOIN OR CREATE A MULTIPLAYER SESSION." );
+        StateHasChanged();
+    }
+
+    private void ReportMultiplayerAnalytics( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( _analytics is null )
+        {
+            return;
+        }
+
+        if ( !Networking.IsActive || session is null )
+        {
+            _lastReportedJoinedLobbyAnalyticsKey = string.Empty;
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            return;
+        }
+
+        var lobbyName = string.IsNullOrWhiteSpace( session.LobbyName ) ? "CONNECTED GAME" : session.LobbyName.Trim();
+        if ( string.Equals( _lastReportedJoinedLobbyAnalyticsKey, lobbyName, StringComparison.Ordinal ) )
+        {
+            return;
+        }
+
+        _lastReportedJoinedLobbyAnalyticsKey = lobbyName;
+        _analytics.OnJoinedHostedLobby( lobbyName, session.LobbyName );
+    }
+
+    private void UpdateMultiplayerRostersFromConnections()
+    {
+        if ( !SboxManagedDoomMultiplayerPanelService.IsOpen || !Networking.IsActive )
+        {
+            return;
+        }
+
+        var roster = BuildConnectedPlayerRoster();
+        if ( roster.Count == 0 )
+        {
+            return;
+        }
+
+        if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.JoinLobby )
+        {
+            SboxManagedDoomMultiplayerPanelService.SetJoinedPlayers( roster );
+        }
+        else if ( SboxManagedDoomMultiplayerPanelService.View == SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.MatchMenu )
+        {
+            if ( roster.Count <= 1 )
+            {
+                if ( Networking.IsHost )
+                {
+                    SboxManagedDoomMultiplayerPanelService.SetHostStatus( "LOBBY ACTIVE. WAITING FOR PLAYERS TO JOIN." );
+                    SboxManagedDoomMultiplayerPanelService.SetHostedPlayers( roster );
+                    SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo );
+                }
+                else
+                {
+                    SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.Main );
+                }
+            }
+        }
+    }
+
+    private List<string> BuildConnectedPlayerRoster()
+    {
+        var roster = new List<string>();
+        var localName = GetLeaderboardDisplayName();
+        if ( _multiplayerSession?.IsPlayerInactive( localName ) != true )
+        {
+            AddUniquePlayerName( roster, localName );
+        }
+
+        foreach ( var connection in Sandbox.Connection.All )
+        {
+            if ( _multiplayerSession?.IsPlayerInactive( connection.DisplayName ) == true )
+            {
+                continue;
+            }
+
+            AddUniquePlayerName( roster, connection.DisplayName );
+        }
+
+        return roster;
+    }
+
+    private static void AddUniquePlayerName( List<string> roster, string playerName )
+    {
+        if ( string.IsNullOrWhiteSpace( playerName ) )
+        {
+            return;
+        }
+
+        var trimmed = playerName.Trim();
+        if ( !roster.Contains( trimmed ) )
+        {
+            roster.Add( trimmed );
+        }
+    }
+
+    private static string GetLobbyCountLabel( int playerCount )
+    {
+        return playerCount == 1 ? "1 PLAYER" : $"{playerCount} PLAYERS";
+    }
+
+    private bool ShouldShowPvpScoreboard()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        return session?.PvpActive == true
+            && _multiplayerModeController.PvpMatchLoaded
+            && _doom?.Options?.Players is not null
+            && !SboxManagedDoomMultiplayerPanelService.IsOpen;
+    }
+
+    private void DrawDoomPvpScoreboardOverlay( ManagedDoom.Doom doom, ManagedDoom.Video.DrawScreen screen )
+    {
+        if ( !ShouldShowPvpScoreboard() )
+        {
+            return;
+        }
+
+        var entries = GetPvpScoreboardEntries();
+        if ( entries.Count == 0 )
+        {
+            return;
+        }
+
+        var scale = Math.Max( 1, screen.Width / 640 );
+        var rowScale = scale;
+        var margin = 4 * scale;
+        var innerPadding = 3 * scale;
+        var rowGap = scale;
+        var subtitle = "GET 10 KILLS TO WIN";
+        var subtitleHeight = 8 * rowScale;
+        var rowHeight = 8 * rowScale;
+
+        var nameWidth = 0;
+        var killWidth = 0;
+        foreach ( var entry in entries )
+        {
+            var displayName = GetDoomScoreboardDisplayName( entry.Name );
+            nameWidth = Math.Max( nameWidth, screen.MeasureText( displayName, rowScale ) );
+            killWidth = Math.Max( killWidth, screen.MeasureText( entry.Kills.ToString(), rowScale ) );
+        }
+
+        killWidth = Math.Max( killWidth, screen.MeasureText( "00", rowScale ) );
+
+        var panelWidth = Math.Max(
+            screen.MeasureText( subtitle, rowScale ),
+            nameWidth + ( 4 * scale ) + killWidth ) + ( 2 * innerPadding );
+        var panelHeight = ( 2 * innerPadding )
+            + subtitleHeight
+            + scale
+            + ( entries.Count * rowHeight )
+            + Math.Max( 0, entries.Count - 1 ) * rowGap;
+        var panelX = Math.Max( margin, screen.Width - panelWidth - margin );
+        var panelY = margin;
+
+        screen.FillRect( panelX, panelY, panelWidth, panelHeight, 0 );
+
+        var textX = panelX + innerPadding;
+        var textY = panelY + innerPadding + ( 7 * rowScale );
+        screen.DrawText( subtitle, textX, textY, rowScale );
+
+        textY += subtitleHeight + scale;
+        foreach ( var entry in entries )
+        {
+            var displayName = GetDoomScoreboardDisplayName( entry.Name );
+            var killsText = entry.Kills.ToString();
+            var killX = panelX + panelWidth - innerPadding - screen.MeasureText( killsText, rowScale );
+
+            screen.DrawText( displayName, textX, textY, rowScale );
+            screen.DrawText( killsText, killX, textY, rowScale );
+            textY += rowHeight + rowGap;
+        }
+
+        DrawPvpWinnerOverlay( screen );
+    }
+
+    private void DrawPvpWinnerOverlay( ManagedDoom.Video.DrawScreen screen )
+    {
+        if ( string.IsNullOrWhiteSpace( _activePvpWinnerMessage )
+            || DateTime.UtcNow >= _activePvpWinnerMessageUntilUtc )
+        {
+            return;
+        }
+
+        var scale = Math.Max( 2, screen.Width / 320 );
+        var text = _activePvpWinnerMessage.ToUpperInvariant();
+        var textWidth = screen.MeasureText( text, scale );
+        var x = Math.Max( 0, ( screen.Width - textWidth ) / 2 );
+        var y = Math.Max( 16 * scale, ( screen.Height / 2 ) - ( 4 * scale ) );
+        screen.DrawText( text, x, y, scale );
+    }
+
+    private List<PvpScoreboardEntry> GetPvpScoreboardEntries()
+    {
+        var entries = new List<PvpScoreboardEntry>();
+        if ( _doom?.Options?.Players is null )
+        {
+            return entries;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        var consolePlayer = _doom.Options.ConsolePlayer;
+        var roster = BuildConnectedPlayerRoster();
+        for ( var playerIndex = 0; playerIndex < ManagedDoom.Player.MaxPlayerCount && playerIndex < _doom.Options.Players.Length; playerIndex++ )
+        {
+            var player = _doom.Options.Players[playerIndex];
+            if ( player?.InGame != true )
+            {
+                continue;
+            }
+
+            entries.Add( new PvpScoreboardEntry
+            {
+                Name = ResolvePvpScoreboardPlayerName( roster, playerIndex ),
+                Kills = ResolvePvpScoreboardKills( session, player, playerIndex ),
+                IsLocal = playerIndex == consolePlayer
+            } );
+        }
+
+        entries.Sort( ComparePvpScoreboardEntries );
+        return entries;
+    }
+
+    private string ResolvePvpScoreboardPlayerName( List<string> roster, int playerIndex )
+    {
+        if ( roster is not null && playerIndex >= 0 && playerIndex < roster.Count )
+        {
+            return roster[playerIndex];
+        }
+
+        return $"PLAYER {playerIndex + 1}";
+    }
+
+    private static string GetDoomScoreboardDisplayName( string name )
+    {
+        if ( string.IsNullOrWhiteSpace( name ) )
+        {
+            return "PLAYER";
+        }
+
+        return name.Trim().ToUpperInvariant();
+    }
+
+    private static int ResolvePvpScoreboardKills( SboxManagedDoomMultiplayerSessionComponent session, ManagedDoom.Player player, int playerIndex )
+    {
+        if ( player is null || playerIndex < 0 || playerIndex >= ManagedDoom.Player.MaxPlayerCount )
+        {
+            return 0;
+        }
+
+        var frags = ResolveAuthoritativePvpFrags( session, player, playerIndex );
+        var kills = 0;
+        for ( var fragIndex = 0; fragIndex < ManagedDoom.Player.MaxPlayerCount; fragIndex++ )
+        {
+            if ( fragIndex == playerIndex )
+            {
+                kills -= frags[fragIndex];
+            }
+            else
+            {
+                kills += frags[fragIndex];
+            }
+        }
+
+        return kills;
+    }
+
+    private static int[] ResolveAuthoritativePvpFrags( SboxManagedDoomMultiplayerSessionComponent session, ManagedDoom.Player player, int playerIndex )
+    {
+        if ( session?.PvpActive != true )
+        {
+            return player.Frags;
+        }
+
+        return playerIndex == 0
+            ? new[]
+            {
+                session.Player0StateFrag0,
+                session.Player0StateFrag1,
+                session.Player0StateFrag2,
+                session.Player0StateFrag3
+            }
+            : new[]
+            {
+                session.Player1StateFrag0,
+                session.Player1StateFrag1,
+                session.Player1StateFrag2,
+                session.Player1StateFrag3
+            };
+    }
+
+    private static int ComparePvpScoreboardEntries( PvpScoreboardEntry left, PvpScoreboardEntry right )
+    {
+        var result = right.Kills.CompareTo( left.Kills );
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        return string.Compare( left.Name, right.Name, StringComparison.OrdinalIgnoreCase );
+    }
+
+    private void StartHostedMatch()
+    {
+        if ( _multiplayerSession is null )
+        {
+            EnsureMultiplayerSessionBootstrap( GetLeaderboardDisplayName() );
+        }
+
+        if ( _multiplayerSession is null )
+        {
+            return;
+        }
+
+        Log.Info( "[MP-UI] StartHostedMatch clicked" );
+        _multiplayerModeController.ShowModeMenu();
+        SboxManagedDoomMultiplayerPanelService.SetHostStatus( "SELECT A MODE TO START." );
+        SboxManagedDoomMultiplayerPanelService.ShowMatchMenu( SboxManagedDoomMultiplayerModeCatalog.SelectModeStatus );
+        StateHasChanged();
+    }
+
+    private void ShowMultiplayerPvpMode()
+    {
+        if ( _multiplayerSession is null )
+        {
+            return;
+        }
+
+        _multiplayerModeController.SelectPvpMode();
+        _multiplayerSession.StartPvpRpc( SboxManagedDoomMultiplayerModeCatalog.DefaultPvpMapName );
+        PublishHostedLobbyDiscoveryState();
+        TryEnterMultiplayerPvpMatch();
+        StateHasChanged();
+    }
+
+    private void ShowMultiplayerCoopMode()
+    {
+        _multiplayerModeController.SelectCoopMode();
+        SboxManagedDoomMultiplayerPanelService.SetMatchStatus( SboxManagedDoomMultiplayerModeCatalog.CoopPendingStatus );
+        StateHasChanged();
+    }
+
+    private void ReturnMultiplayerGroupToLobby()
+    {
+        _ignoreStartedMultiplayerMatch = true;
+
+        if ( _multiplayerSession is not null )
+        {
+            _multiplayerSession.StopPvpRpc();
+            _multiplayerSession.CloseMatchMenuRpc();
+            _multiplayerSession.MatchStarted = false;
+        }
+        PublishHostedLobbyDiscoveryState();
+
+        ResetMultiplayerGameplayOverrides();
+
+        if ( Networking.IsHost )
+        {
+            SboxManagedDoomMultiplayerPanelService.SetHostStatus( "LOBBY ACTIVE. WAITING FOR PLAYERS TO JOIN." );
+            UpdateMultiplayerRostersFromConnections();
+            SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo );
+        }
+        else
+        {
+            SboxManagedDoomMultiplayerPanelService.ShowJoinedLobby( "CONNECTED GAME", BuildConnectedPlayerRoster() );
+        }
+
+        StateHasChanged();
+    }
+
+    private void LeaveMultiplayerMatch()
+    {
+        _ignoreStartedMultiplayerMatch = true;
+
+        _multiplayerSession?.StopPvpRpc();
+        PublishHostedLobbyDiscoveryState();
+        ResetMultiplayerGameplayOverrides();
+
+        if ( Networking.IsHost )
+        {
+            _multiplayerSession?.CloseMatchMenuRpc();
+            if ( _multiplayerSession is not null )
+            {
+                _multiplayerSession.MatchStarted = false;
+                _multiplayerSession.MarkPlayerActiveRpc( GetLeaderboardDisplayName() );
+            }
+            PublishHostedLobbyDiscoveryState();
+            SboxManagedDoomMultiplayerPanelService.SetHostStatus( "LOBBY ACTIVE. WAITING FOR PLAYERS TO JOIN." );
+            UpdateMultiplayerRostersFromConnections();
+            SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo );
+        }
+        else
+        {
+            if ( _multiplayerSession is not null )
+            {
+                _multiplayerSession.MarkPlayerInactiveRpc( GetLeaderboardDisplayName() );
+            }
+
+            SboxManagedDoomMultiplayerPanelService.ShowJoinedLobby( "CONNECTED GAME", BuildConnectedPlayerRoster() );
+        }
+        StateHasChanged();
+    }
+
+    private void TryEnterMultiplayerPvpMatch()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( !_multiplayerModeController.TryCreatePvpLaunchPlan( _doom, _input, session, Networking.IsHost, out var launchPlan ) )
+        {
+            return;
+        }
+
+        Log.Info( $"[MP-PVP] Entering multiplayer PVP launch for map {launchPlan.MapName} as host={Networking.IsHost}, currentState={_doom.State}, currentGameState={_doom.Game?.State}" );
+
+        var options = _doom.Options;
+        _multiplayerModeController.ApplyPvpGameplayOverrides( options );
+        options.NetGame = true;
+        options.Deathmatch = 1;
+        options.NoMonsters = true;
+        options.FastMonsters = false;
+        options.RespawnMonsters = false;
+        options.ConsolePlayer = launchPlan.ConsolePlayer;
+
+        for ( var i = 0; i < ManagedDoom.Player.MaxPlayerCount; i++ )
+        {
+            options.Players[i].InGame = i < 2;
+        }
+
+        _doom.ExternalTicCmdBuilder = BuildMultiplayerPvpCommands;
+        _doom.Menu.Close();
+
+        SboxManagedDoomMultiplayerPanelService.Close();
+        _tickAccumulator = 0;
+        _ignoreStartedMultiplayerMatch = true;
+        _multiplayerModeController.BeginPvpLaunch( session, launchPlan.MapName );
+
+        Log.Info( $"[MP-UI] Launching shared PVP map {launchPlan.MapName} as player slot {options.ConsolePlayer}." );
+        _doom.NewGame( options.Skill, launchPlan.Episode, launchPlan.Map );
+        Log.Info( $"[MP-PVP] _doom.NewGame completed for map {launchPlan.MapName}. host={Networking.IsHost}, newState={_doom.State}, newGameState={_doom.Game?.State}" );
+        StateHasChanged();
+    }
+
+    private void UpdatePvpLoadedState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session?.PvpActive != true )
+        {
+            ResetMultiplayerGameplayOverrides();
+            return;
+        }
+
+        _multiplayerModeController.UpdatePvpLoadedState( _doom, session, EnsurePvpPickupTrackingInitialized );
+    }
+
+    private void ResetMultiplayerGameplayOverrides()
+    {
+        CleanupTransientPresentationMobjs( force: true );
+        _multiplayerModeController.ResetRuntimeState();
+        _lastPublishedRemovedPickupThingIndexes = string.Empty;
+        _lastAppliedRemovedPickupThingIndexes = string.Empty;
+        _lastPublishedDestroyedWorldThingIndexes = string.Empty;
+        _lastAppliedDestroyedWorldThingIndexes = string.Empty;
+        _lastPublishedPvpSectorState = string.Empty;
+        _lastAppliedPvpSectorState = string.Empty;
+        _lastPublishedPvpLineState = string.Empty;
+        _lastAppliedPvpLineState = string.Empty;
+        _lastPublishedPvpProjectileState = string.Empty;
+        _lastAppliedPvpProjectileState = string.Empty;
+        _initialPvpPickupThingIndexes.Clear();
+        _initialPvpDestroyableThingIndexes.Clear();
+        _pvpMapThingIndexes.Clear();
+        Array.Clear( _weaponEventSnapshotInitialized, 0, _weaponEventSnapshotInitialized.Length );
+        Array.Clear( _lastPublishedWeaponOwned, 0, _lastPublishedWeaponOwned.Length );
+        Array.Clear( _lastPublishedAmmo, 0, _lastPublishedAmmo.Length );
+        Array.Clear( _lastPublishedReadyWeapon, 0, _lastPublishedReadyWeapon.Length );
+        Array.Clear( _lastPublishedWeaponPlayerState, 0, _lastPublishedWeaponPlayerState.Length );
+        Array.Clear( _lastConsumedWeaponEventSerial, 0, _lastConsumedWeaponEventSerial.Length );
+        Array.Clear( _pendingLocalWeaponTargets, 0, _pendingLocalWeaponTargets.Length );
+        Array.Clear( _weaponRespawnSettleTics, 0, _weaponRespawnSettleTics.Length );
+        Array.Clear( _combatEventSnapshotInitialized, 0, _combatEventSnapshotInitialized.Length );
+        Array.Clear( _lastPublishedCombatHealth, 0, _lastPublishedCombatHealth.Length );
+        Array.Clear( _lastPublishedCombatDamageCount, 0, _lastPublishedCombatDamageCount.Length );
+        Array.Clear( _lastPublishedCombatPlayerState, 0, _lastPublishedCombatPlayerState.Length );
+        Array.Clear( _lastPublishedCombatFrags, 0, _lastPublishedCombatFrags.Length );
+        Array.Clear( _lastConsumedCombatEventSerial, 0, _lastConsumedCombatEventSerial.Length );
+        Array.Clear( _pickupPresentationSnapshotInitialized, 0, _pickupPresentationSnapshotInitialized.Length );
+        Array.Clear( _lastPublishedPresentationHealth, 0, _lastPublishedPresentationHealth.Length );
+        Array.Clear( _lastPublishedPresentationArmor, 0, _lastPublishedPresentationArmor.Length );
+        Array.Clear( _lastPublishedPresentationBonusCount, 0, _lastPublishedPresentationBonusCount.Length );
+        _pendingAuthoritativeHitscanEvents.Clear();
+        _lastConsumedHitscanEventSerial = 0;
+        _lastConsumedEffectEventSerial = 0;
+        _predictedLocalSfxTimes.Clear();
+        _predictedPickupThingTimes.Clear();
+        _predictedBarrelDamageTotals.Clear();
+        _predictedBarrelDamageTimes.Clear();
+        _predictedBarrelExplosionTimes.Clear();
+        _recentLocalHitscanImpacts.Clear();
+        _activePvpWinnerMessage = string.Empty;
+        _activePvpWinnerMessageUntilUtc = DateTime.MinValue;
+        _pendingPvpRoundRestartAtUtc = DateTime.MinValue;
+        _lastHandledPvpWinnerSerial = 0;
+        _lastReportedPvpChecksumMismatchSignature = string.Empty;
+        Array.Clear( _lastObservedSharedSimulationPlayerMobjs, 0, _lastObservedSharedSimulationPlayerMobjs.Length );
+        Array.Clear( _lastObservedSharedSimulationPlayerStates, 0, _lastObservedSharedSimulationPlayerStates.Length );
+        _sharedSimulationLocalPvpCommands.Clear();
+        _sharedSimulationPvpReadyReported = false;
+        _lastHandledSharedSimulationPvpStartSerial = 0;
+        _nextSharedSimulationPvpTic = 0;
+        _lastQueuedSharedSimulationLocalPvpTic = -1;
+        _activeSharedSimulationPvpCommandTic = -1;
+        _multiplayerModeController.RestoreGameplayOverrides( _doom );
+    }
+
+    private void EnsurePvpPickupTrackingInitialized()
+    {
+        if ( _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        if ( _pvpMapThingIndexes.Count == 0 )
+        {
+            var things = _doom.Game.World.Map.Things;
+            for ( var i = 0; i < things.Length; i++ )
+            {
+                var thing = things[i];
+                if ( thing is not null && !_pvpMapThingIndexes.ContainsKey( thing ) )
+                {
+                    _pvpMapThingIndexes.Add( thing, i );
+                }
+            }
+        }
+
+        if ( _initialPvpPickupThingIndexes.Count == 0 )
+        {
+            foreach ( var thinker in _doom.Game.World.Thinkers )
+            {
+                if ( thinker is ManagedDoom.Mobj mobj
+                    && mobj.SpawnPoint is not null
+                    && ( mobj.Flags & ManagedDoom.MobjFlags.Special ) != 0
+                    && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var mapThingIndex ) )
+                {
+                    _initialPvpPickupThingIndexes.Add( mapThingIndex );
+                }
+            }
+        }
+
+        if ( _initialPvpDestroyableThingIndexes.Count == 0 )
+        {
+            foreach ( var thinker in _doom.Game.World.Thinkers )
+            {
+                if ( thinker is ManagedDoom.Mobj mobj
+                    && mobj.SpawnPoint is not null
+                    && mobj.Type == ManagedDoom.MobjType.Barrel
+                    && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var mapThingIndex ) )
+                {
+                    _initialPvpDestroyableThingIndexes.Add( mapThingIndex );
+                }
+            }
+        }
+    }
+
+    private void PumpAuthoritativePvpPickupState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _doom?.Game?.World is null || !_multiplayerModeController.PvpMatchLoaded )
+        {
+            return;
+        }
+
+        EnsurePvpPickupTrackingInitialized();
+        if ( _initialPvpPickupThingIndexes.Count == 0 )
+        {
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            var activePickupThingIndexes = new HashSet<int>();
+            foreach ( var thinker in _doom.Game.World.Thinkers )
+            {
+                if ( thinker is ManagedDoom.Mobj mobj
+                    && mobj.SpawnPoint is not null
+                    && ( mobj.Flags & ManagedDoom.MobjFlags.Special ) != 0
+                    && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var mapThingIndex ) )
+                {
+                    activePickupThingIndexes.Add( mapThingIndex );
+                }
+            }
+
+            var removedIndexes = new List<int>();
+            foreach ( var initialIndex in _initialPvpPickupThingIndexes )
+            {
+                if ( !activePickupThingIndexes.Contains( initialIndex ) )
+                {
+                    removedIndexes.Add( initialIndex );
+                }
+            }
+
+            removedIndexes.Sort();
+            var removedIndexesValue = removedIndexes.Count == 0
+                ? string.Empty
+                : string.Join( ",", removedIndexes );
+
+            if ( !string.Equals( session.RemovedPickupThingIndexes, removedIndexesValue, StringComparison.Ordinal ) )
+            {
+                session.RemovedPickupThingIndexes = removedIndexesValue;
+            }
+
+            _lastPublishedRemovedPickupThingIndexes = removedIndexesValue;
+            return;
+        }
+
+        var removedPickupThingIndexes = session.RemovedPickupThingIndexes ?? string.Empty;
+        if ( string.Equals( _lastAppliedRemovedPickupThingIndexes, removedPickupThingIndexes, StringComparison.Ordinal ) )
+        {
+            return;
+        }
+
+        var removedIndexSet = ParseThingIndexSet( removedPickupThingIndexes );
+        foreach ( var removedIndex in removedIndexSet )
+        {
+            _predictedPickupThingTimes.Remove( removedIndex );
+        }
+
+        var toRemove = new List<ManagedDoom.Mobj>();
+        foreach ( var thinker in _doom.Game.World.Thinkers )
+        {
+            if ( thinker is ManagedDoom.Mobj mobj
+                && mobj.SpawnPoint is not null
+                && ( mobj.Flags & ManagedDoom.MobjFlags.Special ) != 0
+                && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var mapThingIndex )
+                && removedIndexSet.Contains( mapThingIndex ) )
+            {
+                toRemove.Add( mobj );
+            }
+        }
+
+        for ( var i = 0; i < toRemove.Count; i++ )
+        {
+            _doom.Game.World.ThingAllocation.RemoveMobj( toRemove[i] );
+        }
+
+        _lastAppliedRemovedPickupThingIndexes = removedPickupThingIndexes;
+    }
+
+    private void PumpAuthoritativePvpDestroyedWorldThingState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _doom?.Game?.World is null || !_multiplayerModeController.PvpMatchLoaded )
+        {
+            return;
+        }
+
+        EnsurePvpPickupTrackingInitialized();
+        if ( _initialPvpDestroyableThingIndexes.Count == 0 )
+        {
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            var activeDestroyableThingIndexes = new HashSet<int>();
+            foreach ( var thinker in _doom.Game.World.Thinkers )
+            {
+                if ( thinker is ManagedDoom.Mobj mobj
+                    && mobj.SpawnPoint is not null
+                    && mobj.Type == ManagedDoom.MobjType.Barrel
+                    && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var mapThingIndex ) )
+                {
+                    activeDestroyableThingIndexes.Add( mapThingIndex );
+                }
+            }
+
+            var destroyedIndexes = new List<int>();
+            foreach ( var initialIndex in _initialPvpDestroyableThingIndexes )
+            {
+                if ( !activeDestroyableThingIndexes.Contains( initialIndex ) )
+                {
+                    destroyedIndexes.Add( initialIndex );
+                }
+            }
+
+            destroyedIndexes.Sort();
+            var destroyedIndexesValue = destroyedIndexes.Count == 0
+                ? string.Empty
+                : string.Join( ",", destroyedIndexes );
+
+            var previouslyDestroyedIndexes = ParseThingIndexSet( _lastPublishedDestroyedWorldThingIndexes );
+            for ( var i = 0; i < destroyedIndexes.Count; i++ )
+            {
+                var destroyedIndex = destroyedIndexes[i];
+                if ( !previouslyDestroyedIndexes.Contains( destroyedIndex ) )
+                {
+                    session.QueueEffectEvent(
+                        SboxManagedDoomMultiplayerSessionComponent.MultiplayerEffectEventType.BarrelExploded,
+                        destroyedIndex,
+                        0 );
+                }
+            }
+
+            if ( !string.Equals( session.DestroyedWorldThingIndexes, destroyedIndexesValue, StringComparison.Ordinal ) )
+            {
+                session.DestroyedWorldThingIndexes = destroyedIndexesValue;
+            }
+
+            _lastPublishedDestroyedWorldThingIndexes = destroyedIndexesValue;
+            return;
+        }
+
+        var destroyedWorldThingIndexes = session.DestroyedWorldThingIndexes ?? string.Empty;
+        if ( string.Equals( _lastAppliedDestroyedWorldThingIndexes, destroyedWorldThingIndexes, StringComparison.Ordinal ) )
+        {
+            return;
+        }
+
+        var destroyedIndexSet = ParseThingIndexSet( destroyedWorldThingIndexes );
+
+        var toRemove = new List<ManagedDoom.Mobj>();
+        foreach ( var thinker in _doom.Game.World.Thinkers )
+        {
+            if ( thinker is ManagedDoom.Mobj mobj
+                && mobj.SpawnPoint is not null
+                && mobj.Type == ManagedDoom.MobjType.Barrel
+                && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var mapThingIndex )
+                && destroyedIndexSet.Contains( mapThingIndex ) )
+            {
+                toRemove.Add( mobj );
+            }
+        }
+
+        for ( var i = 0; i < toRemove.Count; i++ )
+        {
+            PlayReplicatedBarrelExplosion( toRemove[i] );
+        }
+
+        _lastAppliedDestroyedWorldThingIndexes = destroyedWorldThingIndexes;
+    }
+
+    private void PumpAuthoritativePvpWorldState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _doom?.Game?.World is null || !_multiplayerModeController.PvpMatchLoaded )
+        {
+            return;
+        }
+
+        var world = _doom.Game.World;
+
+        if ( Networking.IsHost )
+        {
+            var sectorParts = new List<string>( world.Map.Sectors.Length );
+            foreach ( var sector in world.Map.Sectors )
+            {
+                sectorParts.Add( $"{sector.Number}:{sector.FloorHeight.Data}:{sector.CeilingHeight.Data}" );
+            }
+
+            var sectorState = string.Join( ";", sectorParts );
+            if ( !string.Equals( session.PvpSectorState, sectorState, StringComparison.Ordinal ) )
+            {
+                session.PvpSectorState = sectorState;
+            }
+
+            _lastPublishedPvpSectorState = sectorState;
+
+            var lineParts = new List<string>( world.Map.Lines.Length );
+            var lines = world.Map.Lines;
+            for ( var i = 0; i < lines.Length; i++ )
+            {
+                var line = lines[i];
+                var front = line.FrontSide;
+                if ( front is null )
+                {
+                    continue;
+                }
+
+                lineParts.Add( $"{i}:{(int)line.Special}:{front.TopTexture}:{front.MiddleTexture}:{front.BottomTexture}" );
+            }
+
+            var lineState = string.Join( ";", lineParts );
+            if ( !string.Equals( session.PvpLineState, lineState, StringComparison.Ordinal ) )
+            {
+                session.PvpLineState = lineState;
+            }
+
+            _lastPublishedPvpLineState = lineState;
+            return;
+        }
+
+        var sectorStateToApply = session.PvpSectorState ?? string.Empty;
+        if ( !string.Equals( _lastAppliedPvpSectorState, sectorStateToApply, StringComparison.Ordinal ) )
+        {
+            ApplyAuthoritativePvpSectorState( world, sectorStateToApply );
+            _lastAppliedPvpSectorState = sectorStateToApply;
+        }
+
+        var lineStateToApply = session.PvpLineState ?? string.Empty;
+        if ( !string.Equals( _lastAppliedPvpLineState, lineStateToApply, StringComparison.Ordinal ) )
+        {
+            ApplyAuthoritativePvpLineState( world, lineStateToApply );
+            _lastAppliedPvpLineState = lineStateToApply;
+        }
+    }
+
+    private static void ApplyAuthoritativePvpSectorState( ManagedDoom.World world, string sectorState )
+    {
+        if ( string.IsNullOrWhiteSpace( sectorState ) )
+        {
+            return;
+        }
+
+        var sectors = world.Map.Sectors;
+        var entries = sectorState.Split( ';', StringSplitOptions.RemoveEmptyEntries );
+        for ( var i = 0; i < entries.Length; i++ )
+        {
+            var parts = entries[i].Split( ':', StringSplitOptions.RemoveEmptyEntries );
+            if ( parts.Length != 3
+                || !int.TryParse( parts[0], out var sectorIndex )
+                || !int.TryParse( parts[1], out var floorHeight )
+                || !int.TryParse( parts[2], out var ceilingHeight )
+                || sectorIndex < 0
+                || sectorIndex >= sectors.Length )
+            {
+                continue;
+            }
+
+            var sector = sectors[sectorIndex];
+            sector.FloorHeight = new ManagedDoom.Fixed( floorHeight );
+            sector.CeilingHeight = new ManagedDoom.Fixed( ceilingHeight );
+            sector.DisableFrameInterpolationForOneFrame();
+        }
+    }
+
+    private static void ApplyAuthoritativePvpLineState( ManagedDoom.World world, string lineState )
+    {
+        if ( string.IsNullOrWhiteSpace( lineState ) )
+        {
+            return;
+        }
+
+        var lines = world.Map.Lines;
+        var entries = lineState.Split( ';', StringSplitOptions.RemoveEmptyEntries );
+        for ( var i = 0; i < entries.Length; i++ )
+        {
+            var parts = entries[i].Split( ':', StringSplitOptions.RemoveEmptyEntries );
+            if ( parts.Length != 5
+                || !int.TryParse( parts[0], out var lineIndex )
+                || !int.TryParse( parts[1], out var special )
+                || !int.TryParse( parts[2], out var topTexture )
+                || !int.TryParse( parts[3], out var middleTexture )
+                || !int.TryParse( parts[4], out var bottomTexture )
+                || lineIndex < 0
+                || lineIndex >= lines.Length )
+            {
+                continue;
+            }
+
+            var line = lines[lineIndex];
+            line.Special = (ManagedDoom.LineSpecial)special;
+
+            var front = line.FrontSide;
+            if ( front is null )
+            {
+                continue;
+            }
+
+            front.TopTexture = topTexture;
+            front.MiddleTexture = middleTexture;
+            front.BottomTexture = bottomTexture;
+        }
+    }
+
+    private void BuildMultiplayerPvpCommands( ManagedDoom.TicCmd[] cmds, ManagedDoom.GameOptions options )
+    {
+        if ( _input is null )
+        {
+            return;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        var remotePlayerIndex = localPlayerIndex == 0 ? 1 : 0;
+
+        if ( UseSharedSimulationPvp( session ) )
+        {
+            if ( _activeSharedSimulationPvpCommandTic < 0 )
+            {
+                cmds[localPlayerIndex].Clear();
+                cmds[remotePlayerIndex].Clear();
+                return;
+            }
+
+            if ( !_sharedSimulationLocalPvpCommands.TryGetValue( _activeSharedSimulationPvpCommandTic, out var localCommand ) )
+            {
+                localCommand = BuildCurrentSharedSimulationPvpCommand();
+                _sharedSimulationLocalPvpCommands[_activeSharedSimulationPvpCommandTic] = localCommand;
+            }
+
+            ApplySharedSimulationTicCommand( localCommand, cmds[localPlayerIndex] );
+
+            if ( !session.TryCopyQueuedPlayerCommandTo( remotePlayerIndex, _activeSharedSimulationPvpCommandTic, cmds[remotePlayerIndex] ) )
+            {
+                cmds[remotePlayerIndex].Clear();
+            }
+
+            return;
+        }
+
+        _input.BuildTicCmd( cmds[localPlayerIndex] );
+
+        session?.SetPlayerCommandRpc(
+            localPlayerIndex,
+            cmds[localPlayerIndex].ForwardMove,
+            cmds[localPlayerIndex].SideMove,
+            cmds[localPlayerIndex].AngleTurn,
+            cmds[localPlayerIndex].Buttons );
+
+        session?.CopyPlayerCommandTo( remotePlayerIndex, cmds[remotePlayerIndex] );
+    }
+
+    private void QueueSharedSimulationPvpLocalCommands( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session is null || _input is null )
+        {
+            return;
+        }
+
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        var queueUpToTic = _nextSharedSimulationPvpTic + SharedSimulationPvpCommandLeadTics;
+
+        while ( _lastQueuedSharedSimulationLocalPvpTic < queueUpToTic )
+        {
+            var tic = _lastQueuedSharedSimulationLocalPvpTic + 1;
+            var cmd = BuildCurrentSharedSimulationPvpCommand();
+            _sharedSimulationLocalPvpCommands[tic] = cmd;
+            session.QueuePlayerCommandRpc( localPlayerIndex, tic, cmd.ForwardMove, cmd.SideMove, cmd.AngleTurn, cmd.Buttons );
+            _lastQueuedSharedSimulationLocalPvpTic = tic;
+        }
+    }
+
+    private bool CanAdvanceSharedSimulationPvpTic( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session is null )
+        {
+            return false;
+        }
+
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        var remotePlayerIndex = localPlayerIndex == 0 ? 1 : 0;
+
+        if ( !_sharedSimulationLocalPvpCommands.ContainsKey( _nextSharedSimulationPvpTic ) )
+        {
+            return false;
+        }
+
+        return session.TryCopyQueuedPlayerCommandTo( remotePlayerIndex, _nextSharedSimulationPvpTic, _replicaLocalPvpCommand );
+    }
+
+    private SharedSimulationTicCommand BuildCurrentSharedSimulationPvpCommand()
+    {
+        var cmd = new ManagedDoom.TicCmd();
+        _input.BuildTicCmd( cmd );
+        return new SharedSimulationTicCommand
+        {
+            ForwardMove = cmd.ForwardMove,
+            SideMove = cmd.SideMove,
+            AngleTurn = cmd.AngleTurn,
+            Buttons = cmd.Buttons
+        };
+    }
+
+    private static void ApplySharedSimulationTicCommand( SharedSimulationTicCommand source, ManagedDoom.TicCmd destination )
+    {
+        if ( destination is null )
+        {
+            return;
+        }
+
+        destination.ForwardMove = source.ForwardMove;
+        destination.SideMove = source.SideMove;
+        destination.AngleTurn = source.AngleTurn;
+        destination.Buttons = source.Buttons;
+    }
+
+    private void CleanupSharedSimulationPvpLocalCommands()
+    {
+        if ( _sharedSimulationLocalPvpCommands.Count == 0 )
+        {
+            return;
+        }
+
+        var minTicToKeep = Math.Max( 0, _nextSharedSimulationPvpTic - 4 );
+        var staleTics = new List<int>();
+        foreach ( var tic in _sharedSimulationLocalPvpCommands.Keys )
+        {
+            if ( tic < minTicToKeep )
+            {
+                staleTics.Add( tic );
+            }
+        }
+
+        foreach ( var tic in staleTics )
+        {
+            _sharedSimulationLocalPvpCommands.Remove( tic );
+        }
+    }
+
+    private bool EnsureSharedSimulationPvpStartBarrier( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session is null )
+        {
+            return false;
+        }
+
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        if ( !_sharedSimulationPvpReadyReported )
+        {
+            session.SetPvpReadyRpc( localPlayerIndex, true );
+            _sharedSimulationPvpReadyReported = true;
+        }
+
+        if ( Networking.IsHost
+            && session.Player0PvpReady
+            && session.Player1PvpReady
+            && !session.SharedSimulationPvpStarted )
+        {
+            session.BeginSharedSimulationPvpRpc();
+        }
+
+        if ( session.SharedSimulationPvpStartSerial > _lastHandledSharedSimulationPvpStartSerial )
+        {
+            _lastHandledSharedSimulationPvpStartSerial = session.SharedSimulationPvpStartSerial;
+            _sharedSimulationLocalPvpCommands.Clear();
+            Array.Clear( _lastObservedSharedSimulationPlayerMobjs, 0, _lastObservedSharedSimulationPlayerMobjs.Length );
+            Array.Clear( _lastObservedSharedSimulationPlayerStates, 0, _lastObservedSharedSimulationPlayerStates.Length );
+            _nextSharedSimulationPvpTic = 0;
+            _lastQueuedSharedSimulationLocalPvpTic = -1;
+            _activeSharedSimulationPvpCommandTic = -1;
+            _lastReportedPvpChecksumMismatchSignature = string.Empty;
+            _lastLoggedSharedSimulationMismatchLevelTime = -1;
+        }
+
+        return session.SharedSimulationPvpStarted
+            && _lastHandledSharedSimulationPvpStartSerial == session.SharedSimulationPvpStartSerial;
+    }
+
+    private void TrackSharedSimulationPvpPlayerRespawns()
+    {
+        if ( _doom?.Options?.Players is null )
+        {
+            return;
+        }
+
+        for ( var playerIndex = 0; playerIndex < 2 && playerIndex < _doom.Options.Players.Length; playerIndex++ )
+        {
+            var player = _doom.Options.Players[playerIndex];
+            var currentMobj = player?.Mobj;
+            var currentState = player?.PlayerState ?? ManagedDoom.PlayerState.Live;
+            var previousMobj = _lastObservedSharedSimulationPlayerMobjs[playerIndex];
+
+            if ( currentMobj is not null && currentMobj != previousMobj )
+            {
+                HandleSharedSimulationPvpPlayerBodySwap( playerIndex, player, currentMobj, previousMobj );
+            }
+
+            _lastObservedSharedSimulationPlayerMobjs[playerIndex] = currentMobj;
+            _lastObservedSharedSimulationPlayerStates[playerIndex] = currentState;
+        }
+    }
+
+    private void HandleSharedSimulationPvpPlayerBodySwap(
+        int playerIndex,
+        ManagedDoom.Player player,
+        ManagedDoom.Mobj currentMobj,
+        ManagedDoom.Mobj previousMobj )
+    {
+        if ( player is null || currentMobj is null || _doom?.Game?.World?.ThingMovement is null )
+        {
+            return;
+        }
+
+        Log.Info(
+            $"[MP-PVP] Player body swap slot={playerIndex} host={Networking.IsHost} "
+            + $"old={( previousMobj is null ? "null" : previousMobj.GetHashCode().ToString() )} "
+            + $"new={currentMobj.GetHashCode()} "
+            + $"state={player.PlayerState} "
+            + $"pos={currentMobj.X.Data},{currentMobj.Y.Data},{currentMobj.Z.Data}" );
+
+        RefreshSharedSimulationPvpPlayerBodyPresentation( player, currentMobj, previousMobj, _doom.Game.World.ThingMovement );
+        _weaponRespawnSettleTics[playerIndex] = Math.Max( _weaponRespawnSettleTics[playerIndex], 8 );
+    }
+
+    private static void RefreshSharedSimulationPvpPlayerBodyPresentation(
+        ManagedDoom.Player player,
+        ManagedDoom.Mobj currentMobj,
+        ManagedDoom.Mobj previousMobj,
+        ManagedDoom.ThingMovement thingMovement )
+    {
+        if ( previousMobj is not null )
+        {
+            previousMobj.DisableFrameInterpolationForOneFrame();
+        }
+
+        if ( currentMobj.Subsector is null )
+        {
+            thingMovement.SetThingPosition( currentMobj );
+        }
+        else
+        {
+            thingMovement.UnsetThingPosition( currentMobj );
+            thingMovement.SetThingPosition( currentMobj );
+        }
+
+        if ( currentMobj.Subsector is not null )
+        {
+            currentMobj.FloorZ = currentMobj.Subsector.Sector.FloorHeight;
+            currentMobj.CeilingZ = currentMobj.Subsector.Sector.CeilingHeight;
+        }
+
+        currentMobj.DisableFrameInterpolationForOneFrame();
+        player.DisableFrameInterpolationForOneFrame();
+    }
+
+    private bool UseSharedSimulationPvp( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        return EnableSharedSimulationPvp
+            && session?.PvpActive == true
+            && _multiplayerModeController.PvpMatchLoaded
+            && _doom is not null
+            && _doom.State == ManagedDoom.DoomState.Game
+            && _doom.Game is not null
+            && _doom.Game.State == ManagedDoom.GameState.Level
+            && _doom.Game.World is not null;
+    }
+
+    private bool IsJoinerAuthoritativePvpReplica()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        return session?.PvpActive == true
+            && _multiplayerModeController.PvpMatchLoaded
+            && !Networking.IsHost
+            && _doom is not null
+            && _doom.State == ManagedDoom.DoomState.Game
+            && _doom.Game is not null
+            && _doom.Game.State == ManagedDoom.GameState.Level
+            && _doom.Game.World is not null;
+    }
+
+    private void PumpJoinerAuthoritativePvpReplicaTic()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _input is null )
+        {
+            return;
+        }
+
+        _replicaLocalPvpCommand.Clear();
+        _input.BuildTicCmd( _replicaLocalPvpCommand );
+
+        session.SetPlayerCommandRpc(
+            1,
+            _replicaLocalPvpCommand.ForwardMove,
+            _replicaLocalPvpCommand.SideMove,
+            _replicaLocalPvpCommand.AngleTurn,
+            _replicaLocalPvpCommand.Buttons );
+
+        ApplyAuthoritativePvpState( session );
+    }
+
+    private void PumpAuthoritativePvpState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            PublishAuthoritativePvpState( session );
+        }
+        else
+        {
+            ApplyAuthoritativePvpState( session );
+        }
+    }
+
+    private void PumpAuthoritativePvpHitscanEvents()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            PublishAuthoritativePvpHitscanEvents( session );
+        }
+        else
+        {
+            ConsumeAuthoritativePvpHitscanEvents( session );
+        }
+    }
+
+    private void PumpAuthoritativePvpProjectileState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            PublishAuthoritativePvpProjectileState( session );
+        }
+        else
+        {
+            ApplyAuthoritativePvpProjectileState( session );
+        }
+    }
+
+    private void PublishAuthoritativePvpState( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        var players = _doom.Options.Players;
+        session.PublishAuthoritativePlayerState( 0, players[0] );
+        var publishPlayer1MovementAndVisuals = players.Length <= 1
+            || players[1]?.PlayerState != ManagedDoom.PlayerState.Live;
+        session.PublishAuthoritativePlayerState( 1, players[1], publishPlayer1MovementAndVisuals );
+        PublishAuthoritativeCombatEvents( session, players );
+        PublishAuthoritativeWeaponEvents( session, players );
+        PublishAuthoritativePickupPresentationEvents( session, players );
+    }
+
+    private void PublishOwnedLocalPvpMovementState( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( Networking.IsHost
+            || session?.PvpActive != true
+            || !_multiplayerModeController.PvpMatchLoaded
+            || _doom?.Game?.World is null
+            || _doom.Options.ConsolePlayer != 1 )
+        {
+            return;
+        }
+
+        var players = _doom.Options.Players;
+        if ( players.Length <= 1 )
+        {
+            return;
+        }
+
+        var player = players[1];
+        var mobj = player?.Mobj;
+        if ( player is null || mobj is null || player.PlayerState != ManagedDoom.PlayerState.Live )
+        {
+            return;
+        }
+
+        session.PublishOwnedPlayerMovementStateRpc(
+            1,
+            true,
+            mobj.X.Data,
+            mobj.Y.Data,
+            mobj.Z.Data,
+            mobj.MomX.Data,
+            mobj.MomY.Data,
+            mobj.MomZ.Data,
+            unchecked( (int)mobj.Angle.Data ),
+            mobj.State?.Number ?? 0,
+            (int)mobj.Sprite,
+            mobj.Frame,
+            mobj.Tics );
+    }
+
+    private void UpdatePvpRoundWinState( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session is null )
+        {
+            return;
+        }
+
+        var players = _doom?.Options?.Players;
+        var roundFullyLive =
+            session.PvpActive
+            && _multiplayerModeController.PvpMatchLoaded
+            && _doom?.State == ManagedDoom.DoomState.Game
+            && _doom.Game is not null
+            && _doom.Game.State == ManagedDoom.GameState.Level
+            && _doom.Game.World is not null
+            && _doom.Game.World.LevelTime > 35
+            && players is not null
+            && players.Length > 1
+            && players[0]?.Mobj is not null
+            && players[1]?.Mobj is not null;
+
+        if ( session.PvpWinnerSerial != _lastHandledPvpWinnerSerial )
+        {
+            _lastHandledPvpWinnerSerial = session.PvpWinnerSerial;
+            _activePvpWinnerMessage = $"{GetDoomScoreboardDisplayName( session.PvpWinnerName )} HAS WON THE GAME!";
+            _activePvpWinnerMessageUntilUtc = DateTime.UtcNow.AddSeconds( 7.0 );
+
+            if ( Networking.IsHost )
+            {
+                _pendingPvpRoundRestartAtUtc = _activePvpWinnerMessageUntilUtc;
+            }
+        }
+
+        if ( Networking.IsHost && roundFullyLive && !session.PvpRoundEnded )
+        {
+            var entries = GetPvpScoreboardEntries();
+            if ( entries.Count > 0 && entries[0].Kills >= 10 )
+            {
+                var loserName = entries.Count > 1 ? entries[1].Name : "PLAYER";
+                var loserKills = entries.Count > 1 ? entries[1].Kills : 0;
+                _analytics?.OnPvpMatchWon(
+                    entries[0].Name,
+                    entries[0].Kills,
+                    loserName,
+                    loserKills,
+                    string.IsNullOrWhiteSpace( session.PvpMap ) ? "E1M1" : session.PvpMap );
+                session.AnnouncePvpWinnerRpc( entries[0].Name );
+                return;
+            }
+        }
+
+        if ( Networking.IsHost
+            && session.PvpRoundEnded
+            && _pendingPvpRoundRestartAtUtc != DateTime.MinValue
+            && DateTime.UtcNow >= _pendingPvpRoundRestartAtUtc )
+        {
+            RestartPvpRoundAfterWin( session );
+        }
+    }
+
+    private void RestartPvpRoundAfterWin( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        var mapName = string.IsNullOrWhiteSpace( session?.PvpMap ) ? "E1M1" : session.PvpMap;
+        _activePvpWinnerMessage = string.Empty;
+        _activePvpWinnerMessageUntilUtc = DateTime.MinValue;
+        _pendingPvpRoundRestartAtUtc = DateTime.MinValue;
+        _lastHandledPvpWinnerSerial = session?.PvpWinnerSerial ?? 0;
+
+        if ( session is null )
+        {
+            return;
+        }
+
+        ResetMultiplayerGameplayOverrides();
+        session.StartPvpRpc( mapName );
+        PublishHostedLobbyDiscoveryState();
+        TryEnterMultiplayerPvpMatch();
+    }
+
+    private void ApplyOwnedRemotePlayerMovementForHost( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( !Networking.IsHost
+            || session?.PvpActive != true
+            || !_multiplayerModeController.PvpMatchLoaded
+            || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        var players = _doom.Options.Players;
+        if ( players.Length <= 1 )
+        {
+            return;
+        }
+
+        var player = players[1];
+        var mobj = player?.Mobj;
+        if ( player is null
+            || mobj is null
+            || player.PlayerState != ManagedDoom.PlayerState.Live
+            || !session.Player1StateActive
+            || session.Player1StatePlayerState != (int)ManagedDoom.PlayerState.Live )
+        {
+            return;
+        }
+
+        SetAuthoritativePlayerPosition(
+            _doom.Game.World.ThingMovement,
+            mobj,
+            session.Player1StateX,
+            session.Player1StateY,
+            session.Player1StateZ,
+            session.Player1StateMomX,
+            session.Player1StateMomY,
+            session.Player1StateMomZ,
+            session.Player1StateAngle,
+            session.Player1StateHealth );
+
+        mobj.DisableFrameInterpolationForOneFrame();
+        player.DisableFrameInterpolationForOneFrame();
+    }
+
+    private void PublishAuthoritativePvpProjectileState( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        var world = _doom.Game.World;
+        var snapshots = new List<PvpProjectileSnapshot>();
+
+        foreach ( var thinker in world.Thinkers )
+        {
+            if ( thinker is not ManagedDoom.Mobj projectile || !IsAuthoritativePvpProjectile( projectile ) )
+            {
+                continue;
+            }
+
+            snapshots.Add( new PvpProjectileSnapshot
+            {
+                OwnerPlayerIndex = ResolveProjectileOwnerIndex( projectile.Target ),
+                Type = projectile.Type,
+                X = projectile.X.Data,
+                Y = projectile.Y.Data,
+                Z = projectile.Z.Data,
+                MomX = projectile.MomX.Data,
+                MomY = projectile.MomY.Data,
+                MomZ = projectile.MomZ.Data,
+                Angle = unchecked( (int)projectile.Angle.Data ),
+                Tics = projectile.Tics
+            } );
+        }
+
+        snapshots.Sort( CompareProjectileSnapshots );
+
+        var projectileEntries = new string[snapshots.Count];
+        for ( var i = 0; i < snapshots.Count; i++ )
+        {
+            var snapshot = snapshots[i];
+            projectileEntries[i] =
+                $"{snapshot.OwnerPlayerIndex}:{(int)snapshot.Type}:{snapshot.X}:{snapshot.Y}:{snapshot.Z}:{snapshot.MomX}:{snapshot.MomY}:{snapshot.MomZ}:{snapshot.Angle}:{snapshot.Tics}";
+        }
+
+        var projectileState = string.Join( ';', projectileEntries );
+
+        if ( !string.Equals( projectileState, _lastPublishedPvpProjectileState, StringComparison.Ordinal ) )
+        {
+            session.PvpProjectileState = projectileState;
+            _lastPublishedPvpProjectileState = projectileState;
+        }
+    }
+
+    private void PublishAuthoritativeCombatEvents( SboxManagedDoomMultiplayerSessionComponent session, ManagedDoom.Player[] players )
+    {
+        for ( var playerIndex = 0; playerIndex < 2 && playerIndex < players.Length; playerIndex++ )
+        {
+            var player = players[playerIndex];
+            if ( player?.Mobj is null )
+            {
+                continue;
+            }
+
+            if ( !_combatEventSnapshotInitialized[playerIndex] )
+            {
+                CaptureCombatEventSnapshot( playerIndex, player );
+                continue;
+            }
+
+            var currentState = player.PlayerState;
+            var previousState = _lastPublishedCombatPlayerState[playerIndex];
+            var currentHealth = player.Mobj.Health;
+            var previousHealth = _lastPublishedCombatHealth[playerIndex];
+            var currentDamageCount = player.DamageCount;
+            var previousDamageCount = _lastPublishedCombatDamageCount[playerIndex];
+
+            if ( previousState != ManagedDoom.PlayerState.Dead && currentState == ManagedDoom.PlayerState.Dead )
+            {
+                QueueCombatSnapshot( session, playerIndex, SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType.Death, player );
+            }
+            else if ( previousState == ManagedDoom.PlayerState.Dead && currentState == ManagedDoom.PlayerState.Live )
+            {
+                QueueCombatSnapshot( session, playerIndex, SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType.Respawn, player );
+            }
+            else if ( currentHealth < previousHealth || currentDamageCount > previousDamageCount )
+            {
+                QueueCombatSnapshot( session, playerIndex, SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType.Damage, player );
+            }
+
+            CaptureCombatEventSnapshot( playerIndex, player );
+        }
+    }
+
+    private void PublishAuthoritativePvpHitscanEvents( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( _pendingAuthoritativeHitscanEvents.Count == 0 )
+        {
+            return;
+        }
+
+        for ( var i = 0; i < _pendingAuthoritativeHitscanEvents.Count; i++ )
+        {
+            var impact = _pendingAuthoritativeHitscanEvents[i];
+            session.QueueHitscanEvent( impact.Blood, impact.X, impact.Y, impact.Z, impact.Damage );
+        }
+
+        _pendingAuthoritativeHitscanEvents.Clear();
+    }
+
+    private void PublishAuthoritativeWeaponEvents( SboxManagedDoomMultiplayerSessionComponent session, ManagedDoom.Player[] players )
+    {
+        for ( var playerIndex = 0; playerIndex < 2 && playerIndex < players.Length; playerIndex++ )
+        {
+            var player = players[playerIndex];
+            if ( player is null )
+            {
+                continue;
+            }
+
+            if ( !_weaponEventSnapshotInitialized[playerIndex] )
+            {
+                CaptureWeaponEventSnapshot( playerIndex, player );
+                continue;
+            }
+
+            for ( var weaponIndex = 0; weaponIndex < (int)ManagedDoom.WeaponType.Count; weaponIndex++ )
+            {
+                var ownedNow = player.WeaponOwned[weaponIndex];
+                var ownedBefore = _lastPublishedWeaponOwned[playerIndex, weaponIndex];
+                if ( !ownedBefore && ownedNow )
+                {
+                    session.QueueWeaponEvent(
+                        playerIndex,
+                        SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.PickupWeapon,
+                        weaponIndex,
+                        -1,
+                        0,
+                        (int)player.ReadyWeapon,
+                        BuildOwnedWeaponMask( player ),
+                        player.Ammo[(int)ManagedDoom.AmmoType.Clip],
+                        player.Ammo[(int)ManagedDoom.AmmoType.Shell],
+                        player.Ammo[(int)ManagedDoom.AmmoType.Cell],
+                        player.Ammo[(int)ManagedDoom.AmmoType.Missile] );
+                }
+            }
+
+            for ( var ammoIndex = 0; ammoIndex < (int)ManagedDoom.AmmoType.Count; ammoIndex++ )
+            {
+                var ammoNow = player.Ammo[ammoIndex];
+                var ammoBefore = _lastPublishedAmmo[playerIndex, ammoIndex];
+                if ( ammoNow > ammoBefore )
+                {
+                    session.QueueWeaponEvent(
+                        playerIndex,
+                        SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.PickupAmmo,
+                        -1,
+                        ammoIndex,
+                        ammoNow - ammoBefore,
+                        (int)player.ReadyWeapon,
+                        BuildOwnedWeaponMask( player ),
+                        player.Ammo[(int)ManagedDoom.AmmoType.Clip],
+                        player.Ammo[(int)ManagedDoom.AmmoType.Shell],
+                        player.Ammo[(int)ManagedDoom.AmmoType.Cell],
+                        player.Ammo[(int)ManagedDoom.AmmoType.Missile] );
+                }
+            }
+
+            if ( _lastPublishedReadyWeapon[playerIndex] != player.ReadyWeapon )
+            {
+                session.QueueWeaponEvent(
+                    playerIndex,
+                    SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.SwitchWeapon,
+                    (int)player.ReadyWeapon,
+                    -1,
+                    0,
+                    (int)player.ReadyWeapon,
+                    BuildOwnedWeaponMask( player ),
+                    player.Ammo[(int)ManagedDoom.AmmoType.Clip],
+                    player.Ammo[(int)ManagedDoom.AmmoType.Shell],
+                    player.Ammo[(int)ManagedDoom.AmmoType.Cell],
+                    player.Ammo[(int)ManagedDoom.AmmoType.Missile] );
+            }
+
+            CaptureWeaponEventSnapshot( playerIndex, player );
+        }
+    }
+
+    private void CaptureWeaponEventSnapshot( int playerIndex, ManagedDoom.Player player )
+    {
+        _weaponEventSnapshotInitialized[playerIndex] = true;
+        _lastPublishedReadyWeapon[playerIndex] = player.ReadyWeapon;
+        _lastPublishedWeaponPlayerState[playerIndex] = player.PlayerState;
+
+        for ( var weaponIndex = 0; weaponIndex < (int)ManagedDoom.WeaponType.Count; weaponIndex++ )
+        {
+            _lastPublishedWeaponOwned[playerIndex, weaponIndex] = player.WeaponOwned[weaponIndex];
+        }
+
+        for ( var ammoIndex = 0; ammoIndex < (int)ManagedDoom.AmmoType.Count; ammoIndex++ )
+        {
+            _lastPublishedAmmo[playerIndex, ammoIndex] = player.Ammo[ammoIndex];
+        }
+    }
+
+    private void PublishAuthoritativePickupPresentationEvents( SboxManagedDoomMultiplayerSessionComponent session, ManagedDoom.Player[] players )
+    {
+        for ( var playerIndex = 0; playerIndex < 2 && playerIndex < players.Length; playerIndex++ )
+        {
+            var player = players[playerIndex];
+            if ( player is null )
+            {
+                continue;
+            }
+
+            if ( !_pickupPresentationSnapshotInitialized[playerIndex] )
+            {
+                CapturePickupPresentationSnapshot( playerIndex, player );
+                continue;
+            }
+
+            var gainedHealth = player.Health > _lastPublishedPresentationHealth[playerIndex];
+            var gainedArmor = player.ArmorPoints > _lastPublishedPresentationArmor[playerIndex];
+            var gainedBonus = player.BonusCount > _lastPublishedPresentationBonusCount[playerIndex];
+
+            if ( gainedBonus && (gainedHealth || gainedArmor) )
+            {
+                session.QueueEffectEvent(
+                    SboxManagedDoomMultiplayerSessionComponent.MultiplayerEffectEventType.PlayLocalSfx,
+                    playerIndex,
+                    (int)ManagedDoom.Sfx.ITEMUP );
+            }
+
+            CapturePickupPresentationSnapshot( playerIndex, player );
+        }
+    }
+
+    private void CapturePickupPresentationSnapshot( int playerIndex, ManagedDoom.Player player )
+    {
+        _pickupPresentationSnapshotInitialized[playerIndex] = true;
+        _lastPublishedPresentationHealth[playerIndex] = player.Health;
+        _lastPublishedPresentationArmor[playerIndex] = player.ArmorPoints;
+        _lastPublishedPresentationBonusCount[playerIndex] = player.BonusCount;
+    }
+
+    private void CaptureCombatEventSnapshot( int playerIndex, ManagedDoom.Player player )
+    {
+        _combatEventSnapshotInitialized[playerIndex] = true;
+        _lastPublishedCombatHealth[playerIndex] = player.Mobj?.Health ?? player.Health;
+        _lastPublishedCombatDamageCount[playerIndex] = player.DamageCount;
+        _lastPublishedCombatPlayerState[playerIndex] = player.PlayerState;
+
+        for ( var fragIndex = 0; fragIndex < ManagedDoom.Player.MaxPlayerCount; fragIndex++ )
+        {
+            _lastPublishedCombatFrags[playerIndex, fragIndex] = player.Frags[fragIndex];
+        }
+    }
+
+    private void QueueCombatSnapshot(
+        SboxManagedDoomMultiplayerSessionComponent session,
+        int playerIndex,
+        SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType eventType,
+        ManagedDoom.Player player )
+    {
+        session.QueueCombatEvent(
+            playerIndex,
+            eventType,
+            player.Mobj?.Health ?? player.Health,
+            player.DamageCount,
+            (int)player.PlayerState,
+            (int)player.ReadyWeapon,
+            BuildOwnedWeaponMask( player ),
+            player.Ammo[(int)ManagedDoom.AmmoType.Clip],
+            player.Ammo[(int)ManagedDoom.AmmoType.Shell],
+            player.Ammo[(int)ManagedDoom.AmmoType.Cell],
+            player.Ammo[(int)ManagedDoom.AmmoType.Missile],
+            player.Frags[0],
+            player.Frags[1],
+            player.Frags[2],
+            player.Frags[3] );
+    }
+
+    private static int BuildOwnedWeaponMask( ManagedDoom.Player player )
+    {
+        var mask = 0;
+        for ( var weaponIndex = 0; weaponIndex < (int)ManagedDoom.WeaponType.Count; weaponIndex++ )
+        {
+            if ( player.WeaponOwned[weaponIndex] )
+            {
+                mask |= 1 << weaponIndex;
+            }
+        }
+
+        return mask;
+    }
+
+    private void PumpSharedSimulationPvpChecksum( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        var levelTime = _doom.Game.World.LevelTime;
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        var localChecksum = BuildSharedSimulationPvpChecksum();
+        session.SetPvpChecksumRpc( localPlayerIndex, levelTime, localChecksum );
+
+        if ( string.IsNullOrEmpty( session.Player0PvpChecksum )
+            || string.IsNullOrEmpty( session.Player1PvpChecksum )
+            || session.Player0PvpChecksumLevelTime != session.Player1PvpChecksumLevelTime )
+        {
+            return;
+        }
+
+        var mismatchSignature = string.Format(
+            "{0}:{1}:{2}",
+            session.Player0PvpChecksumLevelTime,
+            session.Player0PvpChecksum,
+            session.Player1PvpChecksum );
+
+        if ( session.Player0PvpChecksum != session.Player1PvpChecksum )
+        {
+            if ( mismatchSignature != _lastReportedPvpChecksumMismatchSignature )
+            {
+                _lastReportedPvpChecksumMismatchSignature = mismatchSignature;
+                Log.Warning(
+                    $"[MP-PVP] Shared-sim checksum mismatch at levelTime={session.Player0PvpChecksumLevelTime}. "
+                    + $"host={session.Player0PvpChecksum} joiner={session.Player1PvpChecksum}" );
+                LogSharedSimulationMismatchDetails( session.Player0PvpChecksumLevelTime );
+            }
+
+            return;
+        }
+
+        _lastReportedPvpChecksumMismatchSignature = string.Empty;
+    }
+
+    private void LogSharedSimulationMismatchDetails( int levelTime )
+    {
+        if ( _doom?.Options?.Players is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        if ( levelTime == _lastLoggedSharedSimulationMismatchLevelTime )
+        {
+            return;
+        }
+
+        _lastLoggedSharedSimulationMismatchLevelTime = levelTime;
+
+        for ( var playerIndex = 0; playerIndex < 2 && playerIndex < _doom.Options.Players.Length; playerIndex++ )
+        {
+            var player = _doom.Options.Players[playerIndex];
+            if ( player is null )
+            {
+                Log.Warning( $"[MP-PVP] mismatch detail slot={playerIndex} host={Networking.IsHost} levelTime={levelTime} player=null" );
+                continue;
+            }
+
+            var mobj = player.Mobj;
+            Log.Warning(
+                $"[MP-PVP] mismatch detail slot={playerIndex} host={Networking.IsHost} levelTime={levelTime} "
+                + $"state={player.PlayerState} health={player.Health} damage={player.DamageCount} armor={player.ArmorPoints} "
+                + $"ready={player.ReadyWeapon} pending={player.PendingWeapon} "
+                + $"ammo={player.Ammo[0]},{player.Ammo[1]},{player.Ammo[2]},{player.Ammo[3]} "
+                + $"frags={player.Frags[0]},{player.Frags[1]},{player.Frags[2]},{player.Frags[3]} "
+                + $"mobj={( mobj is null ? "null" : mobj.GetHashCode().ToString() )} "
+                + $"pos={( mobj is null ? "null" : $"{mobj.X.Data},{mobj.Y.Data},{mobj.Z.Data}" )} "
+                + $"mom={( mobj is null ? "null" : $"{mobj.MomX.Data},{mobj.MomY.Data},{mobj.MomZ.Data}" )} "
+                + $"angle={( mobj is null ? "null" : unchecked( (int)mobj.Angle.Data ).ToString() )}" );
+        }
+    }
+
+    private string BuildSharedSimulationPvpChecksum()
+    {
+        if ( _doom?.Game?.World is null )
+        {
+            return string.Empty;
+        }
+
+        EnsurePvpPickupTrackingInitialized();
+
+        var world = _doom.Game.World;
+        var players = _doom.Options.Players;
+        uint hash = 2166136261u;
+
+        AddChecksumInt( ref hash, world.LevelTime );
+
+        for ( var playerIndex = 0; playerIndex < 2; playerIndex++ )
+        {
+            var player = players[playerIndex];
+            AddChecksumBool( ref hash, player?.InGame == true );
+
+            if ( player is null )
+            {
+                continue;
+            }
+
+            AddChecksumInt( ref hash, (int)player.PlayerState );
+            AddChecksumInt( ref hash, player.Health );
+            AddChecksumInt( ref hash, player.DamageCount );
+            AddChecksumInt( ref hash, player.ArmorPoints );
+            AddChecksumInt( ref hash, (int)player.ReadyWeapon );
+            AddChecksumInt( ref hash, (int)player.PendingWeapon );
+            AddChecksumInt( ref hash, BuildOwnedWeaponMask( player ) );
+
+            for ( var ammoIndex = 0; ammoIndex < (int)ManagedDoom.AmmoType.Count; ammoIndex++ )
+            {
+                AddChecksumInt( ref hash, player.Ammo[ammoIndex] );
+                AddChecksumInt( ref hash, player.MaxAmmo[ammoIndex] );
+            }
+
+            for ( var fragIndex = 0; fragIndex < ManagedDoom.Player.MaxPlayerCount; fragIndex++ )
+            {
+                AddChecksumInt( ref hash, player.Frags[fragIndex] );
+            }
+
+            if ( player.Mobj is not null )
+            {
+                AddChecksumInt( ref hash, player.Mobj.X.Data );
+                AddChecksumInt( ref hash, player.Mobj.Y.Data );
+                AddChecksumInt( ref hash, player.Mobj.Z.Data );
+                AddChecksumInt( ref hash, player.Mobj.MomX.Data );
+                AddChecksumInt( ref hash, player.Mobj.MomY.Data );
+                AddChecksumInt( ref hash, player.Mobj.MomZ.Data );
+                AddChecksumInt( ref hash, unchecked( (int)player.Mobj.Angle.Data ) );
+                AddChecksumInt( ref hash, player.Mobj.Health );
+            }
+        }
+
+        foreach ( var thinker in world.Thinkers )
+        {
+            if ( thinker is not ManagedDoom.Mobj mobj || mobj.ThinkerState == ManagedDoom.ThinkerState.Removed )
+            {
+                continue;
+            }
+
+            if ( IsAuthoritativePvpProjectile( mobj ) )
+            {
+                AddChecksumInt( ref hash, 1000 );
+                AddChecksumInt( ref hash, (int)mobj.Type );
+                AddChecksumInt( ref hash, ResolveProjectileOwnerIndex( mobj.Target ) );
+                AddChecksumInt( ref hash, mobj.X.Data );
+                AddChecksumInt( ref hash, mobj.Y.Data );
+                AddChecksumInt( ref hash, mobj.Z.Data );
+                AddChecksumInt( ref hash, mobj.MomX.Data );
+                AddChecksumInt( ref hash, mobj.MomY.Data );
+                AddChecksumInt( ref hash, mobj.MomZ.Data );
+                AddChecksumInt( ref hash, unchecked( (int)mobj.Angle.Data ) );
+                AddChecksumInt( ref hash, mobj.Tics );
+                continue;
+            }
+
+            if ( mobj.Type == ManagedDoom.MobjType.Barrel
+                && mobj.SpawnPoint is not null
+                && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var barrelThingIndex ) )
+            {
+                AddChecksumInt( ref hash, 2000 );
+                AddChecksumInt( ref hash, barrelThingIndex );
+                AddChecksumInt( ref hash, mobj.Health );
+                AddChecksumInt( ref hash, mobj.X.Data );
+                AddChecksumInt( ref hash, mobj.Y.Data );
+                AddChecksumInt( ref hash, mobj.Z.Data );
+                continue;
+            }
+
+            if ( mobj.SpawnPoint is not null
+                && ( mobj.Flags & ManagedDoom.MobjFlags.Special ) != 0
+                && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var pickupThingIndex ) )
+            {
+                AddChecksumInt( ref hash, 3000 );
+                AddChecksumInt( ref hash, pickupThingIndex );
+                AddChecksumInt( ref hash, (int)mobj.Type );
+                AddChecksumInt( ref hash, mobj.X.Data );
+                AddChecksumInt( ref hash, mobj.Y.Data );
+                AddChecksumInt( ref hash, mobj.Z.Data );
+            }
+        }
+
+        return hash.ToString( "x8" );
+    }
+
+    private static void AddChecksumBool( ref uint hash, bool value )
+    {
+        AddChecksumInt( ref hash, value ? 1 : 0 );
+    }
+
+    private static void AddChecksumInt( ref uint hash, int value )
+    {
+        unchecked
+        {
+            var raw = (uint)value;
+            hash ^= raw & 0xff;
+            hash *= 16777619u;
+            hash ^= (raw >> 8) & 0xff;
+            hash *= 16777619u;
+            hash ^= (raw >> 16) & 0xff;
+            hash *= 16777619u;
+            hash ^= (raw >> 24) & 0xff;
+            hash *= 16777619u;
+        }
+    }
+
+    private void ApplyAuthoritativePvpState( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        CaptureLocalPlayerPresentationSnapshots();
+
+        for ( var playerIndex = 0; playerIndex < 2; playerIndex++ )
+        {
+            ApplyAuthoritativePlayerState( session, playerIndex );
+        }
+
+        RestoreLocalPlayerPresentationSnapshots();
+        ConsumeAuthoritativeCombatEvents( session );
+        ConsumeAuthoritativeWeaponEvents( session );
+        ConsumeAuthoritativeEffectEvents( session );
+        ApplyPendingLocalWeaponTargets();
+        TickWeaponRespawnSettleWindows();
+    }
+
+    private void ApplyAuthoritativePvpProjectileState( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( Networking.IsHost || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        var projectileState = session.PvpProjectileState ?? string.Empty;
+        if ( string.Equals( projectileState, _lastAppliedPvpProjectileState, StringComparison.Ordinal ) )
+        {
+            return;
+        }
+
+        _lastAppliedPvpProjectileState = projectileState;
+
+        var world = _doom.Game.World;
+        var localProjectiles = new List<ManagedDoom.Mobj>();
+        foreach ( var thinker in world.Thinkers )
+        {
+            if ( thinker is ManagedDoom.Mobj projectile && IsAuthoritativePvpProjectile( projectile ) )
+            {
+                localProjectiles.Add( projectile );
+            }
+        }
+
+        var matchedLocalProjectiles = new bool[localProjectiles.Count];
+        var snapshots = ParseProjectileSnapshots( projectileState );
+
+        for ( var snapshotIndex = 0; snapshotIndex < snapshots.Count; snapshotIndex++ )
+        {
+            var snapshot = snapshots[snapshotIndex];
+            var localIndex = FindBestMatchingProjectileIndex( localProjectiles, matchedLocalProjectiles, snapshot );
+
+            ManagedDoom.Mobj projectile;
+            if ( localIndex >= 0 )
+            {
+                matchedLocalProjectiles[localIndex] = true;
+                projectile = localProjectiles[localIndex];
+            }
+            else
+            {
+                projectile = world.ThingAllocation.SpawnMobj(
+                    new ManagedDoom.Fixed( snapshot.X ),
+                    new ManagedDoom.Fixed( snapshot.Y ),
+                    new ManagedDoom.Fixed( snapshot.Z ),
+                    snapshot.Type );
+            }
+
+            ApplyProjectileSnapshot( world, projectile, snapshot );
+        }
+
+        for ( var i = 0; i < localProjectiles.Count; i++ )
+        {
+            if ( !matchedLocalProjectiles[i] )
+            {
+                world.ThingAllocation.RemoveMobj( localProjectiles[i] );
+            }
+        }
+    }
+
+    private void CaptureLocalPlayerPresentationSnapshots()
+    {
+        if ( Networking.IsHost || _doom?.Options?.Players is null )
+        {
+            return;
+        }
+
+        var localPlayerIndex = _doom.Options.ConsolePlayer;
+        if ( localPlayerIndex < 0 || localPlayerIndex >= _doom.Options.Players.Length )
+        {
+            return;
+        }
+
+        var player = _doom.Options.Players[localPlayerIndex];
+        if ( player is null )
+        {
+            return;
+        }
+
+        _localPlayerPresentationSnapshots[localPlayerIndex].Capture( player );
+    }
+
+    private void RestoreLocalPlayerPresentationSnapshots()
+    {
+        if ( Networking.IsHost || _doom?.Options?.Players is null )
+        {
+            return;
+        }
+
+        var localPlayerIndex = _doom.Options.ConsolePlayer;
+        if ( localPlayerIndex < 0 || localPlayerIndex >= _doom.Options.Players.Length )
+        {
+            return;
+        }
+
+        var player = _doom.Options.Players[localPlayerIndex];
+        if ( player is null || player.PlayerState != ManagedDoom.PlayerState.Live )
+        {
+            return;
+        }
+
+        _localPlayerPresentationSnapshots[localPlayerIndex].Restore( player );
+        player.DisableFrameInterpolationForOneFrame();
+    }
+
+    private void ConsumeAuthoritativeCombatEvents( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        for ( var playerIndex = 0; playerIndex < 2; playerIndex++ )
+        {
+            var queue = playerIndex == 0 ? session.Player0CombatEventQueue : session.Player1CombatEventQueue;
+            if ( string.IsNullOrWhiteSpace( queue ) )
+            {
+                continue;
+            }
+
+            var entries = queue.Split( '|', StringSplitOptions.RemoveEmptyEntries );
+            for ( var i = 0; i < entries.Length; i++ )
+            {
+                var parts = entries[i].Split( ',', StringSplitOptions.None );
+                if ( parts.Length < 15 || !int.TryParse( parts[0], out var serial ) )
+                {
+                    continue;
+                }
+
+                if ( serial <= _lastConsumedCombatEventSerial[playerIndex] )
+                {
+                    continue;
+                }
+
+                _lastConsumedCombatEventSerial[playerIndex] = serial;
+
+                if ( Networking.IsHost )
+                {
+                    continue;
+                }
+
+                if ( !int.TryParse( parts[1], out var eventTypeValue ) )
+                {
+                    continue;
+                }
+
+                ConsumeAuthoritativeCombatEvent(
+                    playerIndex,
+                    (SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType)eventTypeValue,
+                    ParseIntOrDefault( parts[2], 0 ),
+                    ParseIntOrDefault( parts[3], 0 ),
+                    ParseIntOrDefault( parts[4], (int)ManagedDoom.PlayerState.Live ),
+                    ParseIntOrDefault( parts[5], -1 ),
+                    ParseIntOrDefault( parts[6], 0 ),
+                    ParseIntOrDefault( parts[7], 0 ),
+                    ParseIntOrDefault( parts[8], 0 ),
+                    ParseIntOrDefault( parts[9], 0 ),
+                    ParseIntOrDefault( parts[10], 0 ),
+                    ParseIntOrDefault( parts[11], 0 ),
+                    ParseIntOrDefault( parts[12], 0 ),
+                    ParseIntOrDefault( parts[13], 0 ),
+                    ParseIntOrDefault( parts[14], 0 ) );
+            }
+        }
+    }
+
+    private void ConsumeAuthoritativePvpHitscanEvents( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( Networking.IsHost || _doom?.Game?.World?.Hitscan is null )
+        {
+            return;
+        }
+
+        var queue = session.HitscanEventQueue ?? string.Empty;
+        if ( string.IsNullOrWhiteSpace( queue ) )
+        {
+            return;
+        }
+
+        var entries = queue.Split( '|', StringSplitOptions.RemoveEmptyEntries );
+        for ( var i = 0; i < entries.Length; i++ )
+        {
+            var parts = entries[i].Split( ',', StringSplitOptions.None );
+            if ( parts.Length < 6
+                || !int.TryParse( parts[0], out var serial )
+                || serial <= _lastConsumedHitscanEventSerial )
+            {
+                continue;
+            }
+
+            _lastConsumedHitscanEventSerial = serial;
+
+            var blood = ParseIntOrDefault( parts[1], 0 ) != 0;
+            var x = ParseIntOrDefault( parts[2], 0 );
+            var y = ParseIntOrDefault( parts[3], 0 );
+            var z = ParseIntOrDefault( parts[4], 0 );
+            var damage = ParseIntOrDefault( parts[5], 0 );
+
+            if ( WasPredictedLocalHitscanRecently( blood, x, y, z ) )
+            {
+                continue;
+            }
+
+            if ( blood )
+            {
+                _doom.Game.World.Hitscan.SpawnBlood(
+                    new ManagedDoom.Fixed( x ),
+                    new ManagedDoom.Fixed( y ),
+                    new ManagedDoom.Fixed( z ),
+                    damage );
+            }
+            else
+            {
+                _doom.Game.World.Hitscan.SpawnPuff(
+                    new ManagedDoom.Fixed( x ),
+                    new ManagedDoom.Fixed( y ),
+                    new ManagedDoom.Fixed( z ) );
+            }
+        }
+    }
+
+    private void ConsumeAuthoritativeCombatEvent(
+        int playerIndex,
+        SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType eventType,
+        int health,
+        int damageCount,
+        int playerStateValue,
+        int selectedWeaponValue,
+        int ownedWeaponMask,
+        int ammoClip,
+        int ammoShell,
+        int ammoCell,
+        int ammoMissile,
+        int frag0,
+        int frag1,
+        int frag2,
+        int frag3 )
+    {
+        if ( _doom?.Options?.Players is null || playerIndex < 0 || playerIndex >= _doom.Options.Players.Length )
+        {
+            return;
+        }
+
+        var player = _doom.Options.Players[playerIndex];
+        if ( player?.Mobj is null )
+        {
+            return;
+        }
+
+        var isJoinerLocalPlayer = !Networking.IsHost && playerIndex == _doom.Options.ConsolePlayer;
+
+        player.Mobj.Health = health;
+        player.Health = health;
+        player.DamageCount = damageCount;
+        player.Frags[0] = frag0;
+        player.Frags[1] = frag1;
+        player.Frags[2] = frag2;
+        player.Frags[3] = frag3;
+
+        if ( !isJoinerLocalPlayer )
+        {
+            player.PlayerState = (ManagedDoom.PlayerState)playerStateValue;
+        }
+
+        switch ( eventType )
+        {
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType.Damage:
+                if ( isJoinerLocalPlayer && health > 0 )
+                {
+                    PlayConfirmedLocalPainFeedback();
+                }
+                break;
+
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType.Death:
+                player.PlayerState = ManagedDoom.PlayerState.Dead;
+                player.DamageCount = Math.Max( player.DamageCount, 20 );
+                _pendingLocalWeaponTargets[playerIndex] = null;
+                if ( isJoinerLocalPlayer )
+                {
+                    ClearLocalPickupPredictionState();
+                }
+                break;
+
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerCombatEventType.Respawn:
+                player.PlayerState = ManagedDoom.PlayerState.Live;
+                if ( isJoinerLocalPlayer )
+                {
+                    ApplyRespawnLoadoutEvent( playerIndex, player, selectedWeaponValue, ownedWeaponMask, ammoClip, ammoShell, ammoCell, ammoMissile );
+                }
+                else
+                {
+                    ApplyOwnedWeaponMask( player, ownedWeaponMask );
+                    ApplyAmmoSnapshot( player, ammoClip, ammoShell, ammoCell, ammoMissile );
+                }
+                break;
+        }
+    }
+
+    private void ConsumeAuthoritativeWeaponEvents( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        for ( var playerIndex = 0; playerIndex < 2; playerIndex++ )
+        {
+            var queue = playerIndex == 0 ? session.Player0WeaponEventQueue : session.Player1WeaponEventQueue;
+            if ( string.IsNullOrWhiteSpace( queue ) )
+            {
+                continue;
+            }
+
+            var entries = queue.Split( '|', StringSplitOptions.RemoveEmptyEntries );
+            for ( var i = 0; i < entries.Length; i++ )
+            {
+                var parts = entries[i].Split( ',', StringSplitOptions.None );
+                if ( parts.Length < 11 || !int.TryParse( parts[0], out var serial ) )
+                {
+                    continue;
+                }
+
+                if ( serial <= _lastConsumedWeaponEventSerial[playerIndex] )
+                {
+                    continue;
+                }
+
+                _lastConsumedWeaponEventSerial[playerIndex] = serial;
+
+                if ( Networking.IsHost )
+                {
+                    continue;
+                }
+
+                if ( !int.TryParse( parts[1], out var eventTypeValue ) )
+                {
+                    continue;
+                }
+
+                var eventType = (SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType)eventTypeValue;
+                var weapon = ParseIntOrDefault( parts[2], -1 );
+                var ammoType = ParseIntOrDefault( parts[3], -1 );
+                var ammoAmount = ParseIntOrDefault( parts[4], 0 );
+                var selectedWeapon = ParseIntOrDefault( parts[5], -1 );
+                var ownedWeaponMask = ParseIntOrDefault( parts[6], 0 );
+                var ammoClip = ParseIntOrDefault( parts[7], 0 );
+                var ammoShell = ParseIntOrDefault( parts[8], 0 );
+                var ammoCell = ParseIntOrDefault( parts[9], 0 );
+                var ammoMissile = ParseIntOrDefault( parts[10], 0 );
+
+                ConsumeAuthoritativeWeaponEvent(
+                    playerIndex,
+                    eventType,
+                    weapon,
+                    ammoType,
+                    ammoAmount,
+                    selectedWeapon,
+                    ownedWeaponMask,
+                    ammoClip,
+                    ammoShell,
+                    ammoCell,
+                    ammoMissile );
+            }
+        }
+    }
+
+    private void ConsumeAuthoritativeWeaponEvent(
+        int playerIndex,
+        SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType eventType,
+        int weaponValue,
+        int ammoTypeValue,
+        int ammoAmount,
+        int selectedWeaponValue,
+        int ownedWeaponMask,
+        int ammoClip,
+        int ammoShell,
+        int ammoCell,
+        int ammoMissile )
+    {
+        if ( _doom?.Options?.Players is null || playerIndex < 0 || playerIndex >= _doom.Options.Players.Length )
+        {
+            return;
+        }
+
+        var player = _doom.Options.Players[playerIndex];
+        if ( player is null )
+        {
+            return;
+        }
+
+        var isJoinerLocalPlayer = !Networking.IsHost && playerIndex == _doom.Options.ConsolePlayer;
+
+        ApplyOwnedWeaponMask( player, ownedWeaponMask );
+        ApplyAmmoSnapshot( player, ammoClip, ammoShell, ammoCell, ammoMissile );
+
+        switch ( eventType )
+        {
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.PickupWeapon:
+                if ( isJoinerLocalPlayer )
+                {
+                    SuppressReplicatedItemPickupSfxForWeaponWindow();
+
+                    if ( IsValidWeaponValue( weaponValue ) )
+                    {
+                        _pendingLocalWeaponTargets[playerIndex] = (ManagedDoom.WeaponType)weaponValue;
+                    }
+
+                    TryPlayReplicatedSfx( ManagedDoom.Sfx.WPNUP );
+                }
+                break;
+
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.PickupAmmo:
+                if ( IsValidAmmoTypeValue( ammoTypeValue ) && ammoAmount > 0 )
+                {
+                    if ( isJoinerLocalPlayer )
+                    {
+                        if ( DateTime.UtcNow < _suppressReplicatedItemPickupSfxUntilUtc )
+                        {
+                            break;
+                        }
+
+                        TryPlayReplicatedSfx( ManagedDoom.Sfx.ITEMUP );
+                    }
+                }
+                break;
+
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.SwitchWeapon:
+                if ( isJoinerLocalPlayer && IsValidWeaponValue( selectedWeaponValue ) )
+                {
+                    _pendingLocalWeaponTargets[playerIndex] = (ManagedDoom.WeaponType)selectedWeaponValue;
+                }
+                break;
+
+            case SboxManagedDoomMultiplayerSessionComponent.MultiplayerWeaponEventType.RespawnLoadout:
+                if ( isJoinerLocalPlayer )
+                {
+                    ApplyRespawnLoadoutEvent( playerIndex, player, selectedWeaponValue, ownedWeaponMask, ammoClip, ammoShell, ammoCell, ammoMissile );
+                }
+                break;
+        }
+    }
+
+    private void ConsumeAuthoritativeEffectEvents( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( Networking.IsHost || _doom?.Options is null )
+        {
+            return;
+        }
+
+        var queue = session.EffectEventQueue ?? string.Empty;
+        if ( string.IsNullOrWhiteSpace( queue ) )
+        {
+            return;
+        }
+
+        var entries = queue.Split( '|', StringSplitOptions.RemoveEmptyEntries );
+        for ( var i = 0; i < entries.Length; i++ )
+        {
+            var parts = entries[i].Split( ',', StringSplitOptions.None );
+            if ( parts.Length < 4
+                || !int.TryParse( parts[0], out var serial )
+                || serial <= _lastConsumedEffectEventSerial )
+            {
+                continue;
+            }
+
+            _lastConsumedEffectEventSerial = serial;
+
+            var eventType = (SboxManagedDoomMultiplayerSessionComponent.MultiplayerEffectEventType)ParseIntOrDefault( parts[1], 0 );
+            var playerIndex = ParseIntOrDefault( parts[2], -1 );
+            var value = ParseIntOrDefault( parts[3], -1 );
+
+            if ( eventType == SboxManagedDoomMultiplayerSessionComponent.MultiplayerEffectEventType.PlayLocalSfx
+                && playerIndex == _doom.Options.ConsolePlayer
+                && Enum.IsDefined( typeof( ManagedDoom.Sfx ), value ) )
+            {
+                TryPlayReplicatedSfx( (ManagedDoom.Sfx)value );
+            }
+            else if ( eventType == SboxManagedDoomMultiplayerSessionComponent.MultiplayerEffectEventType.BarrelExploded )
+            {
+                PlayAuthoritativeBarrelExplosionByIndex( playerIndex );
+            }
+        }
+    }
+
+    private void ApplyPendingLocalWeaponTargets()
+    {
+        if ( _doom?.Options?.Players is null )
+        {
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            return;
+        }
+
+        var localPlayerIndex = _doom.Options.ConsolePlayer;
+        if ( localPlayerIndex < 0 || localPlayerIndex >= _doom.Options.Players.Length )
+        {
+            return;
+        }
+
+        for ( var playerIndex = localPlayerIndex; playerIndex <= localPlayerIndex; playerIndex++ )
+        {
+            var targetWeapon = _pendingLocalWeaponTargets[playerIndex];
+            if ( targetWeapon is null )
+            {
+                continue;
+            }
+
+            var player = _doom.Options.Players[playerIndex];
+            if ( player is null || player.PlayerState != ManagedDoom.PlayerState.Live )
+            {
+                continue;
+            }
+
+            if ( _weaponRespawnSettleTics[playerIndex] > 0 )
+            {
+                continue;
+            }
+
+            if ( !player.WeaponOwned[(int)targetWeapon.Value] )
+            {
+                _pendingLocalWeaponTargets[playerIndex] = null;
+                continue;
+            }
+
+            if ( player.ReadyWeapon == targetWeapon.Value || player.PendingWeapon == targetWeapon.Value )
+            {
+                _pendingLocalWeaponTargets[playerIndex] = null;
+                continue;
+            }
+
+            if ( player.PendingWeapon == ManagedDoom.WeaponType.NoChange )
+            {
+                player.PendingWeapon = targetWeapon.Value;
+            }
+        }
+    }
+
+    private void TickWeaponRespawnSettleWindows()
+    {
+        for ( var i = 0; i < _weaponRespawnSettleTics.Length; i++ )
+        {
+            if ( _weaponRespawnSettleTics[i] > 0 )
+            {
+                _weaponRespawnSettleTics[i]--;
+            }
+        }
+    }
+
+    private void ApplyRespawnLoadoutEvent(
+        int playerIndex,
+        ManagedDoom.Player player,
+        int selectedWeaponValue,
+        int ownedWeaponMask,
+        int ammoClip,
+        int ammoShell,
+        int ammoCell,
+        int ammoMissile )
+    {
+        var selectedWeapon = ResolveSafeSelectedWeapon( player, selectedWeaponValue, ownedWeaponMask );
+
+        player.PlayerState = ManagedDoom.PlayerState.Live;
+        if ( !Networking.IsHost && playerIndex == _doom.Options.ConsolePlayer )
+        {
+            ClearLocalPickupPredictionState();
+        }
+
+        ApplyOwnedWeaponMask( player, ownedWeaponMask );
+        ApplyAmmoSnapshot( player, ammoClip, ammoShell, ammoCell, ammoMissile );
+
+        player.ReadyWeapon = selectedWeapon;
+        player.PendingWeapon = selectedWeapon;
+        player.AttackDown = true;
+        player.UseDown = true;
+
+        for ( var i = 0; i < player.PlayerSprites.Length; i++ )
+        {
+            player.PlayerSprites[i].State = null;
+            player.PlayerSprites[i].Tics = 0;
+        }
+
+        _doom.Game?.World?.PlayerBehavior?.SetupPlayerSprites( player );
+        _pendingLocalWeaponTargets[playerIndex] = null;
+        _weaponRespawnSettleTics[playerIndex] = 8;
+    }
+
+    private static ManagedDoom.WeaponType ResolveSafeSelectedWeapon( ManagedDoom.Player player, int selectedWeaponValue, int ownedWeaponMask )
+    {
+        if ( IsValidWeaponValue( selectedWeaponValue ) && (ownedWeaponMask & (1 << selectedWeaponValue)) != 0 )
+        {
+            return (ManagedDoom.WeaponType)selectedWeaponValue;
+        }
+
+        if ( (ownedWeaponMask & (1 << (int)ManagedDoom.WeaponType.Pistol)) != 0 )
+        {
+            return ManagedDoom.WeaponType.Pistol;
+        }
+
+        if ( (ownedWeaponMask & (1 << (int)ManagedDoom.WeaponType.Fist)) != 0 )
+        {
+            return ManagedDoom.WeaponType.Fist;
+        }
+
+        for ( var weaponIndex = 0; weaponIndex < (int)ManagedDoom.WeaponType.Count; weaponIndex++ )
+        {
+            if ( (ownedWeaponMask & (1 << weaponIndex)) != 0 )
+            {
+                return (ManagedDoom.WeaponType)weaponIndex;
+            }
+        }
+
+        return player.ReadyWeapon;
+    }
+
+    private static void ApplyAmmoSnapshot( ManagedDoom.Player player, int ammoClip, int ammoShell, int ammoCell, int ammoMissile )
+    {
+        player.Ammo[(int)ManagedDoom.AmmoType.Clip] = ammoClip;
+        player.Ammo[(int)ManagedDoom.AmmoType.Shell] = ammoShell;
+        player.Ammo[(int)ManagedDoom.AmmoType.Cell] = ammoCell;
+        player.Ammo[(int)ManagedDoom.AmmoType.Missile] = ammoMissile;
+    }
+
+    private static void ApplyOwnedWeaponMask( ManagedDoom.Player player, int ownedWeaponMask )
+    {
+        for ( var weaponIndex = 0; weaponIndex < (int)ManagedDoom.WeaponType.Count; weaponIndex++ )
+        {
+            player.WeaponOwned[weaponIndex] = (ownedWeaponMask & (1 << weaponIndex)) != 0;
+        }
+    }
+
+    private void OnSuppressedLocalPickupPresentation( ManagedDoom.Mobj special, ManagedDoom.Player player )
+    {
+        if ( player is null || _doom?.Options is null )
+        {
+            return;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session?.PvpActive != true || Networking.IsHost || player.Number != _doom.Options.ConsolePlayer )
+        {
+            return;
+        }
+
+        if ( !ShouldPredictPickupPresentation( special, player ) )
+        {
+            return;
+        }
+
+        ApplyPredictedPickupPresentation( special, player );
+        var predictedSfx = ResolvePredictedPickupSfx( special );
+        if ( predictedSfx == ManagedDoom.Sfx.WPNUP )
+        {
+            SuppressReplicatedItemPickupSfxForWeaponWindow();
+        }
+
+        PlayPredictedLocalSfx( predictedSfx );
+    }
+
+    private void ApplyPredictedPickupPresentation( ManagedDoom.Mobj special, ManagedDoom.Player player )
+    {
+        if ( player is null || special is null )
+        {
+            return;
+        }
+
+        if ( !TryResolvePickupWeaponType( special.Sprite, out var weaponType ) )
+        {
+            return;
+        }
+
+        if ( player.WeaponOwned[(int)weaponType] )
+        {
+            return;
+        }
+
+        player.WeaponOwned[(int)weaponType] = true;
+
+        if ( player.PlayerState != ManagedDoom.PlayerState.Live )
+        {
+            return;
+        }
+
+        if ( player.PendingWeapon != ManagedDoom.WeaponType.NoChange )
+        {
+            return;
+        }
+
+        if ( player.ReadyWeapon == weaponType )
+        {
+            return;
+        }
+
+        player.PendingWeapon = weaponType;
+        _pendingLocalWeaponTargets[player.Number] = weaponType;
+    }
+
+    private void PlayConfirmedLocalPainFeedback()
+    {
+        _sound?.StartSound( ManagedDoom.Sfx.PLPAIN );
+    }
+
+    private void ClearLocalPickupPredictionState()
+    {
+        _predictedPickupThingTimes.Clear();
+        _pendingLocalWeaponTargets[_doom.Options.ConsolePlayer] = null;
+        _suppressReplicatedItemPickupSfxUntilUtc = DateTime.MinValue;
+    }
+
+    private void SuppressReplicatedItemPickupSfxForWeaponWindow()
+    {
+        _suppressReplicatedItemPickupSfxUntilUtc = DateTime.UtcNow.AddMilliseconds( 350.0 );
+    }
+
+    private void OnSuppressedLocalDamagePresentation( ManagedDoom.Mobj target, int damage )
+    {
+        if ( target is null || damage <= 0 )
+        {
+            return;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session?.PvpActive != true || Networking.IsHost )
+        {
+            return;
+        }
+
+        if ( target.Type != ManagedDoom.MobjType.Barrel || target.Health > damage )
+        {
+            return;
+        }
+
+        if ( target.SpawnPoint is not null
+            && _pvpMapThingIndexes.TryGetValue( target.SpawnPoint, out var mapThingIndex ) )
+        {
+            if ( _predictedBarrelExplosionTimes.ContainsKey( mapThingIndex ) )
+            {
+                return;
+            }
+
+            if ( !ShouldPredictBarrelExplosion( mapThingIndex, target.Health, damage ) )
+            {
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }
+
+        PlayPredictedBarrelExplosion( target );
+    }
+
+    private void PlayPredictedLocalSfx( ManagedDoom.Sfx sfx )
+    {
+        _predictedLocalSfxTimes[sfx] = DateTime.UtcNow;
+        _sound?.StartSound( sfx );
+    }
+
+    private void TryPlayReplicatedSfx( ManagedDoom.Sfx sfx )
+    {
+        if ( WasPredictedRecently( sfx ) )
+        {
+            return;
+        }
+
+        _sound?.StartSound( sfx );
+    }
+
+    private bool WasPredictedRecently( ManagedDoom.Sfx sfx )
+    {
+        const double predictionWindowMs = 1000.0;
+
+        if ( !_predictedLocalSfxTimes.TryGetValue( sfx, out var predictedAt ) )
+        {
+            return false;
+        }
+
+        _predictedLocalSfxTimes.Remove( sfx );
+        return (DateTime.UtcNow - predictedAt).TotalMilliseconds <= predictionWindowMs;
+    }
+
+    private bool TryConsumePredictedBarrelExplosion( ManagedDoom.Mobj barrel )
+    {
+        const double predictionWindowMs = 1000.0;
+
+        if ( barrel?.SpawnPoint is null || !_pvpMapThingIndexes.TryGetValue( barrel.SpawnPoint, out var mapThingIndex ) )
+        {
+            return false;
+        }
+
+        if ( !_predictedBarrelExplosionTimes.TryGetValue( mapThingIndex, out var predictedAt ) )
+        {
+            return false;
+        }
+
+        _predictedBarrelExplosionTimes.Remove( mapThingIndex );
+        return (DateTime.UtcNow - predictedAt).TotalMilliseconds <= predictionWindowMs;
+    }
+
+    private ManagedDoom.Sfx ResolvePredictedPickupSfx( ManagedDoom.Mobj special )
+    {
+        if ( special is null )
+        {
+            return ManagedDoom.Sfx.ITEMUP;
+        }
+
+        return special.Sprite switch
+        {
+            ManagedDoom.Sprite.BFUG => ManagedDoom.Sfx.WPNUP,
+            ManagedDoom.Sprite.CSAW => ManagedDoom.Sfx.WPNUP,
+            ManagedDoom.Sprite.LAUN => ManagedDoom.Sfx.WPNUP,
+            ManagedDoom.Sprite.MGUN => ManagedDoom.Sfx.WPNUP,
+            ManagedDoom.Sprite.PLAS => ManagedDoom.Sfx.WPNUP,
+            ManagedDoom.Sprite.SHOT => ManagedDoom.Sfx.WPNUP,
+            ManagedDoom.Sprite.SGN2 => ManagedDoom.Sfx.WPNUP,
+            _ => ManagedDoom.Sfx.ITEMUP
+        };
+    }
+
+    private bool ShouldPredictPickupPresentation( ManagedDoom.Mobj special, ManagedDoom.Player player )
+    {
+        if ( special?.SpawnPoint is null || !_pvpMapThingIndexes.TryGetValue( special.SpawnPoint, out var mapThingIndex ) )
+        {
+            return true;
+        }
+
+        if ( _predictedPickupThingTimes.ContainsKey( mapThingIndex ) )
+        {
+            return false;
+        }
+
+        var predictedSfx = ResolvePredictedPickupSfx( special );
+        if ( predictedSfx == ManagedDoom.Sfx.WPNUP && PlayerAlreadyOwnsPickupWeapon( player, special ) )
+        {
+            return false;
+        }
+
+        _predictedPickupThingTimes[mapThingIndex] = DateTime.UtcNow;
+        return true;
+    }
+
+    private bool ShouldPredictBarrelExplosion( int mapThingIndex, int barrelHealth, int damage )
+    {
+        const double barrelDamageWindowMs = 250.0;
+        var now = DateTime.UtcNow;
+
+        if ( !_predictedBarrelDamageTimes.TryGetValue( mapThingIndex, out var lastDamageAt )
+            || ( now - lastDamageAt ).TotalMilliseconds > barrelDamageWindowMs )
+        {
+            _predictedBarrelDamageTotals[mapThingIndex] = 0;
+        }
+
+        _predictedBarrelDamageTimes[mapThingIndex] = now;
+        _predictedBarrelDamageTotals[mapThingIndex] =
+            _predictedBarrelDamageTotals.GetValueOrDefault( mapThingIndex ) + Math.Max( 0, damage );
+
+        if ( _predictedBarrelDamageTotals[mapThingIndex] < barrelHealth )
+        {
+            return false;
+        }
+
+        _predictedBarrelDamageTotals.Remove( mapThingIndex );
+        _predictedBarrelDamageTimes.Remove( mapThingIndex );
+        _predictedBarrelExplosionTimes[mapThingIndex] = now;
+        return true;
+    }
+
+    private static bool PlayerAlreadyOwnsPickupWeapon( ManagedDoom.Player player, ManagedDoom.Mobj special )
+    {
+        if ( player is null || special is null )
+        {
+            return false;
+        }
+
+        if ( !TryResolvePickupWeaponType( special.Sprite, out var weaponType ) )
+        {
+            return false;
+        }
+
+        return player.WeaponOwned[(int)weaponType];
+    }
+
+    private static bool TryResolvePickupWeaponType( ManagedDoom.Sprite sprite, out ManagedDoom.WeaponType weaponType )
+    {
+        switch ( sprite )
+        {
+            case ManagedDoom.Sprite.BFUG:
+                weaponType = ManagedDoom.WeaponType.Bfg;
+                return true;
+            case ManagedDoom.Sprite.CSAW:
+                weaponType = ManagedDoom.WeaponType.Chainsaw;
+                return true;
+            case ManagedDoom.Sprite.LAUN:
+                weaponType = ManagedDoom.WeaponType.Missile;
+                return true;
+            case ManagedDoom.Sprite.MGUN:
+                weaponType = ManagedDoom.WeaponType.Chaingun;
+                return true;
+            case ManagedDoom.Sprite.PLAS:
+                weaponType = ManagedDoom.WeaponType.Plasma;
+                return true;
+            case ManagedDoom.Sprite.SHOT:
+                weaponType = ManagedDoom.WeaponType.Shotgun;
+                return true;
+            case ManagedDoom.Sprite.SGN2:
+                weaponType = ManagedDoom.WeaponType.SuperShotgun;
+                return true;
+            default:
+                weaponType = ManagedDoom.WeaponType.Fist;
+                return false;
+        }
+    }
+
+    private void SpawnTransientExplosionEffect( ManagedDoom.Fixed x, ManagedDoom.Fixed y, ManagedDoom.Fixed z, ManagedDoom.Sfx sfx )
+    {
+        if ( _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        var world = _doom.Game.World;
+        var effect = world.ThingAllocation.SpawnMobj( x, y, z, ManagedDoom.MobjType.Barrel );
+        var explosionState = ManagedDoom.DoomInfo.States[(int)ManagedDoom.MobjState.Bexp4];
+
+        effect.Sprite = explosionState.Sprite;
+        effect.Frame = explosionState.Frame;
+        effect.State = explosionState;
+        effect.Tics = -1;
+        effect.Health = 0;
+        effect.MomX = ManagedDoom.Fixed.Zero;
+        effect.MomY = ManagedDoom.Fixed.Zero;
+        effect.MomZ = ManagedDoom.Fixed.Zero;
+        effect.Flags &= ~(ManagedDoom.MobjFlags.Shootable
+            | ManagedDoom.MobjFlags.Solid
+            | ManagedDoom.MobjFlags.Special
+            | ManagedDoom.MobjFlags.Missile
+            | ManagedDoom.MobjFlags.CountKill);
+        effect.Flags |= ManagedDoom.MobjFlags.NoGravity;
+
+        _transientPresentationMobjs[effect] = DateTime.UtcNow.AddMilliseconds( 120.0 );
+        PlayPredictedLocalSfx( sfx );
+    }
+
+    private void CleanupExpiredTransientPresentationMobjs()
+    {
+        CleanupTransientPresentationMobjs( force: false );
+    }
+
+    private void CleanupExpiredPredictionState()
+    {
+        CleanupExpiredPredictionEntries( _predictedBarrelDamageTimes, 400.0, _predictedBarrelDamageTotals );
+        CleanupExpiredPredictionEntries( _predictedBarrelExplosionTimes, 1200.0 );
+        CleanupExpiredLocalHitscanImpacts();
+    }
+
+    private static void CleanupExpiredPredictionEntries( Dictionary<int, DateTime> entries, double maxAgeMs, Dictionary<int, int> pairedEntries = null )
+    {
+        if ( entries.Count == 0 )
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var expiredKeys = new List<int>();
+        foreach ( var pair in entries )
+        {
+            if ( ( now - pair.Value ).TotalMilliseconds > maxAgeMs )
+            {
+                expiredKeys.Add( pair.Key );
+            }
+        }
+
+        for ( var i = 0; i < expiredKeys.Count; i++ )
+        {
+            entries.Remove( expiredKeys[i] );
+            pairedEntries?.Remove( expiredKeys[i] );
+        }
+    }
+
+    private void CleanupTransientPresentationMobjs( bool force )
+    {
+        if ( _transientPresentationMobjs.Count == 0 )
+        {
+            return;
+        }
+
+        if ( _doom?.Game?.World is null )
+        {
+            if ( force )
+            {
+                _transientPresentationMobjs.Clear();
+            }
+
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var expired = new List<ManagedDoom.Mobj>();
+
+        foreach ( var pair in _transientPresentationMobjs )
+        {
+            if ( force
+                || pair.Key is null
+                || pair.Key.ThinkerState == ManagedDoom.ThinkerState.Removed
+                || pair.Value <= now )
+            {
+                expired.Add( pair.Key );
+            }
+        }
+
+        for ( var i = 0; i < expired.Count; i++ )
+        {
+            var effect = expired[i];
+            _transientPresentationMobjs.Remove( effect );
+
+            if ( effect is not null && effect.ThinkerState != ManagedDoom.ThinkerState.Removed )
+            {
+                _doom.Game.World.ThingAllocation.RemoveMobj( effect );
+            }
+        }
+    }
+
+    private void PlayReplicatedBarrelExplosion( ManagedDoom.Mobj barrel )
+    {
+        if ( barrel is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        if ( barrel.SpawnPoint is not null
+            && _pvpMapThingIndexes.TryGetValue( barrel.SpawnPoint, out var mapThingIndex ) )
+        {
+            _predictedBarrelDamageTotals.Remove( mapThingIndex );
+            _predictedBarrelDamageTimes.Remove( mapThingIndex );
+        }
+
+        var predictedRecently = TryConsumePredictedBarrelExplosion( barrel );
+        if ( !predictedRecently )
+        {
+            SpawnTransientExplosionEffect( barrel.X, barrel.Y, barrel.Z, ManagedDoom.Sfx.BAREXP );
+        }
+
+        _doom.Game.World.ThingAllocation.RemoveMobj( barrel );
+    }
+
+    private void PlayAuthoritativeBarrelExplosionByIndex( int mapThingIndex )
+    {
+        if ( mapThingIndex < 0 || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        _predictedBarrelDamageTotals.Remove( mapThingIndex );
+        _predictedBarrelDamageTimes.Remove( mapThingIndex );
+
+        ManagedDoom.Mobj barrel = null;
+        foreach ( var thinker in _doom.Game.World.Thinkers )
+        {
+            if ( thinker is ManagedDoom.Mobj mobj
+                && mobj.Type == ManagedDoom.MobjType.Barrel
+                && mobj.SpawnPoint is not null
+                && _pvpMapThingIndexes.TryGetValue( mobj.SpawnPoint, out var candidateIndex )
+                && candidateIndex == mapThingIndex )
+            {
+                barrel = mobj;
+                break;
+            }
+        }
+
+        if ( barrel is not null )
+        {
+            PlayReplicatedBarrelExplosion( barrel );
+            return;
+        }
+
+        if ( !_predictedBarrelExplosionTimes.ContainsKey( mapThingIndex ) )
+        {
+            _predictedBarrelExplosionTimes[mapThingIndex] = DateTime.UtcNow;
+            if ( TryGetThingOriginByIndex( mapThingIndex, out var x, out var y, out var z ) )
+            {
+                SpawnTransientExplosionEffect( x, y, z, ManagedDoom.Sfx.BAREXP );
+            }
+        }
+    }
+
+    private void PlayPredictedBarrelExplosion( ManagedDoom.Mobj barrel )
+    {
+        if ( barrel is null )
+        {
+            return;
+        }
+
+        if ( barrel.SpawnPoint is not null
+            && _pvpMapThingIndexes.TryGetValue( barrel.SpawnPoint, out var mapThingIndex ) )
+        {
+            _predictedBarrelDamageTotals.Remove( mapThingIndex );
+            _predictedBarrelDamageTimes.Remove( mapThingIndex );
+            _predictedBarrelExplosionTimes[mapThingIndex] = DateTime.UtcNow;
+        }
+
+        SpawnTransientExplosionEffect( barrel.X, barrel.Y, barrel.Z, ManagedDoom.Sfx.BAREXP );
+    }
+
+    private bool TryGetThingOriginByIndex( int mapThingIndex, out ManagedDoom.Fixed x, out ManagedDoom.Fixed y, out ManagedDoom.Fixed z )
+    {
+        x = ManagedDoom.Fixed.Zero;
+        y = ManagedDoom.Fixed.Zero;
+        z = ManagedDoom.Fixed.Zero;
+
+        if ( _doom?.Game?.World?.Map?.Things is null || mapThingIndex < 0 || mapThingIndex >= _doom.Game.World.Map.Things.Length )
+        {
+            return false;
+        }
+
+        var mapThing = _doom.Game.World.Map.Things[mapThingIndex];
+        if ( mapThing is null )
+        {
+            return false;
+        }
+
+        x = mapThing.X;
+        y = mapThing.Y;
+        z = ManagedDoom.Fixed.Zero;
+        return true;
+    }
+
+    private static HashSet<int> ParseThingIndexSet( string rawValue )
+    {
+        var result = new HashSet<int>();
+        if ( string.IsNullOrWhiteSpace( rawValue ) )
+        {
+            return result;
+        }
+
+        var parts = rawValue.Split( ',', StringSplitOptions.RemoveEmptyEntries );
+        for ( var i = 0; i < parts.Length; i++ )
+        {
+            if ( int.TryParse( parts[i], out var parsedIndex ) )
+            {
+                result.Add( parsedIndex );
+            }
+        }
+
+        return result;
+    }
+
+    private static bool IsValidWeaponValue( int value )
+    {
+        return value >= 0 && value < (int)ManagedDoom.WeaponType.Count;
+    }
+
+    private static bool IsValidAmmoTypeValue( int value )
+    {
+        return value >= 0 && value < (int)ManagedDoom.AmmoType.Count;
+    }
+
+    private static bool IsAuthoritativePvpProjectile( ManagedDoom.Mobj projectile )
+    {
+        return projectile is not null
+            && (projectile.Flags & ManagedDoom.MobjFlags.Missile) != 0
+            && projectile.Target?.Player is not null
+            && (projectile.Type == ManagedDoom.MobjType.Rocket
+                || projectile.Type == ManagedDoom.MobjType.Plasma
+                || projectile.Type == ManagedDoom.MobjType.Bfg);
+    }
+
+    private static int ResolveProjectileOwnerIndex( ManagedDoom.Mobj source )
+    {
+        return source?.Player?.Number ?? -1;
+    }
+
+    private static int CompareProjectileSnapshots( PvpProjectileSnapshot left, PvpProjectileSnapshot right )
+    {
+        var result = left.OwnerPlayerIndex.CompareTo( right.OwnerPlayerIndex );
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = ((int)left.Type).CompareTo( (int)right.Type );
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = left.X.CompareTo( right.X );
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        result = left.Y.CompareTo( right.Y );
+        if ( result != 0 )
+        {
+            return result;
+        }
+
+        return left.Z.CompareTo( right.Z );
+    }
+
+    private List<PvpProjectileSnapshot> ParseProjectileSnapshots( string projectileState )
+    {
+        var results = new List<PvpProjectileSnapshot>();
+        if ( string.IsNullOrWhiteSpace( projectileState ) )
+        {
+            return results;
+        }
+
+        var entries = projectileState.Split( ';', StringSplitOptions.RemoveEmptyEntries );
+        for ( var i = 0; i < entries.Length; i++ )
+        {
+            var parts = entries[i].Split( ':', StringSplitOptions.None );
+            if ( parts.Length != 10 )
+            {
+                continue;
+            }
+
+            if ( !int.TryParse( parts[0], out var ownerPlayerIndex )
+                || !int.TryParse( parts[1], out var typeValue )
+                || !Enum.IsDefined( typeof( ManagedDoom.MobjType ), typeValue )
+                || !int.TryParse( parts[2], out var x )
+                || !int.TryParse( parts[3], out var y )
+                || !int.TryParse( parts[4], out var z )
+                || !int.TryParse( parts[5], out var momX )
+                || !int.TryParse( parts[6], out var momY )
+                || !int.TryParse( parts[7], out var momZ )
+                || !int.TryParse( parts[8], out var angle )
+                || !int.TryParse( parts[9], out var tics ) )
+            {
+                continue;
+            }
+
+            results.Add( new PvpProjectileSnapshot
+            {
+                OwnerPlayerIndex = ownerPlayerIndex,
+                Type = (ManagedDoom.MobjType)typeValue,
+                X = x,
+                Y = y,
+                Z = z,
+                MomX = momX,
+                MomY = momY,
+                MomZ = momZ,
+                Angle = angle,
+                Tics = tics
+            } );
+        }
+
+        results.Sort( CompareProjectileSnapshots );
+        return results;
+    }
+
+    private int FindBestMatchingProjectileIndex(
+        List<ManagedDoom.Mobj> localProjectiles,
+        bool[] matchedLocalProjectiles,
+        PvpProjectileSnapshot snapshot )
+    {
+        var bestIndex = -1;
+        long bestDistance = long.MaxValue;
+
+        for ( var i = 0; i < localProjectiles.Count; i++ )
+        {
+            if ( matchedLocalProjectiles[i] )
+            {
+                continue;
+            }
+
+            var projectile = localProjectiles[i];
+            if ( projectile.Type != snapshot.Type || ResolveProjectileOwnerIndex( projectile.Target ) != snapshot.OwnerPlayerIndex )
+            {
+                continue;
+            }
+
+            var dx = (long)projectile.X.Data - snapshot.X;
+            var dy = (long)projectile.Y.Data - snapshot.Y;
+            var dz = (long)projectile.Z.Data - snapshot.Z;
+            var distance = dx * dx + dy * dy + dz * dz;
+
+            if ( distance < bestDistance )
+            {
+                bestDistance = distance;
+                bestIndex = i;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    private void ApplyProjectileSnapshot( ManagedDoom.World world, ManagedDoom.Mobj projectile, PvpProjectileSnapshot snapshot )
+    {
+        if ( snapshot.OwnerPlayerIndex >= 0
+            && snapshot.OwnerPlayerIndex < _doom.Options.Players.Length
+            && _doom.Options.Players[snapshot.OwnerPlayerIndex]?.Mobj is not null )
+        {
+            projectile.Target = _doom.Options.Players[snapshot.OwnerPlayerIndex].Mobj;
+        }
+
+        var thingMovement = world.ThingMovement;
+        thingMovement.UnsetThingPosition( projectile );
+        projectile.X = new ManagedDoom.Fixed( snapshot.X );
+        projectile.Y = new ManagedDoom.Fixed( snapshot.Y );
+        projectile.Z = new ManagedDoom.Fixed( snapshot.Z );
+        projectile.MomX = new ManagedDoom.Fixed( snapshot.MomX );
+        projectile.MomY = new ManagedDoom.Fixed( snapshot.MomY );
+        projectile.MomZ = new ManagedDoom.Fixed( snapshot.MomZ );
+        projectile.Angle = new ManagedDoom.Angle( snapshot.Angle );
+        projectile.Tics = Math.Max( 1, snapshot.Tics );
+        thingMovement.SetThingPosition( projectile );
+        projectile.FloorZ = projectile.Subsector.Sector.FloorHeight;
+        projectile.CeilingZ = projectile.Subsector.Sector.CeilingHeight;
+        projectile.DisableFrameInterpolationForOneFrame();
+    }
+
+    private static int ParseIntOrDefault( string value, int fallback )
+    {
+        return int.TryParse( value, out var parsed ) ? parsed : fallback;
+    }
+
+    private void ApplyAuthoritativePlayerState( SboxManagedDoomMultiplayerSessionComponent session, int playerIndex )
+    {
+        var players = _doom.Options.Players;
+        if ( playerIndex < 0 || playerIndex >= players.Length )
+        {
+            return;
+        }
+
+        var player = players[playerIndex];
+        if ( player?.Mobj is null )
+        {
+            return;
+        }
+
+        bool active;
+        int x;
+        int y;
+        int z;
+        int momX;
+        int momY;
+        int momZ;
+        int angle;
+        int health;
+        int playerStateValue;
+        int armorPoints;
+        int armorType;
+        int ammoClip;
+        int ammoShell;
+        int ammoCell;
+        int ammoMissile;
+        bool backpack;
+        bool cardBlueCard;
+        bool cardYellowCard;
+        bool cardRedCard;
+        bool cardBlueSkull;
+        bool cardYellowSkull;
+        bool cardRedSkull;
+        int powerInvulnerability;
+        int powerStrength;
+        int powerInvisibility;
+        int powerIronFeet;
+        int powerAllMap;
+        int powerInfrared;
+        int maxAmmoClip;
+        int maxAmmoShell;
+        int maxAmmoCell;
+        int maxAmmoMissile;
+        bool ownedFist;
+        bool ownedPistol;
+        bool ownedShotgun;
+        bool ownedChaingun;
+        bool ownedMissile;
+        bool ownedPlasma;
+        bool ownedBfg;
+        bool ownedChainsaw;
+        bool ownedSuperShotgun;
+        int damageCount;
+        int bonusCount;
+        int frag0;
+        int frag1;
+        int frag2;
+        int frag3;
+        int mobjStateNumber;
+        int mobjSprite;
+        int mobjFrame;
+        int mobjTics;
+
+        if ( playerIndex == 0 )
+        {
+            active = session.Player0StateActive;
+            x = session.Player0StateX;
+            y = session.Player0StateY;
+            z = session.Player0StateZ;
+            momX = session.Player0StateMomX;
+            momY = session.Player0StateMomY;
+            momZ = session.Player0StateMomZ;
+            angle = session.Player0StateAngle;
+            health = session.Player0StateHealth;
+            playerStateValue = session.Player0StatePlayerState;
+            armorPoints = session.Player0StateArmorPoints;
+            armorType = session.Player0StateArmorType;
+            ammoClip = session.Player0StateAmmoClip;
+            ammoShell = session.Player0StateAmmoShell;
+            ammoCell = session.Player0StateAmmoCell;
+            ammoMissile = session.Player0StateAmmoMissile;
+            backpack = session.Player0StateBackpack;
+            cardBlueCard = session.Player0StateCardBlueCard;
+            cardYellowCard = session.Player0StateCardYellowCard;
+            cardRedCard = session.Player0StateCardRedCard;
+            cardBlueSkull = session.Player0StateCardBlueSkull;
+            cardYellowSkull = session.Player0StateCardYellowSkull;
+            cardRedSkull = session.Player0StateCardRedSkull;
+            powerInvulnerability = session.Player0StatePowerInvulnerability;
+            powerStrength = session.Player0StatePowerStrength;
+            powerInvisibility = session.Player0StatePowerInvisibility;
+            powerIronFeet = session.Player0StatePowerIronFeet;
+            powerAllMap = session.Player0StatePowerAllMap;
+            powerInfrared = session.Player0StatePowerInfrared;
+            maxAmmoClip = session.Player0StateMaxAmmoClip;
+            maxAmmoShell = session.Player0StateMaxAmmoShell;
+            maxAmmoCell = session.Player0StateMaxAmmoCell;
+            maxAmmoMissile = session.Player0StateMaxAmmoMissile;
+            ownedFist = session.Player0StateWeaponOwnedFist;
+            ownedPistol = session.Player0StateWeaponOwnedPistol;
+            ownedShotgun = session.Player0StateWeaponOwnedShotgun;
+            ownedChaingun = session.Player0StateWeaponOwnedChaingun;
+            ownedMissile = session.Player0StateWeaponOwnedMissile;
+            ownedPlasma = session.Player0StateWeaponOwnedPlasma;
+            ownedBfg = session.Player0StateWeaponOwnedBfg;
+            ownedChainsaw = session.Player0StateWeaponOwnedChainsaw;
+            ownedSuperShotgun = session.Player0StateWeaponOwnedSuperShotgun;
+            damageCount = session.Player0StateDamageCount;
+            bonusCount = session.Player0StateBonusCount;
+            frag0 = session.Player0StateFrag0;
+            frag1 = session.Player0StateFrag1;
+            frag2 = session.Player0StateFrag2;
+            frag3 = session.Player0StateFrag3;
+            mobjStateNumber = session.Player0StateMobjState;
+            mobjSprite = session.Player0StateMobjSprite;
+            mobjFrame = session.Player0StateMobjFrame;
+            mobjTics = session.Player0StateMobjTics;
+        }
+        else
+        {
+            active = session.Player1StateActive;
+            x = session.Player1StateX;
+            y = session.Player1StateY;
+            z = session.Player1StateZ;
+            momX = session.Player1StateMomX;
+            momY = session.Player1StateMomY;
+            momZ = session.Player1StateMomZ;
+            angle = session.Player1StateAngle;
+            health = session.Player1StateHealth;
+            playerStateValue = session.Player1StatePlayerState;
+            armorPoints = session.Player1StateArmorPoints;
+            armorType = session.Player1StateArmorType;
+            ammoClip = session.Player1StateAmmoClip;
+            ammoShell = session.Player1StateAmmoShell;
+            ammoCell = session.Player1StateAmmoCell;
+            ammoMissile = session.Player1StateAmmoMissile;
+            backpack = session.Player1StateBackpack;
+            cardBlueCard = session.Player1StateCardBlueCard;
+            cardYellowCard = session.Player1StateCardYellowCard;
+            cardRedCard = session.Player1StateCardRedCard;
+            cardBlueSkull = session.Player1StateCardBlueSkull;
+            cardYellowSkull = session.Player1StateCardYellowSkull;
+            cardRedSkull = session.Player1StateCardRedSkull;
+            powerInvulnerability = session.Player1StatePowerInvulnerability;
+            powerStrength = session.Player1StatePowerStrength;
+            powerInvisibility = session.Player1StatePowerInvisibility;
+            powerIronFeet = session.Player1StatePowerIronFeet;
+            powerAllMap = session.Player1StatePowerAllMap;
+            powerInfrared = session.Player1StatePowerInfrared;
+            maxAmmoClip = session.Player1StateMaxAmmoClip;
+            maxAmmoShell = session.Player1StateMaxAmmoShell;
+            maxAmmoCell = session.Player1StateMaxAmmoCell;
+            maxAmmoMissile = session.Player1StateMaxAmmoMissile;
+            ownedFist = session.Player1StateWeaponOwnedFist;
+            ownedPistol = session.Player1StateWeaponOwnedPistol;
+            ownedShotgun = session.Player1StateWeaponOwnedShotgun;
+            ownedChaingun = session.Player1StateWeaponOwnedChaingun;
+            ownedMissile = session.Player1StateWeaponOwnedMissile;
+            ownedPlasma = session.Player1StateWeaponOwnedPlasma;
+            ownedBfg = session.Player1StateWeaponOwnedBfg;
+            ownedChainsaw = session.Player1StateWeaponOwnedChainsaw;
+            ownedSuperShotgun = session.Player1StateWeaponOwnedSuperShotgun;
+            damageCount = session.Player1StateDamageCount;
+            bonusCount = session.Player1StateBonusCount;
+            frag0 = session.Player1StateFrag0;
+            frag1 = session.Player1StateFrag1;
+            frag2 = session.Player1StateFrag2;
+            frag3 = session.Player1StateFrag3;
+            mobjStateNumber = session.Player1StateMobjState;
+            mobjSprite = session.Player1StateMobjSprite;
+            mobjFrame = session.Player1StateMobjFrame;
+            mobjTics = session.Player1StateMobjTics;
+        }
+
+        if ( !active )
+        {
+            return;
+        }
+
+        var mobj = player.Mobj;
+        var thingMovement = _doom.Game.World.ThingMovement;
+        var isJoinerLocalPlayer = !Networking.IsHost && playerIndex == _doom.Options.ConsolePlayer;
+        var isJoinerRemotePlayer = !Networking.IsHost && !isJoinerLocalPlayer;
+        var suppressWeaponFieldSync = isJoinerLocalPlayer || ( !Networking.IsHost && _weaponRespawnSettleTics[playerIndex] > 0 );
+
+        if ( isJoinerRemotePlayer )
+        {
+            SmoothRemotePlayerState( thingMovement, mobj, x, y, z, momX, momY, momZ, angle, health );
+        }
+        else if ( !isJoinerLocalPlayer )
+        {
+            SetAuthoritativePlayerPosition( thingMovement, mobj, x, y, z, momX, momY, momZ, angle, health );
+        }
+
+        player.Health = health;
+        player.ArmorPoints = armorPoints;
+        player.ArmorType = armorType;
+        player.Backpack = backpack;
+        player.Cards[(int)ManagedDoom.CardType.BlueCard] = cardBlueCard;
+        player.Cards[(int)ManagedDoom.CardType.YellowCard] = cardYellowCard;
+        player.Cards[(int)ManagedDoom.CardType.RedCard] = cardRedCard;
+        player.Cards[(int)ManagedDoom.CardType.BlueSkull] = cardBlueSkull;
+        player.Cards[(int)ManagedDoom.CardType.YellowSkull] = cardYellowSkull;
+        player.Cards[(int)ManagedDoom.CardType.RedSkull] = cardRedSkull;
+        player.Powers[(int)ManagedDoom.PowerType.Invulnerability] = powerInvulnerability;
+        player.Powers[(int)ManagedDoom.PowerType.Strength] = powerStrength;
+        player.Powers[(int)ManagedDoom.PowerType.Invisibility] = powerInvisibility;
+        player.Powers[(int)ManagedDoom.PowerType.IronFeet] = powerIronFeet;
+        player.Powers[(int)ManagedDoom.PowerType.AllMap] = powerAllMap;
+        player.Powers[(int)ManagedDoom.PowerType.Infrared] = powerInfrared;
+        if ( !isJoinerLocalPlayer )
+        {
+            player.DamageCount = damageCount;
+            player.BonusCount = bonusCount;
+            player.Frags[0] = frag0;
+            player.Frags[1] = frag1;
+            player.Frags[2] = frag2;
+            player.Frags[3] = frag3;
+        }
+
+        if ( !suppressWeaponFieldSync )
+        {
+            ApplyAmmoSnapshot( player, ammoClip, ammoShell, ammoCell, ammoMissile );
+            player.MaxAmmo[(int)ManagedDoom.AmmoType.Clip] = maxAmmoClip;
+            player.MaxAmmo[(int)ManagedDoom.AmmoType.Shell] = maxAmmoShell;
+            player.MaxAmmo[(int)ManagedDoom.AmmoType.Cell] = maxAmmoCell;
+            player.MaxAmmo[(int)ManagedDoom.AmmoType.Missile] = maxAmmoMissile;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Fist] = ownedFist;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Pistol] = ownedPistol;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Shotgun] = ownedShotgun;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Chaingun] = ownedChaingun;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Missile] = ownedMissile;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Plasma] = ownedPlasma;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Bfg] = ownedBfg;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.Chainsaw] = ownedChainsaw;
+            player.WeaponOwned[(int)ManagedDoom.WeaponType.SuperShotgun] = ownedSuperShotgun;
+        }
+
+        if ( isJoinerRemotePlayer )
+        {
+            SanitizeRemoteReplicatedWeaponState( player );
+        }
+
+        if ( !isJoinerLocalPlayer )
+        {
+            player.PlayerState = (ManagedDoom.PlayerState)playerStateValue;
+            ApplyAuthoritativeRemoteMobjVisualState( mobj, mobjStateNumber, mobjSprite, mobjFrame, mobjTics );
+            player.ViewZ = mobj.Z + ManagedDoom.Player.NormalViewHeight;
+        }
+        if ( !isJoinerLocalPlayer )
+        {
+            mobj.DisableFrameInterpolationForOneFrame();
+            player.DisableFrameInterpolationForOneFrame();
+        }
+    }
+
+    private static void ApplyAuthoritativeRemoteMobjVisualState(
+        ManagedDoom.Mobj mobj,
+        int stateNumber,
+        int spriteValue,
+        int frame,
+        int tics )
+    {
+        if ( mobj is null )
+        {
+            return;
+        }
+
+        if ( stateNumber >= 0 && stateNumber < ManagedDoom.DoomInfo.States.Length )
+        {
+            mobj.State = ManagedDoom.DoomInfo.States[stateNumber];
+        }
+
+        if ( Enum.IsDefined( typeof( ManagedDoom.Sprite ), spriteValue ) )
+        {
+            mobj.Sprite = (ManagedDoom.Sprite)spriteValue;
+        }
+
+        mobj.Frame = frame;
+        mobj.Tics = tics;
+    }
+
+    private static void SetAuthoritativePlayerPosition(
+        ManagedDoom.ThingMovement thingMovement,
+        ManagedDoom.Mobj mobj,
+        int x,
+        int y,
+        int z,
+        int momX,
+        int momY,
+        int momZ,
+        int angle,
+        int health )
+    {
+        thingMovement.UnsetThingPosition( mobj );
+        mobj.X = new ManagedDoom.Fixed( x );
+        mobj.Y = new ManagedDoom.Fixed( y );
+        mobj.Z = new ManagedDoom.Fixed( z );
+        mobj.MomX = new ManagedDoom.Fixed( momX );
+        mobj.MomY = new ManagedDoom.Fixed( momY );
+        mobj.MomZ = new ManagedDoom.Fixed( momZ );
+        mobj.Angle = new ManagedDoom.Angle( angle );
+        mobj.Health = health;
+        thingMovement.SetThingPosition( mobj );
+        mobj.FloorZ = mobj.Subsector.Sector.FloorHeight;
+        mobj.CeilingZ = mobj.Subsector.Sector.CeilingHeight;
+    }
+
+    private static void ReconcileLocalJoinerPlayerState(
+        ManagedDoom.ThingMovement thingMovement,
+        ManagedDoom.Mobj mobj,
+        int targetX,
+        int targetY,
+        int targetZ,
+        int targetMomX,
+        int targetMomY,
+        int targetMomZ,
+        int targetAngle,
+        int targetHealth )
+    {
+        var deltaX = targetX - mobj.X.Data;
+        var deltaY = targetY - mobj.Y.Data;
+        var deltaZ = targetZ - mobj.Z.Data;
+
+        var needsSnap =
+            Math.Abs( deltaX ) > PvpLocalSnapDistance ||
+            Math.Abs( deltaY ) > PvpLocalSnapDistance ||
+            Math.Abs( deltaZ ) > PvpLocalSnapDistance;
+
+        if ( needsSnap )
+        {
+            SetAuthoritativePlayerPosition( thingMovement, mobj, targetX, targetY, targetZ, targetMomX, targetMomY, targetMomZ, targetAngle, targetHealth );
+            mobj.DisableFrameInterpolationForOneFrame();
+            return;
+        }
+
+        var needsReconcile =
+            Math.Abs( deltaX ) > PvpLocalReconcileDistance ||
+            Math.Abs( deltaY ) > PvpLocalReconcileDistance ||
+            Math.Abs( deltaZ ) > PvpLocalReconcileDistance;
+
+        if ( needsReconcile )
+        {
+            thingMovement.UnsetThingPosition( mobj );
+            mobj.X = new ManagedDoom.Fixed( BlendRaw( mobj.X.Data, targetX, 6 ) );
+            mobj.Y = new ManagedDoom.Fixed( BlendRaw( mobj.Y.Data, targetY, 6 ) );
+            mobj.Z = new ManagedDoom.Fixed( BlendRaw( mobj.Z.Data, targetZ, 6 ) );
+            thingMovement.SetThingPosition( mobj );
+            mobj.FloorZ = mobj.Subsector.Sector.FloorHeight;
+            mobj.CeilingZ = mobj.Subsector.Sector.CeilingHeight;
+        }
+
+        mobj.Health = targetHealth;
+    }
+
+    private static void SmoothRemotePlayerState(
+        ManagedDoom.ThingMovement thingMovement,
+        ManagedDoom.Mobj mobj,
+        int targetX,
+        int targetY,
+        int targetZ,
+        int targetMomX,
+        int targetMomY,
+        int targetMomZ,
+        int targetAngle,
+        int targetHealth )
+    {
+        var deltaX = targetX - mobj.X.Data;
+        var deltaY = targetY - mobj.Y.Data;
+        var deltaZ = targetZ - mobj.Z.Data;
+
+        var needsSnap =
+            Math.Abs( deltaX ) > PvpRemoteSnapDistance ||
+            Math.Abs( deltaY ) > PvpRemoteSnapDistance ||
+            Math.Abs( deltaZ ) > PvpRemoteSnapDistance;
+
+        if ( needsSnap )
+        {
+            SetAuthoritativePlayerPosition( thingMovement, mobj, targetX, targetY, targetZ, targetMomX, targetMomY, targetMomZ, targetAngle, targetHealth );
+            return;
+        }
+
+        thingMovement.UnsetThingPosition( mobj );
+        mobj.X = new ManagedDoom.Fixed( BlendRaw( mobj.X.Data, targetX, 3 ) );
+        mobj.Y = new ManagedDoom.Fixed( BlendRaw( mobj.Y.Data, targetY, 3 ) );
+        mobj.Z = new ManagedDoom.Fixed( BlendRaw( mobj.Z.Data, targetZ, 3 ) );
+        mobj.MomX = new ManagedDoom.Fixed( BlendRaw( mobj.MomX.Data, targetMomX, 2 ) );
+        mobj.MomY = new ManagedDoom.Fixed( BlendRaw( mobj.MomY.Data, targetMomY, 2 ) );
+        mobj.MomZ = new ManagedDoom.Fixed( BlendRaw( mobj.MomZ.Data, targetMomZ, 2 ) );
+        mobj.Angle = new ManagedDoom.Angle( targetAngle );
+        mobj.Health = targetHealth;
+        thingMovement.SetThingPosition( mobj );
+        mobj.FloorZ = mobj.Subsector.Sector.FloorHeight;
+        mobj.CeilingZ = mobj.Subsector.Sector.CeilingHeight;
+    }
+
+    private static int BlendRaw( int current, int target, int divisor )
+    {
+        if ( divisor <= 1 )
+        {
+            return target;
+        }
+
+        return current + ( (target - current) / divisor );
+    }
+
+    private static void SanitizeRemoteReplicatedWeaponState( ManagedDoom.Player player )
+    {
+        if ( player is null )
+        {
+            return;
+        }
+
+        if ( !IsUsableWeaponForRuntime( player.ReadyWeapon ) || !player.WeaponOwned[(int)player.ReadyWeapon] )
+        {
+            player.ReadyWeapon = ResolveOwnedWeaponFallback( player );
+        }
+
+        if ( player.PendingWeapon != ManagedDoom.WeaponType.NoChange )
+        {
+            if ( !IsUsableWeaponForRuntime( player.PendingWeapon ) || !player.WeaponOwned[(int)player.PendingWeapon] )
+            {
+                player.PendingWeapon = player.ReadyWeapon;
+            }
+        }
+    }
+
+    private static bool IsUsableWeaponForRuntime( ManagedDoom.WeaponType weapon )
+    {
+        return weapon != ManagedDoom.WeaponType.NoChange
+            && weapon >= 0
+            && weapon < ManagedDoom.WeaponType.Count;
+    }
+
+    private static ManagedDoom.WeaponType ResolveOwnedWeaponFallback( ManagedDoom.Player player )
+    {
+        if ( player.WeaponOwned[(int)ManagedDoom.WeaponType.Pistol] )
+        {
+            return ManagedDoom.WeaponType.Pistol;
+        }
+
+        if ( player.WeaponOwned[(int)ManagedDoom.WeaponType.Fist] )
+        {
+            return ManagedDoom.WeaponType.Fist;
+        }
+
+        for ( var weaponIndex = 0; weaponIndex < (int)ManagedDoom.WeaponType.Count; weaponIndex++ )
+        {
+            if ( player.WeaponOwned[weaponIndex] )
+            {
+                return (ManagedDoom.WeaponType)weaponIndex;
+            }
+        }
+
+        return ManagedDoom.WeaponType.Pistol;
+    }
+
+    private bool ShouldSuppressLocalHitscanDamage( ManagedDoom.Player player )
+    {
+        if ( _doom?.Options is null || player is null )
+        {
+            return false;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( UseSharedSimulationPvp( session ) )
+        {
+            return false;
+        }
+
+        return session?.PvpActive == true
+            && !Networking.IsHost
+            && player.Number == _doom.Options.ConsolePlayer;
+    }
+
+    private bool ShouldSuppressLocalDamageToThing( ManagedDoom.Mobj target )
+    {
+        if ( _doom?.Options is null || target is null )
+        {
+            return false;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session?.PvpActive != true || Networking.IsHost )
+        {
+            return false;
+        }
+
+        if ( UseSharedSimulationPvp( session ) )
+        {
+            return false;
+        }
+
+        if ( target.Player is not null )
+        {
+            return true;
+        }
+
+        return target.Type == ManagedDoom.MobjType.Barrel;
+    }
+
+    private bool ShouldSuppressLocalPickup( ManagedDoom.Player player )
+    {
+        if ( _doom?.Options is null || player is null )
+        {
+            return false;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( UseSharedSimulationPvp( session ) )
+        {
+            return false;
+        }
+
+        return session?.PvpActive == true
+            && !Networking.IsHost
+            && player.Number == _doom.Options.ConsolePlayer;
+    }
+
+    private void OnHitscanImpact( ManagedDoom.HitscanImpactEvent impact )
+    {
+        if ( impact is null )
+        {
+            return;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session?.PvpActive != true )
+        {
+            return;
+        }
+
+        if ( UseSharedSimulationPvp( session ) )
+        {
+            if ( !Networking.IsHost )
+            {
+                RememberLocalHitscanImpact( impact );
+                TryPredictBarrelExplosionFromHitscanImpact( impact );
+            }
+
+            return;
+        }
+
+        if ( Networking.IsHost )
+        {
+            _pendingAuthoritativeHitscanEvents.Add( impact );
+            return;
+        }
+
+        RememberLocalHitscanImpact( impact );
+        TryPredictBarrelExplosionFromHitscanImpact( impact );
+    }
+
+    private void RememberLocalHitscanImpact( ManagedDoom.HitscanImpactEvent impact )
+    {
+        _recentLocalHitscanImpacts.Add( new RecentHitscanImpact
+        {
+            Blood = impact.Blood,
+            X = impact.X,
+            Y = impact.Y,
+            Z = impact.Z,
+            RecordedAtUtc = DateTime.UtcNow
+        } );
+    }
+
+    private bool WasPredictedLocalHitscanRecently( bool blood, int x, int y, int z )
+    {
+        const double predictionWindowMs = 250.0;
+        const int maxDistance = 24 << 16;
+        var now = DateTime.UtcNow;
+
+        for ( var i = _recentLocalHitscanImpacts.Count - 1; i >= 0; i-- )
+        {
+            var impact = _recentLocalHitscanImpacts[i];
+            if ( ( now - impact.RecordedAtUtc ).TotalMilliseconds > predictionWindowMs )
+            {
+                continue;
+            }
+
+            if ( impact.Blood != blood )
+            {
+                continue;
+            }
+
+            if ( Math.Abs( impact.X - x ) <= maxDistance
+                && Math.Abs( impact.Y - y ) <= maxDistance
+                && Math.Abs( impact.Z - z ) <= maxDistance )
+            {
+                _recentLocalHitscanImpacts.RemoveAt( i );
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CleanupExpiredLocalHitscanImpacts()
+    {
+        const double maxAgeMs = 400.0;
+        if ( _recentLocalHitscanImpacts.Count == 0 )
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        _recentLocalHitscanImpacts.RemoveAll( impact => ( now - impact.RecordedAtUtc ).TotalMilliseconds > maxAgeMs );
+    }
+
+    private void TryPredictBarrelExplosionFromHitscanImpact( ManagedDoom.HitscanImpactEvent impact )
+    {
+        if ( impact.Blood || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        const int maxDistance = 20 << 16;
+        ManagedDoom.Mobj bestBarrel = null;
+        var bestDistance = int.MaxValue;
+
+        foreach ( var thinker in _doom.Game.World.Thinkers )
+        {
+            if ( thinker is not ManagedDoom.Mobj barrel
+                || barrel.Type != ManagedDoom.MobjType.Barrel
+                || barrel.ThinkerState == ManagedDoom.ThinkerState.Removed
+                || barrel.SpawnPoint is null
+                || !_pvpMapThingIndexes.TryGetValue( barrel.SpawnPoint, out var mapThingIndex )
+                || _predictedBarrelExplosionTimes.ContainsKey( mapThingIndex ) )
+            {
+                continue;
+            }
+
+            var deltaX = Math.Abs( barrel.X.Data - impact.X );
+            var deltaY = Math.Abs( barrel.Y.Data - impact.Y );
+            if ( deltaX > maxDistance || deltaY > maxDistance )
+            {
+                continue;
+            }
+
+            var distance = deltaX + deltaY;
+            if ( distance >= bestDistance )
+            {
+                continue;
+            }
+
+            bestDistance = distance;
+            bestBarrel = barrel;
+        }
+
+        if ( bestBarrel is not null )
+        {
+            PlayPredictedBarrelExplosion( bestBarrel );
+        }
+    }
+
+    private sealed class PvpProjectileSnapshot
+    {
+        public int OwnerPlayerIndex { get; init; }
+        public ManagedDoom.MobjType Type { get; init; }
+        public int X { get; init; }
+        public int Y { get; init; }
+        public int Z { get; init; }
+        public int MomX { get; init; }
+        public int MomY { get; init; }
+        public int MomZ { get; init; }
+        public int Angle { get; init; }
+        public int Tics { get; init; }
+    }
+
+    private sealed class RecentHitscanImpact
+    {
+        public bool Blood { get; init; }
+        public int X { get; init; }
+        public int Y { get; init; }
+        public int Z { get; init; }
+        public DateTime RecordedAtUtc { get; init; }
+    }
+
+    private sealed class SharedSimulationTicCommand
+    {
+        public sbyte ForwardMove { get; init; }
+        public sbyte SideMove { get; init; }
+        public short AngleTurn { get; init; }
+        public byte Buttons { get; init; }
+    }
+
+    private sealed class PvpScoreboardEntry
+    {
+        public string Name { get; init; } = string.Empty;
+        public int Kills { get; init; }
+        public bool IsLocal { get; init; }
+    }
+
+    private sealed class LocalPlayerPresentationSnapshot
+    {
+        private bool _captured;
+        private ManagedDoom.Fixed _viewZ;
+        private ManagedDoom.Fixed _viewHeight;
+        private ManagedDoom.Fixed _deltaViewHeight;
+        private ManagedDoom.Fixed _bob;
+        private ManagedDoom.Angle _mobjAngle;
+        private ManagedDoom.WeaponType _readyWeapon;
+        private ManagedDoom.WeaponType _pendingWeapon;
+        private bool _attackDown;
+        private bool _useDown;
+        private int _refire;
+        private readonly int[] _playerSpriteStateNumbers = new int[(int)ManagedDoom.PlayerSprite.Count];
+        private readonly int[] _playerSpriteTics = new int[(int)ManagedDoom.PlayerSprite.Count];
+        private readonly int[] _playerSpriteSx = new int[(int)ManagedDoom.PlayerSprite.Count];
+        private readonly int[] _playerSpriteSy = new int[(int)ManagedDoom.PlayerSprite.Count];
+
+        public void Capture( ManagedDoom.Player player )
+        {
+            if ( player is null )
+            {
+                _captured = false;
+                return;
+            }
+
+            _captured = true;
+            _viewZ = player.ViewZ;
+            _viewHeight = player.ViewHeight;
+            _deltaViewHeight = player.DeltaViewHeight;
+            _bob = player.Bob;
+            _mobjAngle = player.Mobj?.Angle ?? default;
+            _readyWeapon = player.ReadyWeapon;
+            _pendingWeapon = player.PendingWeapon;
+            _attackDown = player.AttackDown;
+            _useDown = player.UseDown;
+            _refire = player.Refire;
+
+            for ( var i = 0; i < player.PlayerSprites.Length; i++ )
+            {
+                var sprite = player.PlayerSprites[i];
+                _playerSpriteStateNumbers[i] = sprite.State?.Number ?? -1;
+                _playerSpriteTics[i] = sprite.Tics;
+                _playerSpriteSx[i] = sprite.Sx.Data;
+                _playerSpriteSy[i] = sprite.Sy.Data;
+            }
+        }
+
+        public void Restore( ManagedDoom.Player player )
+        {
+            if ( !_captured || player is null )
+            {
+                return;
+            }
+
+            player.ViewZ = _viewZ;
+            player.ViewHeight = _viewHeight;
+            player.DeltaViewHeight = _deltaViewHeight;
+            player.Bob = _bob;
+            if ( player.Mobj is not null )
+            {
+                player.Mobj.Angle = _mobjAngle;
+            }
+            player.ReadyWeapon = _readyWeapon;
+            player.PendingWeapon = _pendingWeapon;
+            player.AttackDown = _attackDown;
+            player.UseDown = _useDown;
+            player.Refire = _refire;
+
+            for ( var i = 0; i < player.PlayerSprites.Length; i++ )
+            {
+                var sprite = player.PlayerSprites[i];
+                var stateNumber = _playerSpriteStateNumbers[i];
+                sprite.State = stateNumber >= 0 ? ManagedDoom.DoomInfo.States[stateNumber] : null;
+                sprite.Tics = _playerSpriteTics[i];
+                sprite.Sx = new ManagedDoom.Fixed( _playerSpriteSx[i] );
+                sprite.Sy = new ManagedDoom.Fixed( _playerSpriteSy[i] );
+            }
+        }
+    }
+
 }

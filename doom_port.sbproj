@@ -1,5 +1,5 @@
 {
-  "Title": "Doom Port",
+  "Title": "s&Doom",
   "Type": "game",
   "Org": "akuji",
   "Ident": "doom_port",
@@ -11,10 +11,10 @@
   "Mounts": null,
   "IsStandaloneOnly": false,
   "Metadata": {
-    "MaxPlayers": 1,
+    "MaxPlayers": 4,
     "MinPlayers": 1,
     "TickRate": 50,
-    "GameNetworkType": "Singleplayer",
+    "GameNetworkType": "Multiplayer",
     "MapSelect": "Unrestricted",
     "MapList": [
       "facepunch.flatgrass"

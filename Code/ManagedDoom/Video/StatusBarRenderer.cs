@@ -226,10 +226,16 @@ namespace ManagedDoom.Video
                     scale);
             }
 
-            if (DoomInfo.WeaponInfos[(int)player.ReadyWeapon].Ammo != AmmoType.NoAmmo)
+            var readyWeaponIndex = (int)player.ReadyWeapon;
+            if (readyWeaponIndex >= 0 && readyWeaponIndex < DoomInfo.WeaponInfos.Length &&
+                DoomInfo.WeaponInfos[readyWeaponIndex].Ammo != AmmoType.NoAmmo)
             {
-                var num = player.Ammo[(int)DoomInfo.WeaponInfos[(int)player.ReadyWeapon].Ammo];
-                DrawNumber(ready, num);
+                var ammoType = (int)DoomInfo.WeaponInfos[readyWeaponIndex].Ammo;
+                if (ammoType >= 0 && ammoType < player.Ammo.Length)
+                {
+                    var num = player.Ammo[ammoType];
+                    DrawNumber(ready, num);
+                }
             }
 
             DrawPercent(health, player.Health);
@@ -271,18 +277,26 @@ namespace ManagedDoom.Video
             {
                 if (player.Mobj.World.Options.NetGame)
                 {
-                    screen.DrawPatch(
-                        patches.FaceBackground[player.Number],
-                        scale * faceBackgroundX,
-                        scale * faceBackgroundY,
-                        scale);
+                    var faceBackgroundIndex = player.Number;
+                    if (faceBackgroundIndex >= 0 && faceBackgroundIndex < patches.FaceBackground.Length)
+                    {
+                        screen.DrawPatch(
+                            patches.FaceBackground[faceBackgroundIndex],
+                            scale * faceBackgroundX,
+                            scale * faceBackgroundY,
+                            scale);
+                    }
                 }
 
-                screen.DrawPatch(
-                    patches.Faces[player.Mobj.World.StatusBar.FaceIndex],
-                    scale * faceX,
-                    scale * faceY,
-                    scale);
+                var faceIndex = player.Mobj.World.StatusBar.FaceIndex;
+                if (faceIndex >= 0 && faceIndex < patches.Faces.Length)
+                {
+                    screen.DrawPatch(
+                        patches.Faces[faceIndex],
+                        scale * faceX,
+                        scale * faceY,
+                        scale);
+                }
             }
 
             for (var i = 0; i < 3; i++)

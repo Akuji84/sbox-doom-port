@@ -140,9 +140,6 @@ public sealed class SboxManagedDoomInput : ManagedDoom.UserInput.IUserInput
         }
 
         var mx = (int)MathF.Round( mouseScale * mouseDelta.x );
-        var my = config.mouse_disableyaxis ? 0 : (int)MathF.Round( mouseScale * -mouseDelta.y );
-
-        forward += my;
         if ( strafe )
         {
             side += mx * 2;

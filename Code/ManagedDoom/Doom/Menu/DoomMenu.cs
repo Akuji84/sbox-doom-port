@@ -39,7 +39,6 @@ namespace ManagedDoom
         private PressAnyKey saveUnavailable;
         private PressAnyKey loadUnavailable;
         private PressAnyKey bugReportPending;
-        private PressAnyKey multiplayerComingSoon;
         private YesNoConfirm nightmareConfirm;
         private bool bugReportAwaitingResult;
 
@@ -80,11 +79,6 @@ namespace ManagedDoom
             bugReportPending = new PressAnyKey(
                 this,
                 "sending bug report...",
-                null);
-
-            multiplayerComingSoon = new PressAnyKey(
-                this,
-                "MULTIPLAYER COMING SOON",
                 null);
 
             nightmareConfirm = new YesNoConfirm(
@@ -288,7 +282,7 @@ namespace ManagedDoom
                 new SimpleMenuItem("M_SAVEG", 65, 131, 97, 136, null, save,
                     () => !(doom.State == DoomState.Game &&
                         doom.Game.State != GameState.Level)),
-                new SimpleMenuItem("M_MULTI", 65, 147, 97, 152, null, multiplayerComingSoon),
+                new SimpleMenuItem("M_MULTI", 65, 147, 97, 152, ShowMultiplayerOverlay, null),
                 new SimpleMenuItem("M_RPBUG", 65, 163, 97, 168, null, bugReport));
             }
             else
@@ -305,7 +299,7 @@ namespace ManagedDoom
                     () => !(doom.State == DoomState.Game &&
                         doom.Game.State != GameState.Level)),
                 new SimpleMenuItem("M_RDTHIS", 65, 139, 97, 144, null, help),
-                new SimpleMenuItem("M_MULTI", 65, 155, 97, 160, null, multiplayerComingSoon),
+                new SimpleMenuItem("M_MULTI", 65, 155, 97, 160, ShowMultiplayerOverlay, null),
                 new SimpleMenuItem("M_RPBUG", 65, 171, 97, 176, null, bugReport));
             }
 
@@ -502,11 +496,23 @@ namespace ManagedDoom
             StartSound(Sfx.SWTCHN);
         }
 
+        public void ShowMainMenu()
+        {
+            SetCurrent(main);
+            Open();
+            StartSound(Sfx.SWTCHN);
+        }
+
         public void ShowVolumeControl()
         {
             SetCurrent(volume);
             Open();
             StartSound(Sfx.SWTCHN);
+        }
+
+        private void ShowMultiplayerOverlay()
+        {
+            SboxManagedDoomMultiplayerPanelService.Open();
         }
 
         public void QuickSave()

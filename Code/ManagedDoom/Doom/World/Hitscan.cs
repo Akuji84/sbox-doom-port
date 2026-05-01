@@ -43,6 +43,7 @@ namespace ManagedDoom
         private Fixed currentRange;
         private Fixed currentAimSlope;
         private int currentDamage;
+        private bool suppressLocalHitscanResult;
 
         // Slopes to top and bottom of target.
         private Fixed topSlope;
@@ -178,7 +179,10 @@ namespace ManagedDoom
 
                 if (line.Special != 0)
                 {
-                    mi.ShootSpecialLine(currentShooter, line);
+                    if (!suppressLocalHitscanResult)
+                    {
+                        mi.ShootSpecialLine(currentShooter, line);
+                    }
                 }
 
                 if ((line.Flags & LineFlags.TwoSided) == 0)
@@ -260,8 +264,20 @@ namespace ManagedDoom
                     }
                 }
 
-                // Spawn bullet puffs.
-                SpawnPuff(x, y, z);
+                world.Options.HitscanImpactListener?.Invoke(new HitscanImpactEvent
+                {
+                    Blood = false,
+                    X = x.Data,
+                    Y = y.Data,
+                    Z = z.Data,
+                    Damage = currentDamage
+                });
+
+                if (!suppressLocalHitscanResult)
+                {
+                    // Spawn bullet puffs.
+                    SpawnPuff(x, y, z);
+                }
 
                 // Don't go any farther.
                 return false;
@@ -308,19 +324,32 @@ namespace ManagedDoom
                 var y = pt.Trace.Y + pt.Trace.Dy * frac;
                 var z = currentShooterZ + currentAimSlope * (frac * currentRange);
 
-                // Spawn bullet puffs or blod spots, depending on target type.
-                if ((intercept.Thing.Flags & MobjFlags.NoBlood) != 0)
+                var blood = (intercept.Thing.Flags & MobjFlags.NoBlood) == 0;
+                world.Options.HitscanImpactListener?.Invoke(new HitscanImpactEvent
                 {
-                    SpawnPuff(x, y, z);
-                }
-                else
-                {
-                    SpawnBlood(x, y, z, currentDamage);
-                }
+                    Blood = blood,
+                    X = x.Data,
+                    Y = y.Data,
+                    Z = z.Data,
+                    Damage = currentDamage
+                });
 
-                if (currentDamage != 0)
+                if (!suppressLocalHitscanResult)
                 {
-                    world.ThingInteraction.DamageMobj(thing, currentShooter, currentShooter, currentDamage);
+                    // Spawn bullet puffs or blod spots, depending on target type.
+                    if ((intercept.Thing.Flags & MobjFlags.NoBlood) != 0)
+                    {
+                        SpawnPuff(x, y, z);
+                    }
+                    else
+                    {
+                        SpawnBlood(x, y, z, currentDamage);
+                    }
+
+                    if (currentDamage != 0)
+                    {
+                        world.ThingInteraction.DamageMobj(thing, currentShooter, currentShooter, currentDamage);
+                    }
                 }
 
                 // Don't go any farther.
@@ -374,6 +403,8 @@ namespace ManagedDoom
             currentRange = range;
             currentAimSlope = slope;
             currentDamage = damage;
+            suppressLocalHitscanResult =
+                world.Options.ShouldSuppressLocalHitscanDamage?.Invoke(shooter?.Player) == true;
 
             var targetX = shooter.X + range.ToIntFloor() * Trig.Cos(angle);
             var targetY = shooter.Y + range.ToIntFloor() * Trig.Sin(angle);

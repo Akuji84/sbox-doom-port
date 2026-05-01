@@ -10,11 +10,13 @@ namespace ManagedDoom
     public sealed class SboxManagedDoomAnalyticsService : IAnalyticsListener
     {
         private const string AnalyticsEndpoint = "https://bugs.akuji.org/api/analytics/event";
+        private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
 
         private readonly DateTime _sessionStartUtc = DateTime.UtcNow;
         private readonly object _leaderboardSync = new();
         private readonly Dictionary<string, int> _sessionBestTimes = new(StringComparer.OrdinalIgnoreCase);
         private int _sessionLevelsCompleted;
+        private DateTime _lastHeartbeatUtc = DateTime.MinValue;
 
         public void OnNewGame(int episode, int map, GameSkill skill)
         {
@@ -51,6 +53,54 @@ namespace ManagedDoom
             {
                 map = map?.Trim() ?? string.Empty,
                 currentState = currentState?.Trim() ?? string.Empty
+            });
+
+            _lastHeartbeatUtc = DateTime.UtcNow;
+        }
+
+        public void PumpSessionHeartbeat(string map, string currentState)
+        {
+            var nowUtc = DateTime.UtcNow;
+            if (_lastHeartbeatUtc != DateTime.MinValue
+                && nowUtc - _lastHeartbeatUtc < HeartbeatInterval)
+            {
+                return;
+            }
+
+            _lastHeartbeatUtc = nowUtc;
+            _ = SendEventAsync("session_heartbeat", new
+            {
+                map = map?.Trim() ?? string.Empty,
+                currentState = currentState?.Trim() ?? string.Empty
+            });
+        }
+
+        public void OnHostedLobbyStarted(string lobbyName)
+        {
+            _ = SendEventAsync("pvp_host_started", new
+            {
+                lobbyName = lobbyName?.Trim() ?? string.Empty
+            });
+        }
+
+        public void OnJoinedHostedLobby(string lobbyName, string hostName)
+        {
+            _ = SendEventAsync("pvp_player_joined", new
+            {
+                lobbyName = lobbyName?.Trim() ?? string.Empty,
+                hostName = hostName?.Trim() ?? string.Empty
+            });
+        }
+
+        public void OnPvpMatchWon(string winnerName, int winnerKills, string loserName, int loserKills, string mapName)
+        {
+            _ = SendEventAsync("pvp_match_won", new
+            {
+                winnerName = winnerName?.Trim() ?? string.Empty,
+                winnerKills = Math.Max(0, winnerKills),
+                loserName = loserName?.Trim() ?? string.Empty,
+                loserKills = Math.Max(0, loserKills),
+                map = mapName?.Trim() ?? string.Empty
             });
         }
 

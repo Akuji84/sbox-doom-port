@@ -63,6 +63,8 @@ namespace ManagedDoom
         private int tabHintTics;
         private bool menuEverOpened;
 
+        private Action<TicCmd[], GameOptions> externalTicCmdBuilder;
+
         public Doom(CommandLineArgs args, Config config, GameContent content, IVideo video, ISound sound, IMusic music, IUserInput userInput)
         {
             video = video ?? NullVideo.GetInstance();
@@ -421,7 +423,20 @@ namespace ManagedDoom
                         break;
 
                     case DoomState.Game:
-                        userInput.BuildTicCmd(cmds[options.ConsolePlayer]);
+                        if (options.NetGame && externalTicCmdBuilder is not null)
+                        {
+                            for (var i = 0; i < cmds.Length; i++)
+                            {
+                                cmds[i].Clear();
+                            }
+
+                            externalTicCmdBuilder(cmds, options);
+                        }
+                        else
+                        {
+                            userInput.BuildTicCmd(cmds[options.ConsolePlayer]);
+                        }
+
                         if (sendPause)
                         {
                             sendPause = false;
@@ -573,5 +588,10 @@ namespace ManagedDoom
         public string QuitMessage => quitMessage;
         public bool ShowTabHint => currentState == DoomState.Opening && !menuEverOpened && tabHintTics >= 245;
         public int TabHintTics => tabHintTics;
+        public Action<TicCmd[], GameOptions> ExternalTicCmdBuilder
+        {
+            get => externalTicCmdBuilder;
+            set => externalTicCmdBuilder = value;
+        }
     }
 }

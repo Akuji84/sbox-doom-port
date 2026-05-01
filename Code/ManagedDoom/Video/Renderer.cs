@@ -56,6 +56,7 @@ namespace ManagedDoom.Video
         private int wipeBandCount;
         private int wipeHeight;
         private byte[] wipeBuffer;
+        private Action<Doom, DrawScreen> overlayDrawer;
 
         public Renderer(Config config, GameContent content)
         {
@@ -212,6 +213,7 @@ namespace ManagedDoom.Video
             RenderDoom(doom, frameFrac);
             RenderTabHint(doom);
             RenderMenu(doom);
+            overlayDrawer?.Invoke(doom, screen);
 
             var colors = palette[0];
             if (doom.State == DoomState.Game &&
@@ -395,6 +397,19 @@ namespace ManagedDoom.Video
             {
                 config.video_gammacorrection = value;
                 palette.ResetColors(gammaCorrectionParameters[config.video_gammacorrection]);
+            }
+        }
+
+        public Action<Doom, DrawScreen> OverlayDrawer
+        {
+            get
+            {
+                return overlayDrawer;
+            }
+
+            set
+            {
+                overlayDrawer = value;
             }
         }
     }

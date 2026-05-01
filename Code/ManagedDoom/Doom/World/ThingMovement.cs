@@ -357,8 +357,19 @@ namespace ManagedDoom
                 var solid = (thing.Flags & MobjFlags.Solid) != 0;
                 if ((currentFlags & MobjFlags.PickUp) != 0)
                 {
-                    // Can remove thing.
-                    world.ItemPickup.TouchSpecialThing(thing, currentThing);
+                    var shouldSuppressPickup =
+                        currentThing?.Player != null &&
+                        world.Options.ShouldSuppressLocalPickup?.Invoke(currentThing.Player) == true;
+
+                    if (!shouldSuppressPickup)
+                    {
+                        // Can remove thing.
+                        world.ItemPickup.TouchSpecialThing(thing, currentThing);
+                    }
+                    else
+                    {
+                        world.Options.SuppressedLocalPickupPresentationListener?.Invoke(thing, currentThing.Player);
+                    }
                 }
                 return !solid;
             }

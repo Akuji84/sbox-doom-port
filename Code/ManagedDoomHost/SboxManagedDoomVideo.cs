@@ -65,6 +65,11 @@ public sealed class SboxManagedDoomVideo : ManagedDoom.Video.IVideo
     public int Height => renderer.Height;
     public Texture FrameTexture => frameTexture;
     public int FrameVersion => frameVersion;
+    public System.Action<ManagedDoom.Doom, ManagedDoom.Video.DrawScreen> OverlayDrawer
+    {
+        get => renderer.OverlayDrawer;
+        set => renderer.OverlayDrawer = value;
+    }
 
     private void TransposeColumnMajorToRowMajor()
     {

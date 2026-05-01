@@ -1,4 +1,5 @@
 .managed-doom-root {
+    position: relative;
     width: 100%;
     height: 100%;
     background-color: black;
@@ -9,6 +10,10 @@
     color: white;
 }
 
+.mp-active {
+    pointer-events: all;
+}
+
 .frame-wrap {
     width: 100%;
     height: 100%;
@@ -16,6 +21,7 @@
     align-items: center;
     justify-content: center;
     background-color: black;
+    pointer-events: none;
 }
 
 .doom-frame {
@@ -25,6 +31,7 @@
     background-position: center;
     background-size: contain;
     image-rendering: pixelated;
+    pointer-events: none;
 }
 
 .status {
@@ -41,4 +48,245 @@
 .message {
     font-size: 16px;
     white-space: pre;
+}
+
+.mp-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    pointer-events: all;
+}
+
+.mp-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 520px;
+    padding: 28px 32px;
+    background-color: #1a0a0a;
+    border: 2px solid #8b2500;
+    pointer-events: all;
+}
+
+.mp-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.mp-header-label {
+    font-size: 28px;
+    font-weight: 700;
+    color: #cc3300;
+    margin-bottom: 8px;
+}
+
+.mp-header-line {
+    width: 100%;
+    height: 2px;
+    background-color: #8b2500;
+}
+
+.mp-desc {
+    font-size: 13px;
+    color: #999999;
+    margin-bottom: 24px;
+}
+
+.mp-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    pointer-events: all;
+}
+
+.mp-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 320px;
+    height: 44px;
+    margin-bottom: 10px;
+    background-color: #8b2500;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.mp-btn:hover {
+    background-color: #aa3311;
+}
+
+.mp-btn-dim {
+    background-color: #441200;
+    color: #999999;
+}
+
+.mp-btn-dim:hover {
+    background-color: #662200;
+    color: #cccccc;
+}
+
+.mp-close {
+    font-size: 11px;
+    color: #555555;
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.mp-close:hover {
+    color: #888888;
+}
+
+.mp-info-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #cc3300;
+    margin-bottom: 6px;
+}
+
+.mp-info-desc {
+    font-size: 13px;
+    color: #888888;
+    margin-bottom: 20px;
+}
+
+.mp-slots {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 12px;
+    border: 1px solid #551100;
+    background-color: #110505;
+}
+
+.mp-slots-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #cc3300;
+    margin-bottom: 10px;
+}
+
+.mp-slot {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background-color: #1f0c0c;
+    border: 1px solid #441100;
+}
+
+.mp-slot-num {
+    width: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #f0cf84;
+}
+
+.mp-slot-name {
+    flex-grow: 1;
+    font-size: 13px;
+    color: #ffffff;
+}
+
+.mp-slot-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #cc3300;
+}
+
+.mp-slot-joined {
+    color: #f0cf84;
+}
+
+.mp-slot-open {
+    color: #558833;
+}
+
+.mp-lobbies {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 12px;
+    border: 1px solid #551100;
+    background-color: #110505;
+}
+
+.mp-lobby-empty {
+    padding: 16px 10px;
+    color: #666666;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid #331100;
+}
+
+.mp-lobby-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 10px;
+    margin-bottom: 8px;
+    background-color: #1f0c0c;
+    border: 1px solid #441100;
+    cursor: pointer;
+}
+
+.mp-lobby-entry:hover {
+    background-color: #2a1010;
+    border-color: #663300;
+}
+
+.mp-lobby-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+}
+
+.mp-lobby-name {
+    font-size: 13px;
+    color: #ffffff;
+}
+
+.mp-lobby-meta {
+    font-size: 11px;
+    font-weight: 700;
+    color: #cc3300;
+}
+
+.mp-lobby-join {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    height: 32px;
+    padding: 0 12px;
+    background-color: #8b2500;
+    border: 1px solid #aa3311;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.mp-lobby-join:hover {
+    background-color: #aa3311;
 }

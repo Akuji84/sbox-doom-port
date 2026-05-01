@@ -75,6 +75,18 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null
+        },
+        {
+          "__type": "Sandbox.SboxManagedDoomMultiplayerServerBootstrap",
+          "__guid": "0bc7a69d-6616-4d5f-8d17-1d6b1f3a7c0e",
+          "__enabled": true,
+          "Flags": 0,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
         }
       ],
       "Children": []

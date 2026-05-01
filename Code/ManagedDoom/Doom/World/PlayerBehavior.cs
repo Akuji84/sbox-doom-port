@@ -533,6 +533,18 @@ namespace ManagedDoom
                 player.PendingWeapon = player.ReadyWeapon;
             }
 
+            if (!IsUsableWeaponForRuntime(player.PendingWeapon))
+            {
+                player.PendingWeapon = IsUsableWeaponForRuntime(player.ReadyWeapon)
+                    ? player.ReadyWeapon
+                    : WeaponType.Pistol;
+            }
+
+            if (!IsUsableWeaponForRuntime(player.ReadyWeapon))
+            {
+                player.ReadyWeapon = WeaponType.Pistol;
+            }
+
             if (player.PendingWeapon == WeaponType.Chainsaw)
             {
                 world.StartSound(player.Mobj, Sfx.SAWUP, SfxType.Weapon);
@@ -588,6 +600,13 @@ namespace ManagedDoom
 
             } while (psp.Tics == 0);
             // An initial state of 0 could cycle through.
+        }
+
+        private static bool IsUsableWeaponForRuntime(WeaponType weapon)
+        {
+            return weapon != WeaponType.NoChange &&
+                weapon >= 0 &&
+                weapon < WeaponType.Count;
         }
 
         /// <summary>
