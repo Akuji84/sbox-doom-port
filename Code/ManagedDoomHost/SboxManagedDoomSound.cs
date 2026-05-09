@@ -4,6 +4,7 @@ namespace Sandbox;
 
 public sealed class SboxManagedDoomSound : ManagedDoom.Audio.ISound
 {
+    private const float MaxOutputScale = 0.40f;
     private readonly Dictionary<ManagedDoom.Sfx, CachedSfx> cached = new();
     private readonly List<ActiveSound> active = new();
     private readonly ManagedDoom.Config config;
@@ -98,7 +99,7 @@ public sealed class SboxManagedDoomSound : ManagedDoom.Audio.ISound
         var stream = new SoundStream( data.SampleRate );
         var handle = stream.Play();
         handle.ListenLocal = true;
-        handle.Volume = ( volume / (float)MaxVolume ) * sourceVolume;
+        handle.Volume = ( volume / (float)MaxVolume ) * sourceVolume * MaxOutputScale;
         handle.Pitch = pitch;
         stream.WriteData( data.Samples );
         stream.Close();

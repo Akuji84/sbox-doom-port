@@ -137,8 +137,8 @@ namespace ManagedDoom
             video_gammacorrection = 2;
             video_fpsscale = 2;
 
-            audio_soundvolume = 8;
-            audio_musicvolume = 8;
+            audio_soundvolume = 6;
+            audio_musicvolume = 12;
             audio_randompitch = true;
             audio_soundfont = "TimGM6mb.sf2";
             audio_musiceffect = true;
@@ -182,7 +182,6 @@ namespace ManagedDoom
                 video_gammacorrection = GetInt(dic, nameof(video_gammacorrection), video_gammacorrection);
                 video_fpsscale = GetInt(dic, nameof(video_fpsscale), video_fpsscale);
 
-                audio_soundvolume = GetInt(dic, nameof(audio_soundvolume), audio_soundvolume);
                 audio_musicvolume = GetInt(dic, nameof(audio_musicvolume), audio_musicvolume);
                 audio_randompitch = GetBool(dic, nameof(audio_randompitch), audio_randompitch);
                 audio_soundfont = GetString(dic, nameof(audio_soundfont), audio_soundfont);
@@ -224,7 +223,6 @@ namespace ManagedDoom
                 Append(sb, nameof(video_gammacorrection), video_gammacorrection.ToString());
                 Append(sb, nameof(video_fpsscale), video_fpsscale.ToString());
 
-                Append(sb, nameof(audio_soundvolume), audio_soundvolume.ToString());
                 Append(sb, nameof(audio_musicvolume), audio_musicvolume.ToString());
                 Append(sb, nameof(audio_randompitch), BoolToString(audio_randompitch));
                 Append(sb, nameof(audio_soundfont), audio_soundfont ?? string.Empty);
