@@ -574,8 +574,11 @@ namespace ManagedDoom
 			{
 				// Respawn at the start.
 
-				// First dissasociate the corpse.
-				options.Players[playerNumber].Mobj.Player = null;
+				// First dissasociate the corpse if one exists.
+				if (options.Players[playerNumber].Mobj != null)
+				{
+					options.Players[playerNumber].Mobj.Player = null;
+				}
 
 				var ta = world.ThingAllocation;
 

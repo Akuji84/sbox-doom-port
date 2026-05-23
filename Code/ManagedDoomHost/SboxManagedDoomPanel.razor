@@ -1,5 +1,6 @@
 @using System
 @using System.Collections.Generic
+@using System.Threading
 @using System.Threading.Tasks
 @using ManagedDoom
 @using ManagedDoom.Audio
@@ -12,6 +13,12 @@
         <div class="status">
             <div class="title">Managed Doom Bootstrap Failed</div>
             <div class="message">@_error</div>
+        </div>
+    }
+    else if ( _launchSurfaceState == LaunchSurfaceState.Shell )
+    {
+        <div class="shell-host">
+            <WebPanel class="shell-webpanel" Url="@_shellSurfaceUrl" />
         </div>
     }
     else if ( _frameTexture is not null )
@@ -132,13 +139,14 @@
     {
         <div class="status">
             <div class="title">Booting Managed Doom</div>
-            <div class="message">Loading Freedoom and initializing renderer...</div>
+            <div class="message">@GetBootStatusMessage()</div>
         </div>
     }
 </root>
 
 @code {
-    private const string WadPath = "doom/freedoom1.wad";
+    private const string DefaultWadPath = "doom/freedoom1.wad";
+    private const bool StartInShell = true;
     private const float TickStep = 1.0f / 35.0f;
     private const float LeaderboardSyncIntervalSeconds = 30.0f;
     private const string RuntimeFailureTitle = "Managed Doom Runtime Failed";
@@ -251,15 +259,54 @@
         new(),
         new()
     };
+    private LaunchSurfaceState _launchSurfaceState = LaunchSurfaceState.LaunchingDoom;
+    private readonly SboxManagedDoomWadLaunchOption[] _availableWads =
+    {
+        new( "Freedoom Phase 1", DefaultWadPath )
+    };
+    private string _selectedWadPath = DefaultWadPath;
+    private string _shellSurfaceUrl = string.Empty;
+    private string _shellSessionId = string.Empty;
+    private Task<SboxManagedDoomShellBridgeService.ShellLaunchRequest> _shellLaunchPollTask;
+    private DateTime _nextShellLaunchPollUtc = DateTime.MinValue;
+    private DateTime _shellOpenedAtUtc = DateTime.MinValue;
 
     protected override void OnStart()
     {
         SboxManagedDoomMultiplayerPanelService.Reset();
+        _analytics ??= new SboxManagedDoomAnalyticsService();
+
+        if ( StartInShell )
+        {
+            _launchSurfaceState = LaunchSurfaceState.Shell;
+            _selectedWadPath = _availableWads.Length > 0
+                ? _availableWads[0].Path
+                : DefaultWadPath;
+            _shellSessionId = Guid.NewGuid().ToString( "N" );
+            _shellSurfaceUrl = SboxManagedDoomShellBridgeService.BuildShellUrl( _shellSessionId );
+            _nextShellLaunchPollUtc = DateTime.UtcNow;
+            _shellOpenedAtUtc = DateTime.UtcNow;
+            _analytics.OnWin98ShellOpened();
+            StateHasChanged();
+            return;
+        }
+
+        BootstrapDoomRuntime( DefaultWadPath );
+    }
+
+    private void BootstrapDoomRuntime( string wadPath )
+    {
+        if ( string.IsNullOrWhiteSpace( wadPath ) )
+        {
+            throw new ArgumentException( "WAD path is required.", nameof( wadPath ) );
+        }
 
         try
         {
-            var args = new ManagedDoom.CommandLineArgs( new[] { "-iwad", WadPath } );
-            ManagedDoom.ConfigUtilities.SetHostWadPaths( WadPath );
+            _launchSurfaceState = LaunchSurfaceState.LaunchingDoom;
+            _error = null;
+            var args = new ManagedDoom.CommandLineArgs( new[] { "-iwad", wadPath } );
+            ManagedDoom.ConfigUtilities.SetHostWadPaths( wadPath );
 
             var config = new ManagedDoom.Config( ManagedDoom.ConfigUtilities.GetConfigPath() );
             _config = config;
@@ -268,11 +315,10 @@
             RegisterPngPatches( content );
 
             _video = new SboxManagedDoomVideo( config, content );
-            _video.OverlayDrawer = DrawDoomPvpScoreboardOverlay;
             _input = new SboxManagedDoomInput( config );
             _sound = CreateSoundAdapter( config, content );
             _music = CreateMusicAdapter( config, content );
-            _analytics = new SboxManagedDoomAnalyticsService();
+            _analytics ??= new SboxManagedDoomAnalyticsService();
 
             _doom = new ManagedDoom.Doom(
                 args,
@@ -284,33 +330,79 @@
                 _input );
 
             _doom.Options.AnalyticsListener = _analytics;
-            _doom.Options.ShouldSuppressLocalHitscanDamage = ShouldSuppressLocalHitscanDamage;
-            _doom.Options.ShouldSuppressLocalDamageToThing = ShouldSuppressLocalDamageToThing;
-            _doom.Options.ShouldSuppressLocalPickup = ShouldSuppressLocalPickup;
-            _doom.Options.SuppressedLocalPickupPresentationListener = OnSuppressedLocalPickupPresentation;
-            _doom.Options.SuppressedLocalDamagePresentationListener = OnSuppressedLocalDamagePresentation;
-            _doom.Options.HitscanImpactListener = OnHitscanImpact;
+            UpdatePvpRuntimeHooks();
 
             _video.Render( _doom, ManagedDoom.Fixed.Zero );
             SyncFrame();
+            _launchSurfaceState = LaunchSurfaceState.RunningDoom;
+            var shellSecondsBeforeLaunch = _shellOpenedAtUtc != DateTime.MinValue
+                ? Math.Max( 0, (int)(DateTime.UtcNow - _shellOpenedAtUtc).TotalSeconds )
+                : 0;
             _analytics.OnSessionStart(
                 BuildSessionStartMap(),
-                _doom.State.ToString() );
+                _doom.State.ToString(),
+                shellSecondsBeforeLaunch );
+            _shellOpenedAtUtc = DateTime.MinValue;
             QueueLeaderboardProfileSync();
             StateHasChanged();
-            Log.Info( "[ManagedDoomHost] Bootstrapped Managed Doom." );
+            Log.Info( $"[ManagedDoomHost] Bootstrapped Managed Doom with IWAD '{wadPath}'." );
         }
         catch ( Exception ex )
         {
+            _launchSurfaceState = LaunchSurfaceState.Error;
             _error = ex.ToString();
             Log.Error( $"[ManagedDoomHost] Bootstrap failed: {_error}" );
             StateHasChanged();
         }
     }
 
+    private void SelectWad( string wadPath )
+    {
+        if ( _launchSurfaceState != LaunchSurfaceState.Shell || string.IsNullOrWhiteSpace( wadPath ) )
+        {
+            return;
+        }
+
+        _selectedWadPath = wadPath;
+        StateHasChanged();
+    }
+
+    private void LaunchSelectedWad()
+    {
+        if ( _launchSurfaceState != LaunchSurfaceState.Shell )
+        {
+            return;
+        }
+
+        BootstrapDoomRuntime( _selectedWadPath );
+    }
+
     protected override void OnUpdate()
     {
-        if ( _doom is null || _video is null || _error is not null )
+        if ( _launchSurfaceState == LaunchSurfaceState.Shell )
+        {
+            PumpShellLaunchPoll();
+            if ( _shellLaunchPollTask?.IsCompletedSuccessfully == true )
+            {
+                var launchRequest = _shellLaunchPollTask.Result;
+                _shellLaunchPollTask = null;
+                _nextShellLaunchPollUtc = DateTime.UtcNow.AddMilliseconds( 750 );
+
+                if ( launchRequest.HasLaunch )
+                {
+                    _ = SboxManagedDoomShellBridgeService.AcknowledgeLaunchAsync( _shellSessionId, launchRequest.RequestId );
+                    SelectWad( launchRequest.WadPath );
+                    LaunchSelectedWad();
+                }
+            }
+
+            return;
+        }
+
+        if ( _launchSurfaceState != LaunchSurfaceState.RunningDoom
+            || _doom is null
+            || _video is null
+            || _error is not null )
         {
             return;
         }
@@ -344,6 +436,8 @@
                 SboxManagedDoomMultiplayerPanelService.ShowMatchMenu( SboxManagedDoomMultiplayerModeCatalog.SelectModeStatus );
                 StateHasChanged();
             }
+
+            UpdatePvpRuntimeHooks();
 
             _tickAccumulator += Time.Delta;
             DispatchKeyEvents();
@@ -391,6 +485,12 @@
                     _tickAccumulator -= TickStep;
                     updated = true;
                 }
+
+                var frameFrac = ManagedDoom.Fixed.FromDouble( Math.Clamp( _tickAccumulator / TickStep, 0.0f, 1.0f ) );
+                CleanupExpiredPredictionState();
+                CleanupExpiredTransientPresentationMobjs();
+                _video.Render( _doom, frameFrac );
+                SyncFrame();
             }
             else
             {
@@ -428,11 +528,6 @@
                         UpdatePvpRoundWinState( activeSession );
                     }
                 }
-
-                CleanupExpiredPredictionState();
-                CleanupExpiredTransientPresentationMobjs();
-                _video.Render( _doom, ManagedDoom.Fixed.Zero );
-                SyncFrame();
                 StateHasChanged();
             }
 
@@ -446,6 +541,59 @@
             StateHasChanged();
         }
     }
+
+    private string GetBootStatusMessage()
+    {
+        return _launchSurfaceState switch
+        {
+            LaunchSurfaceState.Shell => "Waiting for shell launch selection...",
+            LaunchSurfaceState.LaunchingDoom => "Loading Freedoom and initializing renderer...",
+            LaunchSurfaceState.RunningDoom => "Renderer active.",
+            LaunchSurfaceState.Error => "Startup failed.",
+            _ => "Starting..."
+        };
+    }
+
+    private void PumpShellLaunchPoll()
+    {
+        if ( string.IsNullOrWhiteSpace( _shellSessionId ) )
+        {
+            return;
+        }
+
+        if ( _shellLaunchPollTask is not null )
+        {
+            if ( _shellLaunchPollTask.IsFaulted )
+            {
+                Log.Warning( $"[ManagedDoomHost] Shell launch poll failed: {_shellLaunchPollTask.Exception}" );
+                _shellLaunchPollTask = null;
+                _nextShellLaunchPollUtc = DateTime.UtcNow.AddSeconds( 2 );
+            }
+            else if ( _shellLaunchPollTask.IsCanceled )
+            {
+                _shellLaunchPollTask = null;
+                _nextShellLaunchPollUtc = DateTime.UtcNow.AddSeconds( 2 );
+            }
+
+            return;
+        }
+
+        if ( DateTime.UtcNow < _nextShellLaunchPollUtc )
+        {
+            return;
+        }
+
+        _shellLaunchPollTask = SboxManagedDoomShellBridgeService.PollPendingLaunchAsync( _shellSessionId );
+    }
+
+    private enum LaunchSurfaceState
+    {
+        Shell,
+        LaunchingDoom,
+        RunningDoom,
+        Error
+    }
+
 
     protected override void OnDestroy()
     {
@@ -498,6 +646,36 @@
     {
         _frameTexture = _video.FrameTexture;
         _frameVersion = _video.FrameVersion;
+    }
+
+    private void UpdatePvpRuntimeHooks()
+    {
+        var hooksActive = IsPvpRuntimeHookActive();
+
+        if ( _video is not null )
+        {
+            _video.OverlayDrawer = hooksActive ? DrawDoomPvpScoreboardOverlay : null;
+        }
+
+        if ( _doom?.Options is null )
+        {
+            return;
+        }
+
+        _doom.Options.ShouldSuppressLocalHitscanDamage = hooksActive ? ShouldSuppressLocalHitscanDamage : null;
+        _doom.Options.ShouldSuppressLocalDamageToThing = hooksActive ? ShouldSuppressLocalDamageToThing : null;
+        _doom.Options.ShouldSuppressLocalPickup = hooksActive ? ShouldSuppressLocalPickup : null;
+        _doom.Options.SuppressedLocalPickupPresentationListener = hooksActive ? OnSuppressedLocalPickupPresentation : null;
+        _doom.Options.SuppressedLocalDamagePresentationListener = hooksActive ? OnSuppressedLocalDamagePresentation : null;
+        _doom.Options.HitscanImpactListener = hooksActive ? OnHitscanImpact : null;
+    }
+
+    private bool IsPvpRuntimeHookActive()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        return session?.PvpActive == true
+            || _multiplayerModeController.PvpLaunchPending
+            || _multiplayerModeController.PvpMatchLoaded;
     }
 
     private string BuildSessionStartMap()

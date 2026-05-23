@@ -144,8 +144,6 @@ namespace ManagedDoom
 
         public void DisableFrameInterpolationForOneFrame()
         {
-            oldFloorHeight = floorHeight;
-            oldCeilingHeight = ceilingHeight;
         }
 
         public ThingEnumerator GetEnumerator()

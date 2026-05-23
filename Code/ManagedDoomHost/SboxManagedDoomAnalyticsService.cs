@@ -49,13 +49,28 @@ namespace ManagedDoom
 
         public void OnSessionStart(string map, string currentState)
         {
+            OnSessionStart(map, currentState, 0);
+        }
+
+        public void OnSessionStart(string map, string currentState, int shellSecondsBeforeLaunch)
+        {
             _ = SendEventAsync("session_start", new
             {
                 map = map?.Trim() ?? string.Empty,
-                currentState = currentState?.Trim() ?? string.Empty
+                currentState = currentState?.Trim() ?? string.Empty,
+                shellSecondsBeforeLaunch = Math.Max(0, shellSecondsBeforeLaunch)
             });
 
             _lastHeartbeatUtc = DateTime.UtcNow;
+        }
+
+        public void OnWin98ShellOpened()
+        {
+            _ = SendEventAsync("shell_win98_opened", new
+            {
+                shell = "win98",
+                currentState = "Shell"
+            });
         }
 
         public void PumpSessionHeartbeat(string map, string currentState)

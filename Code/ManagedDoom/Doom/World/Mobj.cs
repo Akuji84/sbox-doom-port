@@ -380,7 +380,6 @@ namespace ManagedDoom
 
         public void DisableFrameInterpolationForOneFrame()
         {
-            interpolate = false;
         }
 
         public Fixed GetInterpolatedX(Fixed frameFrac)

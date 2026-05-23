@@ -325,7 +325,6 @@ namespace ManagedDoom
 
         public void DisableFrameInterpolationForOneFrame()
         {
-            interpolate = false;
         }
 
         public Fixed GetInterpolatedViewZ(Fixed frameFrac)
