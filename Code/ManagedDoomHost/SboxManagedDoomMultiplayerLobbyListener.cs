@@ -11,7 +11,6 @@ namespace ManagedDoom
                 return;
             }
 
-            SboxManagedDoomMultiplayerPanelService.AddHostedPlayer(channel.DisplayName);
             SboxManagedDoomMultiplayerPanelService.SetHostStatus("LOBBY ACTIVE. WAITING FOR PLAYERS TO JOIN.");
             Log.Info($"[MP-UI] Player joined hosted lobby: {channel.DisplayName}");
         }

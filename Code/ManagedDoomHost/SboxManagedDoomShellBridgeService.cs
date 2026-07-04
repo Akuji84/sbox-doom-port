@@ -11,6 +11,8 @@ namespace Sandbox;
 internal static class SboxManagedDoomShellBridgeService
 {
     private const string BaseUrl = "https://win98.akuji.org";
+    private const string ShellChannel = "live";
+    private const string ShellBuild = "20260704c";
     private static readonly Dictionary<string, string> EmptyHeaders = new();
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -19,7 +21,7 @@ internal static class SboxManagedDoomShellBridgeService
 
     public static string BuildShellUrl( string sessionId )
     {
-        return $"{BaseUrl}/index.html?session={Uri.EscapeDataString( sessionId )}&client=sbox";
+        return $"{BaseUrl}/shell/{ShellChannel}/index.html?session={Uri.EscapeDataString( sessionId )}&client=sbox&channel={ShellChannel}&build={ShellBuild}";
     }
 
     public static async Task<ShellLaunchRequest> PollPendingLaunchAsync( string sessionId )
@@ -32,7 +34,7 @@ internal static class SboxManagedDoomShellBridgeService
         try
         {
             var json = await Http.RequestStringAsync(
-                $"{BaseUrl}/api/win98-shell/pending?session={Uri.EscapeDataString( sessionId )}",
+                $"{BaseUrl}/api/win98-shell/{ShellChannel}/pending?session={Uri.EscapeDataString( sessionId )}",
                 "GET",
                 null,
                 EmptyHeaders,
@@ -70,7 +72,7 @@ internal static class SboxManagedDoomShellBridgeService
         try
         {
             await Http.RequestStringAsync(
-                $"{BaseUrl}/api/win98-shell/ack?session={Uri.EscapeDataString( sessionId )}&requestId={Uri.EscapeDataString( requestId )}",
+                $"{BaseUrl}/api/win98-shell/{ShellChannel}/ack?session={Uri.EscapeDataString( sessionId )}&requestId={Uri.EscapeDataString( requestId )}",
                 "POST",
                 null,
                 EmptyHeaders,

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace ManagedDoom
@@ -82,6 +83,10 @@ namespace ManagedDoom
 
         public static void SetHostStatus(string status)
         {
+            if (string.Equals(HostStatus, status, StringComparison.Ordinal))
+            {
+                return;
+            }
             HostStatus = status;
             version++;
         }
@@ -119,8 +124,7 @@ namespace ManagedDoom
 
         public static void SetHostedPlayers(IEnumerable<string> playerNames)
         {
-            hostedPlayerNames.Clear();
-
+            var newNames = new List<string>();
             if (playerNames is not null)
             {
                 foreach (var playerName in playerNames)
@@ -131,13 +135,20 @@ namespace ManagedDoom
                     }
 
                     var trimmed = playerName.Trim();
-                    if (!hostedPlayerNames.Contains(trimmed))
+                    if (!newNames.Contains(trimmed))
                     {
-                        hostedPlayerNames.Add(trimmed);
+                        newNames.Add(trimmed);
                     }
                 }
             }
 
+            if (newNames.Count == hostedPlayerNames.Count && ListsEqual(newNames, hostedPlayerNames))
+            {
+                return;
+            }
+
+            hostedPlayerNames.Clear();
+            hostedPlayerNames.AddRange(newNames);
             version++;
         }
 
@@ -178,8 +189,7 @@ namespace ManagedDoom
 
         public static void SetJoinedPlayers(IEnumerable<string> playerNames)
         {
-            joinedPlayerNames.Clear();
-
+            var newNames = new List<string>();
             if (playerNames is not null)
             {
                 foreach (var playerName in playerNames)
@@ -190,13 +200,20 @@ namespace ManagedDoom
                     }
 
                     var trimmed = playerName.Trim();
-                    if (!joinedPlayerNames.Contains(trimmed))
+                    if (!newNames.Contains(trimmed))
                     {
-                        joinedPlayerNames.Add(trimmed);
+                        newNames.Add(trimmed);
                     }
                 }
             }
 
+            if (newNames.Count == joinedPlayerNames.Count && ListsEqual(newNames, joinedPlayerNames))
+            {
+                return;
+            }
+
+            joinedPlayerNames.Clear();
+            joinedPlayerNames.AddRange(newNames);
             version++;
         }
 
@@ -217,6 +234,18 @@ namespace ManagedDoom
         {
             MatchStatus = string.IsNullOrWhiteSpace(status) ? "SELECT A MODE" : status.Trim();
             version++;
+        }
+
+        private static bool ListsEqual(List<string> a, List<string> b)
+        {
+            for (var i = 0; i < a.Count; i++)
+            {
+                if (!string.Equals(a[i], b[i], StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 

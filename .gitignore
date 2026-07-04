@@ -32,3 +32,11 @@ third_party/*
 
 # Exported / standalone games
 Exports/
+
+# Retail DOOM IWAD - copyrighted, never commit
+Assets/doom/doom.wad
+__pycache__/
+
+# Server deploy/admin tooling - never publish
+scripts/
+server/

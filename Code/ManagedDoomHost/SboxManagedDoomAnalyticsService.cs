@@ -52,13 +52,14 @@ namespace ManagedDoom
             OnSessionStart(map, currentState, 0);
         }
 
-        public void OnSessionStart(string map, string currentState, int shellSecondsBeforeLaunch)
+        public void OnSessionStart(string map, string currentState, int shellSecondsBeforeLaunch, string wadPath = "")
         {
             _ = SendEventAsync("session_start", new
             {
                 map = map?.Trim() ?? string.Empty,
                 currentState = currentState?.Trim() ?? string.Empty,
-                shellSecondsBeforeLaunch = Math.Max(0, shellSecondsBeforeLaunch)
+                shellSecondsBeforeLaunch = Math.Max(0, shellSecondsBeforeLaunch),
+                wadPath = wadPath?.Trim() ?? string.Empty
             });
 
             _lastHeartbeatUtc = DateTime.UtcNow;

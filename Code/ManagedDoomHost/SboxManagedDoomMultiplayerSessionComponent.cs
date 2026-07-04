@@ -43,6 +43,9 @@ namespace ManagedDoom
         public string InactivePlayers { get; set; } = string.Empty;
 
         [Sync]
+        public string HostWadPath { get; set; } = string.Empty;
+
+        [Sync]
         public bool PvpActive { get; set; }
 
         [Sync]

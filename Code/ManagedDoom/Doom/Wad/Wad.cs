@@ -44,9 +44,9 @@ namespace ManagedDoom
                     AddFile(fileName);
                 }
 
-                gameMode = GetGameMode(names);
+                gameMode = GetGameMode();
                 missionPack = GetMissionPack(names);
-                gameVersion = GetGameVersion(names);
+                gameVersion = GetGameVersion();
 
             }
             catch
@@ -159,7 +159,12 @@ namespace ManagedDoom
             streams.Clear();
         }
 
-        private static GameVersion GetGameVersion(IReadOnlyList<string> names)
+        private bool HasLump(string name)
+        {
+            return GetLumpNumber(name) != -1;
+        }
+
+        private GameVersion GetGameVersion()
         {
             foreach (var name in names)
             {
@@ -171,17 +176,21 @@ namespace ManagedDoom
                     case "doom":
                     case "doom1":
                     case "freedoom1":
-                        return GameVersion.Ultimate;
+                        return HasLump("E4M1") && HasLump("M_EPI4")
+                            ? GameVersion.Ultimate
+                            : GameVersion.Version109;
                     case "plutonia":
                     case "tnt":
                         return GameVersion.Final;
                 }
             }
 
-            return GameVersion.Version109;
+            return HasLump("E4M1") && HasLump("M_EPI4")
+                ? GameVersion.Ultimate
+                : GameVersion.Version109;
         }
 
-        private static GameMode GetGameMode(IReadOnlyList<string> names)
+        private GameMode GetGameMode()
         {
             foreach (var name in names)
             {
@@ -194,10 +203,42 @@ namespace ManagedDoom
                         return GameMode.Commercial;
                     case "doom":
                     case "freedoom1":
-                        return GameMode.Retail;
+                        if (HasLump("E4M1") && HasLump("M_EPI4"))
+                        {
+                            return GameMode.Retail;
+                        }
+
+                        if (HasLump("E2M1") || HasLump("E3M1"))
+                        {
+                            return GameMode.Registered;
+                        }
+
+                        return GameMode.Shareware;
                     case "doom1":
                         return GameMode.Shareware;
                 }
+            }
+
+            // WADs with unrecognized names (e.g. total conversions like REKKR)
+            // are classified by which map lumps they contain.
+            if (HasLump("MAP01"))
+            {
+                return GameMode.Commercial;
+            }
+
+            if (HasLump("E1M1"))
+            {
+                if (HasLump("E4M1") && HasLump("M_EPI4"))
+                {
+                    return GameMode.Retail;
+                }
+
+                if (HasLump("E2M1") || HasLump("E3M1"))
+                {
+                    return GameMode.Registered;
+                }
+
+                return GameMode.Shareware;
             }
 
             return GameMode.Indetermined;
