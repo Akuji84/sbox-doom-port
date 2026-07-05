@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -23,7 +23,10 @@ namespace ManagedDoom
     {
         public static class AmmoInfos
         {
-            public static readonly int[] Max = new int[]
+            public static readonly int[] Max = CreateMax();
+
+            // Pristine source for DeHackEd.RestorePristineState (see MobjInfos).
+            internal static int[] CreateMax() => new int[]
             {
                 200,
                 50,
@@ -31,7 +34,10 @@ namespace ManagedDoom
                 50
             };
 
-            public static readonly int[] Clip = new int[]
+            public static readonly int[] Clip = CreateClip();
+
+            // Pristine source for DeHackEd.RestorePristineState (see MobjInfos).
+            internal static int[] CreateClip() => new int[]
             {
                 10,
                 4,

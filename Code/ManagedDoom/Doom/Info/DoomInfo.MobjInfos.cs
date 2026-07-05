@@ -21,7 +21,12 @@ namespace ManagedDoom
 {
     public static partial class DoomInfo
     {
-        public static readonly MobjInfo[] MobjInfos = new MobjInfo[]
+        public static readonly MobjInfo[] MobjInfos = CreateMobjInfos();
+
+        // The pristine table is rebuilt from here whenever a WAD is loaded,
+        // because DeHackEd patches mutate the live table in place and s&box
+        // hotload carries mutated static state across recompiles.
+        internal static MobjInfo[] CreateMobjInfos() => new MobjInfo[]
         {
             new MobjInfo( // MobjType.Player
                 -1, // doomEdNum

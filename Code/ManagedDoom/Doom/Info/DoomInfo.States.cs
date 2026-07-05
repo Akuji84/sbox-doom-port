@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -24,7 +24,10 @@ namespace ManagedDoom
         private static PlayerActions pa = new PlayerActions();
         private static MobjActions ma = new MobjActions();
 
-        public static readonly MobjStateDef[] States = new MobjStateDef[]
+        public static readonly MobjStateDef[] States = CreateStates();
+
+        // Pristine source for DeHackEd.RestorePristineState (see MobjInfos).
+        internal static MobjStateDef[] CreateStates() => new MobjStateDef[]
         {
             new MobjStateDef(0, Sprite.TROO, 0, -1, null, null, MobjState.Null, 0, 0), // State.Null
             new MobjStateDef(1, Sprite.SHTG, 4, 0, pa.Light0, null, MobjState.Null, 0, 0), // State.Lightdone

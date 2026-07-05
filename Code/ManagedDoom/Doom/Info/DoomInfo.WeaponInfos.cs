@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -21,7 +21,10 @@ namespace ManagedDoom
 {
     public static partial class DoomInfo
     {
-        public static readonly WeaponInfo[] WeaponInfos = new WeaponInfo[]
+        public static readonly WeaponInfo[] WeaponInfos = CreateWeaponInfos();
+
+        // Pristine source for DeHackEd.RestorePristineState (see MobjInfos).
+        internal static WeaponInfo[] CreateWeaponInfos() => new WeaponInfo[]
         {
             // fist
             new WeaponInfo(

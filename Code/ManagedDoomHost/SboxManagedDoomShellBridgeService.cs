@@ -12,7 +12,7 @@ internal static class SboxManagedDoomShellBridgeService
 {
     private const string BaseUrl = "https://win98.akuji.org";
     private const string ShellChannel = "live";
-    private const string ShellBuild = "20260704c";
+    private const string ShellBuild = "20260705b";
     private static readonly Dictionary<string, string> EmptyHeaders = new();
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

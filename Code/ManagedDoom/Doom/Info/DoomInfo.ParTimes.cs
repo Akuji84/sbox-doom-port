@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -26,7 +26,10 @@ namespace ManagedDoom
         {
             // These lists are not readonly to allow change via BEX.
 
-            public static readonly IReadOnlyList<IList<int>> Doom1 = new int[][]
+            public static readonly IReadOnlyList<IList<int>> Doom1 = CreateDoom1();
+
+            // Pristine source for DeHackEd.RestorePristineState (see MobjInfos).
+            internal static int[][] CreateDoom1() => new int[][]
             {
                 new int[] {  30,  75, 120,  90, 165, 180, 180,  30, 165 },
                 new int[] {  90,  90,  90, 120,  90, 360, 240,  30, 170 },
@@ -34,7 +37,10 @@ namespace ManagedDoom
                 new int[] { 165, 255, 135, 150, 180, 390, 135, 360, 180 }
             };
 
-            public static readonly IList<int> Doom2 = new int[]
+            public static readonly IList<int> Doom2 = CreateDoom2();
+
+            // Pristine source for DeHackEd.RestorePristineState (see MobjInfos).
+            internal static int[] CreateDoom2() => new int[]
             {
                 30,   90, 120, 120,  90, 150, 120, 120, 270,  90,
                 210, 150, 150, 150, 210, 150, 420, 150, 210, 150,

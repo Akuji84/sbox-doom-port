@@ -39,6 +39,28 @@ namespace ManagedDoom
             public static int IdkfaArmorClass { get; set; } = 2;
             public static int BfgCellsPerShot { get; set; } = 40;
             public static bool MonstersInfight { get; set; } = false;
+
+            // Pristine source for DeHackEd.RestorePristineState; keep the
+            // values in sync with the property initializers above.
+            public static void Reset()
+            {
+                InitialHealth = 100;
+                InitialBullets = 50;
+                MaxHealth = 200;
+                MaxArmor = 200;
+                GreenArmorClass = 1;
+                BlueArmorClass = 2;
+                MaxSoulsphere = 200;
+                SoulsphereHealth = 100;
+                MegasphereHealth = 200;
+                GodModeHealth = 100;
+                IdfaArmor = 200;
+                IdfaArmorClass = 2;
+                IdkfaArmor = 200;
+                IdkfaArmorClass = 2;
+                BfgCellsPerShot = 40;
+                MonstersInfight = false;
+            }
         }
     }
 }

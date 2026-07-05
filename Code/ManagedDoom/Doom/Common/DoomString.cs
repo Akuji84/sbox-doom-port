@@ -79,5 +79,18 @@ namespace ManagedDoom
                 ds.replaced = value;
             }
         }
+
+        public static void RestoreAll()
+        {
+            foreach (var ds in valueTable.Values)
+            {
+                ds.replaced = ds.original;
+            }
+
+            foreach (var ds in nameTable.Values)
+            {
+                ds.replaced = ds.original;
+            }
+        }
     }
 }

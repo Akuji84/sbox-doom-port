@@ -29,6 +29,8 @@ namespace ManagedDoom
 
         public static void Initialize(CommandLineArgs args, Wad wad)
         {
+            RestorePristineState();
+
             if (args.deh.Present)
             {
                 ReadFiles(args.deh.Value);
@@ -39,6 +41,121 @@ namespace ManagedDoom
                 ReadDeHackEdLump(wad);
             }
         }
+
+        // DeHackEd patches modify the static DoomInfo tables in place, so a
+        // patch applied for one WAD would otherwise leak into every WAD loaded
+        // after it in the same session (e.g. REKKR's remapped thing IDs making
+        // vanilla map things "Unknown type!"). Rebuild the tables from their
+        // code-defined pristine sources before each load. The pristine values
+        // must come from code, not a runtime snapshot: s&box hotload carries
+        // mutated static state across recompiles, so anything captured at
+        // runtime may already be patched.
+        private static void RestorePristineState()
+        {
+            // Ensure the static members are initialized.
+            DoomInfo.Strings.PRESSKEY.GetHashCode();
+
+            var freshMobjInfos = DoomInfo.CreateMobjInfos();
+            for (var i = 0; i < freshMobjInfos.Length; i++)
+            {
+                CopyMobjInfo(freshMobjInfos[i], DoomInfo.MobjInfos[i]);
+            }
+
+            var freshStates = DoomInfo.CreateStates();
+            for (var i = 0; i < freshStates.Length; i++)
+            {
+                CopyState(freshStates[i], DoomInfo.States[i]);
+            }
+
+            var freshWeaponInfos = DoomInfo.CreateWeaponInfos();
+            for (var i = 0; i < freshWeaponInfos.Length; i++)
+            {
+                CopyWeaponInfo(freshWeaponInfos[i], DoomInfo.WeaponInfos[i]);
+            }
+
+            var freshAmmoMax = DoomInfo.AmmoInfos.CreateMax();
+            Array.Copy(freshAmmoMax, DoomInfo.AmmoInfos.Max, freshAmmoMax.Length);
+            var freshAmmoClip = DoomInfo.AmmoInfos.CreateClip();
+            Array.Copy(freshAmmoClip, DoomInfo.AmmoInfos.Clip, freshAmmoClip.Length);
+
+            var freshDoom1Pars = DoomInfo.ParTimes.CreateDoom1();
+            for (var i = 0; i < freshDoom1Pars.Length; i++)
+            {
+                var episode = DoomInfo.ParTimes.Doom1[i];
+                for (var j = 0; j < freshDoom1Pars[i].Length; j++)
+                {
+                    episode[j] = freshDoom1Pars[i][j];
+                }
+            }
+
+            var freshDoom2Pars = DoomInfo.ParTimes.CreateDoom2();
+            for (var i = 0; i < freshDoom2Pars.Length; i++)
+            {
+                DoomInfo.ParTimes.Doom2[i] = freshDoom2Pars[i];
+            }
+
+            DoomInfo.DeHackEdConst.Reset();
+            DoomString.RestoreAll();
+
+            // The pointer table must also reflect the pristine actions; a
+            // hotloaded table could hold another WAD's patched pointers.
+            sourcePointerTable = new Tuple<Action<World, Player, PlayerSpriteDef>, Action<World, Mobj>>[freshStates.Length];
+            for (var i = 0; i < sourcePointerTable.Length; i++)
+            {
+                sourcePointerTable[i] = Tuple.Create(freshStates[i].PlayerAction, freshStates[i].MobjAction);
+            }
+        }
+
+        private static void CopyMobjInfo(MobjInfo source, MobjInfo target)
+        {
+            target.DoomEdNum = source.DoomEdNum;
+            target.SpawnState = source.SpawnState;
+            target.SpawnHealth = source.SpawnHealth;
+            target.SeeState = source.SeeState;
+            target.SeeSound = source.SeeSound;
+            target.ReactionTime = source.ReactionTime;
+            target.AttackSound = source.AttackSound;
+            target.PainState = source.PainState;
+            target.PainChance = source.PainChance;
+            target.PainSound = source.PainSound;
+            target.MeleeState = source.MeleeState;
+            target.MissileState = source.MissileState;
+            target.DeathState = source.DeathState;
+            target.XdeathState = source.XdeathState;
+            target.DeathSound = source.DeathSound;
+            target.Speed = source.Speed;
+            target.Radius = source.Radius;
+            target.Height = source.Height;
+            target.Mass = source.Mass;
+            target.Damage = source.Damage;
+            target.ActiveSound = source.ActiveSound;
+            target.Flags = source.Flags;
+            target.Raisestate = source.Raisestate;
+        }
+
+        private static void CopyState(MobjStateDef source, MobjStateDef target)
+        {
+            target.Number = source.Number;
+            target.Sprite = source.Sprite;
+            target.Frame = source.Frame;
+            target.Tics = source.Tics;
+            target.PlayerAction = source.PlayerAction;
+            target.MobjAction = source.MobjAction;
+            target.Next = source.Next;
+            target.Misc1 = source.Misc1;
+            target.Misc2 = source.Misc2;
+        }
+
+        private static void CopyWeaponInfo(WeaponInfo source, WeaponInfo target)
+        {
+            target.Ammo = source.Ammo;
+            target.UpState = source.UpState;
+            target.DownState = source.DownState;
+            target.ReadyState = source.ReadyState;
+            target.AttackState = source.AttackState;
+            target.FlashState = source.FlashState;
+        }
+
 
         private static void ReadFiles(params string[] fileNames)
         {
@@ -94,17 +211,6 @@ namespace ManagedDoom
 
         private static void ProcessLines(IEnumerable<string> lines)
         {
-            if (sourcePointerTable == null)
-            {
-                sourcePointerTable = new Tuple<Action<World, Player, PlayerSpriteDef>, Action<World, Mobj>>[DoomInfo.States.Length];
-                for (var i = 0; i < sourcePointerTable.Length; i++)
-                {
-                    var playerAction = DoomInfo.States[i].PlayerAction;
-                    var mobjAction = DoomInfo.States[i].MobjAction;
-                    sourcePointerTable[i] = Tuple.Create(playerAction, mobjAction);
-                }
-            }
-
             var lineNumber = 0;
             var data = new List<string>();
             var lastBlock = Block.None;

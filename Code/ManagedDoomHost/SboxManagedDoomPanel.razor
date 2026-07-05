@@ -180,7 +180,8 @@
     {
         new( "Freedoom Phase 1", DefaultWadPath ),
         new( "DOOM", "doom/doom.wad" ),
-        new( "REKKR", "doom/rekkrsa.wad" )
+        new( "REKKR", "doom/rekkrsa.wad" ),
+        new( "HacX", "doom/hacx.wad" )
     };
     private string _selectedWadPath = DefaultWadPath;
     private string _shellSurfaceUrl = string.Empty;
@@ -693,17 +694,25 @@
             return;
         }
 
-        if ( IsClassicDoomIwad( content ) )
+        // Build the labels from the WAD's own font so every game's custom menu
+        // entries match its native lettering. The doom-styled PNGs remain only
+        // as a fallback for WADs without a usable STCFN font, because leaving a
+        // name unregistered would leak the previous WAD's patch from the static
+        // cache.
+        if ( !RegisterGeneratedDoomFontPatch( content.Wad, "M_MULTI", "MULTIPLAYER" ) )
         {
-            RegisterGeneratedDoomFontPatch( content.Wad, "M_MULTI", "MULTIPLAYER" );
-            RegisterGeneratedDoomFontPatch( content.Wad, "M_RPBUG", "BUG REPORT" );
-            RegisterGeneratedDoomFontPatch( content.Wad, "M_LEADB", "LEADERBOARDS" );
-            return;
+            RegisterOnePngPatch( "M_MULTI", "doom/multiplayerbutton.png", playpal );
         }
 
-        RegisterOnePngPatch( "M_MULTI", "doom/multiplayerbutton.png", playpal );
-        RegisterOnePngPatch( "M_RPBUG", "doom/reportbug.png", playpal );
-        RegisterOnePngPatch( "M_LEADB", "doom/leaderboardtext.png", playpal );
+        if ( !RegisterGeneratedDoomFontPatch( content.Wad, "M_RPBUG", "BUG REPORT" ) )
+        {
+            RegisterOnePngPatch( "M_RPBUG", "doom/reportbug.png", playpal );
+        }
+
+        if ( !RegisterGeneratedDoomFontPatch( content.Wad, "M_LEADB", "LEADERBOARDS" ) )
+        {
+            RegisterOnePngPatch( "M_LEADB", "doom/leaderboardtext.png", playpal );
+        }
     }
 
     private static void RegisterOnePngPatch( string name, string pngPath, byte[] playpal )
@@ -727,23 +736,18 @@
         return content.Wad.Names.Any( name => name.StartsWith( "rekkr", StringComparison.OrdinalIgnoreCase ) );
     }
 
-    private static bool IsClassicDoomIwad( ManagedDoom.GameContent content )
-    {
-        var names = content.Wad.Names;
-        return names.Any( name => string.Equals( name, "doom", StringComparison.OrdinalIgnoreCase ) )
-            && !names.Any( name => string.Equals( name, "freedoom1", StringComparison.OrdinalIgnoreCase ) );
-    }
-
-    private static void RegisterGeneratedDoomFontPatch( ManagedDoom.Wad wad, string patchName, string text )
+    private static bool RegisterGeneratedDoomFontPatch( ManagedDoom.Wad wad, string patchName, string text )
     {
         try
         {
             var patch = BuildStatusFontPatch( wad, patchName, text, 2, 1, 4 );
             ManagedDoom.PatchCache.RegisterCustom( patchName, patch );
+            return true;
         }
         catch ( Exception ex )
         {
             Log.Warning( $"[ManagedDoomHost] Failed to generate Doom font patch {patchName}: {ex}" );
+            return false;
         }
     }
 
