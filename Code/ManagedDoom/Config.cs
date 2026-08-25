@@ -33,6 +33,13 @@ namespace ManagedDoom
         public KeyBinding key_use;
         public KeyBinding key_run;
         public KeyBinding key_strafe;
+        public KeyBinding key_weapon1;
+        public KeyBinding key_weapon2;
+        public KeyBinding key_weapon3;
+        public KeyBinding key_weapon4;
+        public KeyBinding key_weapon5;
+        public KeyBinding key_weapon6;
+        public KeyBinding key_weapon7;
 
         public int mouse_sensitivity;
         public bool mouse_disableyaxis;
@@ -123,6 +130,14 @@ namespace ManagedDoom
                     DoomKey.RAlt
                 });
 
+            key_weapon1 = new KeyBinding(new DoomKey[] { DoomKey.Num1 });
+            key_weapon2 = new KeyBinding(new DoomKey[] { DoomKey.Num2 });
+            key_weapon3 = new KeyBinding(new DoomKey[] { DoomKey.Num3 });
+            key_weapon4 = new KeyBinding(new DoomKey[] { DoomKey.Num4 });
+            key_weapon5 = new KeyBinding(new DoomKey[] { DoomKey.Num5 });
+            key_weapon6 = new KeyBinding(new DoomKey[] { DoomKey.Num6 });
+            key_weapon7 = new KeyBinding(new DoomKey[] { DoomKey.Num7 });
+
             mouse_sensitivity = 8;
             mouse_disableyaxis = false;
 
@@ -167,6 +182,13 @@ namespace ManagedDoom
                 key_use = GetKeyBinding(dic, nameof(key_use), key_use);
                 key_run = GetKeyBinding(dic, nameof(key_run), key_run);
                 key_strafe = GetKeyBinding(dic, nameof(key_strafe), key_strafe);
+                key_weapon1 = GetKeyBinding(dic, nameof(key_weapon1), key_weapon1);
+                key_weapon2 = GetKeyBinding(dic, nameof(key_weapon2), key_weapon2);
+                key_weapon3 = GetKeyBinding(dic, nameof(key_weapon3), key_weapon3);
+                key_weapon4 = GetKeyBinding(dic, nameof(key_weapon4), key_weapon4);
+                key_weapon5 = GetKeyBinding(dic, nameof(key_weapon5), key_weapon5);
+                key_weapon6 = GetKeyBinding(dic, nameof(key_weapon6), key_weapon6);
+                key_weapon7 = GetKeyBinding(dic, nameof(key_weapon7), key_weapon7);
 
                 mouse_sensitivity = GetInt(dic, nameof(mouse_sensitivity), mouse_sensitivity);
                 mouse_disableyaxis = GetBool(dic, nameof(mouse_disableyaxis), mouse_disableyaxis);
@@ -209,6 +231,13 @@ namespace ManagedDoom
                 Append(sb, nameof(key_use), key_use.ToString());
                 Append(sb, nameof(key_run), key_run.ToString());
                 Append(sb, nameof(key_strafe), key_strafe.ToString());
+                Append(sb, nameof(key_weapon1), key_weapon1.ToString());
+                Append(sb, nameof(key_weapon2), key_weapon2.ToString());
+                Append(sb, nameof(key_weapon3), key_weapon3.ToString());
+                Append(sb, nameof(key_weapon4), key_weapon4.ToString());
+                Append(sb, nameof(key_weapon5), key_weapon5.ToString());
+                Append(sb, nameof(key_weapon6), key_weapon6.ToString());
+                Append(sb, nameof(key_weapon7), key_weapon7.ToString());
 
                 Append(sb, nameof(mouse_sensitivity), mouse_sensitivity.ToString());
                 Append(sb, nameof(mouse_disableyaxis), BoolToString(mouse_disableyaxis));

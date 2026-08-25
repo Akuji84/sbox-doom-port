@@ -12,16 +12,22 @@ internal static class SboxManagedDoomShellBridgeService
 {
     private const string BaseUrl = "https://win98.akuji.org";
     private const string ShellChannel = "live";
-    private const string ShellBuild = "20260705b";
+    private const string ShellBuild = "20260824b";
     private static readonly Dictionary<string, string> EmptyHeaders = new();
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public static string BuildShellUrl( string sessionId )
+    public static string BuildShellUrl( string sessionId, string playerName = "" )
     {
-        return $"{BaseUrl}/shell/{ShellChannel}/index.html?session={Uri.EscapeDataString( sessionId )}&client=sbox&channel={ShellChannel}&build={ShellBuild}";
+        var url = $"{BaseUrl}/shell/{ShellChannel}/index.html?session={Uri.EscapeDataString( sessionId )}&client=sbox&channel={ShellChannel}&build={ShellBuild}";
+        if ( !string.IsNullOrWhiteSpace( playerName ) )
+        {
+            // Messenger uses this as the locked chat identity.
+            url += $"&player={Uri.EscapeDataString( playerName.Trim() )}";
+        }
+        return url;
     }
 
     public static async Task<ShellLaunchRequest> PollPendingLaunchAsync( string sessionId )
@@ -53,7 +59,8 @@ internal static class SboxManagedDoomShellBridgeService
 
             return new ShellLaunchRequest(
                 response.RequestId?.Trim() ?? string.Empty,
-                response.WadPath?.Trim() ?? string.Empty );
+                response.WadPath?.Trim() ?? string.Empty,
+                response.Config );
         }
         catch ( Exception ex )
         {
@@ -84,9 +91,9 @@ internal static class SboxManagedDoomShellBridgeService
         }
     }
 
-    internal readonly record struct ShellLaunchRequest( string RequestId, string WadPath )
+    internal readonly record struct ShellLaunchRequest( string RequestId, string WadPath, ShellLaunchConfig Config )
     {
-        public static ShellLaunchRequest None => new( string.Empty, string.Empty );
+        public static ShellLaunchRequest None => new( string.Empty, string.Empty, null );
         public bool HasLaunch => !string.IsNullOrWhiteSpace( WadPath );
     }
 
@@ -96,5 +103,30 @@ internal static class SboxManagedDoomShellBridgeService
         public bool Pending { get; set; }
         public string RequestId { get; set; } = string.Empty;
         public string WadPath { get; set; } = string.Empty;
+        public ShellLaunchConfig Config { get; set; }
+    }
+
+    // Mirrors the config object the shell posts with a launch:
+    // { controls: { bindings: { forward: "W", ... }, settings: {...} }, shellVolume: 0..1 }
+    internal sealed class ShellLaunchConfig
+    {
+        public ShellControlsPayload Controls { get; set; }
+        public double? ShellVolume { get; set; }
+    }
+
+    internal sealed class ShellControlsPayload
+    {
+        public Dictionary<string, string> Bindings { get; set; }
+        public ShellControlsSettings Settings { get; set; }
+    }
+
+    internal sealed class ShellControlsSettings
+    {
+        public int MouseSensitivity { get; set; } = 5;
+        public bool AlwaysRun { get; set; } = true;
+        public bool ShowMessages { get; set; } = true;
+        public bool UncappedFps { get; set; }
+        public bool Music { get; set; } = true;
+        public bool Sfx { get; set; } = true;
     }
 }

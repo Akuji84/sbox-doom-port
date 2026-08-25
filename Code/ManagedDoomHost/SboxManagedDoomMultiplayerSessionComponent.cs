@@ -55,6 +55,41 @@ namespace ManagedDoom
         public int PvpLaunchSerial { get; set; }
 
         [Sync]
+        public bool CoopActive { get; set; }
+
+        [Sync]
+        public string CoopMap { get; set; } = string.Empty;
+
+        [Sync]
+        public int CoopSkill { get; set; }
+
+        [Sync]
+        public int CoopLaunchSerial { get; set; }
+
+        [Sync]
+        public string CoopEndReason { get; set; } = string.Empty;
+
+        [Sync]
+        public bool CoopResyncActive { get; set; }
+
+        [Sync]
+        public int CoopResyncSerial { get; set; }
+
+        [Sync]
+        public int CoopResyncChunkCount { get; set; }
+
+        [Sync]
+        public bool Player0CoopResyncLoaded { get; set; }
+
+        [Sync]
+        public bool Player1CoopResyncLoaded { get; set; }
+
+        // Resync snapshot chunks arrive via broadcast RPC and are assembled
+        // locally on every peer; they never ride a [Sync] property.
+        private int receivedCoopResyncSerial;
+        private string[] receivedCoopResyncChunks;
+
+        [Sync]
         public string RemovedPickupThingIndexes { get; set; } = string.Empty;
 
         [Sync]
@@ -554,6 +589,179 @@ namespace ManagedDoom
             Player1PvpReady = false;
             SharedSimulationPvpStarted = false;
             SharedSimulationPvpStartSerial = 0;
+            Player0PvpChecksumLevelTime = 0;
+            Player1PvpChecksumLevelTime = 0;
+            Player0PvpChecksum = string.Empty;
+            Player1PvpChecksum = string.Empty;
+            ClearPlayerCommands();
+        }
+
+        // Co-op runs on the lockstep shared simulation, so it reuses the
+        // shared-sim ready flags, command queues and checksum fields below.
+        [Rpc.Broadcast]
+        public void StartCoopRpc( string mapName, int skill )
+        {
+            MatchStarted = false;
+            CoopMap = string.IsNullOrWhiteSpace( mapName ) ? "E1M1" : mapName.Trim().ToUpperInvariant();
+            CoopSkill = skill;
+            CoopActive = true;
+            CoopEndReason = string.Empty;
+            Player0PvpReady = false;
+            Player1PvpReady = false;
+            SharedSimulationPvpStarted = false;
+            SharedSimulationPvpStartSerial = 0;
+            Player0PvpChecksumLevelTime = 0;
+            Player1PvpChecksumLevelTime = 0;
+            Player0PvpChecksum = string.Empty;
+            Player1PvpChecksum = string.Empty;
+            ResetCoopResyncState();
+            ClearPlayerCommands();
+            CoopLaunchSerial++;
+        }
+
+        [Rpc.Broadcast]
+        public void StopCoopRpc()
+        {
+            CoopEndReason = string.Empty;
+            StopCoopInternal();
+        }
+
+        [Rpc.Broadcast]
+        public void StopCoopWithReasonRpc( string reason )
+        {
+            CoopEndReason = reason ?? string.Empty;
+            StopCoopInternal();
+        }
+
+        private void StopCoopInternal()
+        {
+            CoopActive = false;
+            CoopMap = string.Empty;
+            Player0PvpReady = false;
+            Player1PvpReady = false;
+            SharedSimulationPvpStarted = false;
+            SharedSimulationPvpStartSerial = 0;
+            Player0PvpChecksumLevelTime = 0;
+            Player1PvpChecksumLevelTime = 0;
+            Player0PvpChecksum = string.Empty;
+            Player1PvpChecksum = string.Empty;
+            ResetCoopResyncState();
+            ClearPlayerCommands();
+        }
+
+        private void ResetCoopResyncState()
+        {
+            CoopResyncActive = false;
+            CoopResyncChunkCount = 0;
+            Player0CoopResyncLoaded = false;
+            Player1CoopResyncLoaded = false;
+            receivedCoopResyncChunks = null;
+        }
+
+        [Rpc.Broadcast]
+        public void BeginCoopResyncRpc( int chunkCount )
+        {
+            CoopResyncSerial++;
+            CoopResyncChunkCount = chunkCount;
+            CoopResyncActive = true;
+            Player0CoopResyncLoaded = false;
+            Player1CoopResyncLoaded = false;
+            receivedCoopResyncSerial = CoopResyncSerial;
+            receivedCoopResyncChunks = new string[Math.Max( 0, chunkCount )];
+            ClearPlayerCommands();
+        }
+
+        [Rpc.Broadcast]
+        public void CoopResyncChunkRpc( int serial, int index, string chunk )
+        {
+            if ( serial != receivedCoopResyncSerial
+                || receivedCoopResyncChunks is null
+                || index < 0
+                || index >= receivedCoopResyncChunks.Length )
+            {
+                return;
+            }
+
+            receivedCoopResyncChunks[index] = chunk ?? string.Empty;
+        }
+
+        public int CountReceivedCoopResyncChunks()
+        {
+            if ( receivedCoopResyncChunks is null )
+            {
+                return 0;
+            }
+
+            var count = 0;
+            foreach ( var chunk in receivedCoopResyncChunks )
+            {
+                if ( chunk is not null )
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        public bool TryGetCompleteCoopResyncData( out byte[] data )
+        {
+            data = null;
+
+            if ( !CoopResyncActive
+                || receivedCoopResyncChunks is null
+                || receivedCoopResyncSerial != CoopResyncSerial )
+            {
+                return false;
+            }
+
+            foreach ( var chunk in receivedCoopResyncChunks )
+            {
+                if ( chunk is null )
+                {
+                    return false;
+                }
+            }
+
+            try
+            {
+                data = Convert.FromBase64String( string.Concat( receivedCoopResyncChunks ) );
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        [Rpc.Broadcast]
+        public void SetCoopResyncLoadedRpc( int playerIndex, int serial )
+        {
+            if ( serial != CoopResyncSerial )
+            {
+                return;
+            }
+
+            if ( playerIndex == 0 )
+            {
+                Player0CoopResyncLoaded = true;
+                return;
+            }
+
+            if ( playerIndex == 1 )
+            {
+                Player1CoopResyncLoaded = true;
+            }
+        }
+
+        [Rpc.Broadcast]
+        public void CompleteCoopResyncRpc()
+        {
+            ResetCoopResyncState();
+
+            // Re-arm the lockstep from tic 0 on the freshly loaded state;
+            // mirrors BeginSharedSimulationPvpRpc without re-broadcasting.
+            SharedSimulationPvpStarted = true;
+            SharedSimulationPvpStartSerial++;
             Player0PvpChecksumLevelTime = 0;
             Player1PvpChecksumLevelTime = 0;
             Player0PvpChecksum = string.Empty;

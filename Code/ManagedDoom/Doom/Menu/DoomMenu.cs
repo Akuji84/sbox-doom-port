@@ -39,6 +39,8 @@ namespace ManagedDoom
         private PressAnyKey saveUnavailable;
         private PressAnyKey loadUnavailable;
         private PressAnyKey bugReportPending;
+        private PressAnyKey netGameNewGame;
+        private PressAnyKey netGameLoad;
         private YesNoConfirm nightmareConfirm;
         private bool bugReportAwaitingResult;
 
@@ -74,6 +76,16 @@ namespace ManagedDoom
             loadUnavailable = new PressAnyKey(
                 this,
                 "load game is unavailable right now",
+                null);
+
+            netGameNewGame = new PressAnyKey(
+                this,
+                DoomInfo.Strings.NEWGAME,
+                null);
+
+            netGameLoad = new PressAnyKey(
+                this,
+                DoomInfo.Strings.LOADNET,
                 null);
 
             bugReportPending = new PressAnyKey(
@@ -383,6 +395,21 @@ namespace ManagedDoom
 
         public void SetCurrent(MenuDef next)
         {
+            // Vanilla M_NewGame / M_LoadGame: starting a new game or loading
+            // from the menu is blocked while in a network game, because it
+            // would fork this peer's simulation away from the shared one.
+            if (doom.Options.NetGame)
+            {
+                if (next == episodeMenu || next == skillMenu)
+                {
+                    next = netGameNewGame;
+                }
+                else if (next == load)
+                {
+                    next = netGameLoad;
+                }
+            }
+
             current = next;
             current.Open();
         }
@@ -390,6 +417,17 @@ namespace ManagedDoom
         public void Open()
         {
             active = true;
+        }
+
+        // Opens the menu directly at the WAD's native new-game flow
+        // (episode select, or straight to skill select for commercial),
+        // used by the multiplayer host to pick the co-op start.
+        public void OpenNewGameMenu()
+        {
+            selectedEpisode = 1;
+            SetCurrent(doom.Options.GameMode == GameMode.Commercial ? skillMenu : episodeMenu);
+            Open();
+            StartSound(Sfx.SWTCHN);
         }
 
         public void Close()

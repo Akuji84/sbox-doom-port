@@ -31,13 +31,13 @@ public sealed class SboxManagedDoomInput : ManagedDoom.UserInput.IUserInput
         var keyRun = IsPressed( config.key_run );
         var keyStrafe = IsPressed( config.key_strafe );
 
-        weaponKeys[0] = AnyDown( "1", "DIGIT1" );
-        weaponKeys[1] = AnyDown( "2", "DIGIT2" );
-        weaponKeys[2] = AnyDown( "3", "DIGIT3" );
-        weaponKeys[3] = AnyDown( "4", "DIGIT4" );
-        weaponKeys[4] = AnyDown( "5", "DIGIT5" );
-        weaponKeys[5] = AnyDown( "6", "DIGIT6" );
-        weaponKeys[6] = AnyDown( "7", "DIGIT7" );
+        weaponKeys[0] = IsPressed( config.key_weapon1 );
+        weaponKeys[1] = IsPressed( config.key_weapon2 );
+        weaponKeys[2] = IsPressed( config.key_weapon3 );
+        weaponKeys[3] = IsPressed( config.key_weapon4 );
+        weaponKeys[4] = IsPressed( config.key_weapon5 );
+        weaponKeys[5] = IsPressed( config.key_weapon6 );
+        weaponKeys[6] = IsPressed( config.key_weapon7 );
 
         cmd.Clear();
 

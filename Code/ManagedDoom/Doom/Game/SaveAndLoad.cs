@@ -54,6 +54,13 @@ namespace ManagedDoom
 
         public static void Save(DoomGame game, string description, string path)
         {
+            SboxManagedDoomFileSystem.WriteAllBytesToData(path, SaveToMemory(game, description));
+        }
+
+        // Serializes the full world state to bytes without touching the
+        // filesystem; used for savegames and for co-op state resync.
+        public static byte[] SaveToMemory(DoomGame game, string description)
+        {
             var w = new SaveWriter();
             var world = game.World;
             var options = game.Options;
@@ -228,13 +235,19 @@ namespace ManagedDoom
             }
             w.WriteByte(ThinkerEnd);
 
-            // Write save data.
-            SboxManagedDoomFileSystem.WriteAllBytesToData(path, w.ToArray());
+            return w.ToArray();
         }
 
         public static void Load(DoomGame game, string path)
         {
-            var data = SboxManagedDoomFileSystem.ReadAllBytesFromData(path);
+            LoadFromMemory(game, SboxManagedDoomFileSystem.ReadAllBytesFromData(path));
+        }
+
+        // Synchronously rebuilds the world from serialized bytes; used for
+        // savegames and for co-op state resync (both peers load the same
+        // bytes so the simulations come out bit-identical).
+        public static void LoadFromMemory(DoomGame game, byte[] data)
+        {
             var r = new SaveReader(data);
             var options = game.Options;
 

@@ -64,6 +64,7 @@ namespace ManagedDoom
         private bool menuEverOpened;
 
         private Action<TicCmd[], GameOptions> externalTicCmdBuilder;
+        private Action<GameSkill, int, int> newGameInterceptor;
 
         public Doom(CommandLineArgs args, Config config, GameContent content, IVideo video, ISound sound, IMusic music, IUserInput userInput)
         {
@@ -187,6 +188,14 @@ namespace ManagedDoom
 
         public void NewGame(GameSkill skill, int episode, int map)
         {
+            // The multiplayer host reroutes the menu's new-game selection into
+            // a co-op launch; the interceptor is only set while that is armed.
+            if (newGameInterceptor is not null)
+            {
+                newGameInterceptor(skill, episode, map);
+                return;
+            }
+
             game.DeferedInitNew(skill, episode, map);
             nextState = DoomState.Game;
         }
@@ -440,7 +449,13 @@ namespace ManagedDoom
                         if (sendPause)
                         {
                             sendPause = false;
-                            cmds[options.ConsolePlayer].Buttons |= (byte)(TicCmdButtons.Special | TicCmdButtons.Pause);
+                            // With an external tic builder the local cmd was already
+                            // replicated to the other peers, so injecting the pause
+                            // bit only locally would desync a lockstep game.
+                            if (!options.NetGame || externalTicCmdBuilder is null)
+                            {
+                                cmds[options.ConsolePlayer].Buttons |= (byte)(TicCmdButtons.Special | TicCmdButtons.Pause);
+                            }
                         }
                         if (game.Update(cmds) == UpdateResult.NeedWipe)
                         {
@@ -592,6 +607,12 @@ namespace ManagedDoom
         {
             get => externalTicCmdBuilder;
             set => externalTicCmdBuilder = value;
+        }
+
+        public Action<GameSkill, int, int> NewGameInterceptor
+        {
+            get => newGameInterceptor;
+            set => newGameInterceptor = value;
         }
     }
 }

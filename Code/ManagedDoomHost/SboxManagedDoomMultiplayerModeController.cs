@@ -13,9 +13,10 @@ namespace ManagedDoom
     public static class SboxManagedDoomMultiplayerModeCatalog
     {
         public const string DefaultPvpMapName = "E1M1";
+        public const string DefaultCoopMapName = "E1M1";
+        public const string DefaultCoopCommercialMapName = "MAP01";
         public const string SelectModeStatus = "SELECT A MODE";
         public const string CoopLabel = "CO-OP";
-        public const string CoopPendingStatus = "CO-OP EPISODE SELECT COMING NEXT";
     }
 
     public readonly struct SboxManagedDoomMultiplayerPvpLaunchPlan
@@ -31,6 +32,24 @@ namespace ManagedDoom
         public string MapName { get; }
         public int Episode { get; }
         public int Map { get; }
+        public int ConsolePlayer { get; }
+    }
+
+    public readonly struct SboxManagedDoomMultiplayerCoopLaunchPlan
+    {
+        public SboxManagedDoomMultiplayerCoopLaunchPlan( string mapName, int episode, int map, int skill, int consolePlayer )
+        {
+            MapName = mapName;
+            Episode = episode;
+            Map = map;
+            Skill = skill;
+            ConsolePlayer = consolePlayer;
+        }
+
+        public string MapName { get; }
+        public int Episode { get; }
+        public int Map { get; }
+        public int Skill { get; }
         public int ConsolePlayer { get; }
     }
 
@@ -50,6 +69,10 @@ namespace ManagedDoom
         public bool PvpLaunchPending { get; private set; }
         public string ActivePvpMap { get; private set; } = string.Empty;
         public int HandledPvpLaunchSerial { get; private set; }
+        public bool CoopMatchLoaded { get; private set; }
+        public bool CoopLaunchPending { get; private set; }
+        public string ActiveCoopMap { get; private set; } = string.Empty;
+        public int HandledCoopLaunchSerial { get; private set; }
 
         public void ShowModeMenu()
         {
@@ -112,6 +135,81 @@ namespace ManagedDoom
             return true;
         }
 
+        public bool TryCreateCoopLaunchPlan(
+            Doom doom,
+            global::Sandbox.SboxManagedDoomInput input,
+            SboxManagedDoomMultiplayerSessionComponent session,
+            bool isHost,
+            out SboxManagedDoomMultiplayerCoopLaunchPlan launchPlan )
+        {
+            launchPlan = default;
+
+            if ( doom is null || input is null || session?.CoopActive != true )
+            {
+                return false;
+            }
+
+            var mapName = string.IsNullOrWhiteSpace( session.CoopMap )
+                ? SboxManagedDoomMultiplayerModeCatalog.DefaultCoopMapName
+                : session.CoopMap.Trim().ToUpperInvariant();
+            var sameMap = string.Equals( ActiveCoopMap, mapName, StringComparison.OrdinalIgnoreCase );
+
+            // Once a co-op match is loaded it advances levels on its own, so
+            // never relaunch it (even mid-intermission when GameState != Level).
+            if ( (CoopMatchLoaded || CoopLaunchPending) && sameMap )
+            {
+                return false;
+            }
+
+            if ( !TryParseDoomMapName( mapName, out var episode, out var map ) )
+            {
+                episode = 1;
+                map = 1;
+                mapName = SboxManagedDoomMultiplayerModeCatalog.DefaultCoopMapName;
+            }
+
+            launchPlan = new SboxManagedDoomMultiplayerCoopLaunchPlan(
+                mapName,
+                episode,
+                map,
+                session.CoopSkill,
+                isHost ? 0 : 1 );
+            return true;
+        }
+
+        public void BeginCoopLaunch( SboxManagedDoomMultiplayerSessionComponent session, string mapName )
+        {
+            ActiveMode = SboxManagedDoomMultiplayerModeKind.Coop;
+            HandledCoopLaunchSerial = session?.CoopLaunchSerial ?? HandledCoopLaunchSerial;
+            ActiveCoopMap = mapName ?? string.Empty;
+            CoopLaunchPending = true;
+            CoopMatchLoaded = false;
+        }
+
+        public void UpdateCoopLoadedState( Doom doom, SboxManagedDoomMultiplayerSessionComponent session )
+        {
+            if ( session?.CoopActive != true )
+            {
+                return;
+            }
+
+            var isFullyLoaded =
+                doom is not null &&
+                doom.State == DoomState.Game &&
+                doom.Game is not null &&
+                doom.Game.State == GameState.Level &&
+                doom.Game.World is not null;
+
+            if ( !isFullyLoaded )
+            {
+                return;
+            }
+
+            ActiveMode = SboxManagedDoomMultiplayerModeKind.Coop;
+            CoopMatchLoaded = true;
+            CoopLaunchPending = false;
+        }
+
         public void BeginPvpLaunch( SboxManagedDoomMultiplayerSessionComponent session, string mapName )
         {
             ActiveMode = SboxManagedDoomMultiplayerModeKind.Pvp;
@@ -155,6 +253,9 @@ namespace ManagedDoom
             PvpMatchLoaded = false;
             PvpLaunchPending = false;
             ActivePvpMap = string.Empty;
+            CoopMatchLoaded = false;
+            CoopLaunchPending = false;
+            ActiveCoopMap = string.Empty;
         }
 
         public void ApplyPvpGameplayOverrides( GameOptions options )

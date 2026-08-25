@@ -115,6 +115,7 @@
 
                         <div class="mp-buttons">
                             <div class="mp-btn" onclick="@ShowMultiplayerPvpMode">PVP</div>
+                            <div class="mp-btn" onclick="@ShowMultiplayerCoopMode">CO-OP</div>
                             <div class="mp-btn" onclick="@ReturnMultiplayerGroupToLobby">BACK</div>
                             <div class="mp-btn mp-btn-dim" onclick="@LeaveMultiplayerMatch">LEAVE</div>
                         </div>
@@ -179,6 +180,8 @@
     private readonly SboxManagedDoomWadLaunchOption[] _availableWads =
     {
         new( "Freedoom Phase 1", DefaultWadPath ),
+        new( "Freedoom Phase 2", "doom/freedoom2.wad" ),
+        new( "FreeDM", "doom/freedm.wad" ),
         new( "DOOM", "doom/doom.wad" ),
         new( "REKKR", "doom/rekkrsa.wad" ),
         new( "HacX", "doom/hacx.wad" )
@@ -201,7 +204,7 @@
                 ? _availableWads[0].Path
                 : DefaultWadPath;
             _shellSessionId = Guid.NewGuid().ToString( "N" );
-            _shellSurfaceUrl = SboxManagedDoomShellBridgeService.BuildShellUrl( _shellSessionId );
+            _shellSurfaceUrl = SboxManagedDoomShellBridgeService.BuildShellUrl( _shellSessionId, GetLeaderboardDisplayName() );
             _nextShellLaunchPollUtc = DateTime.UtcNow;
             _shellOpenedAtUtc = DateTime.UtcNow;
             _analytics.OnWin98ShellOpened();
@@ -229,6 +232,12 @@
             ManagedDoom.ConfigUtilities.SetHostWadPaths( wadPath );
 
             var config = new ManagedDoom.Config( ManagedDoom.ConfigUtilities.GetConfigPath() );
+            if ( _pendingShellLaunchConfig is not null )
+            {
+                Log.Info( "[ManagedDoomHost] Applying shell controls/volume from launch config." );
+                SboxManagedDoomShellControlsMapper.Apply( config, _pendingShellLaunchConfig );
+                _pendingShellLaunchConfig = null;
+            }
             _config = config;
             var content = new ManagedDoom.GameContent( args );
 
@@ -331,6 +340,7 @@
                 {
                     Log.Info( $"[ManagedDoomHost] Shell poll returned launch. requestId={launchRequest.RequestId} wad={launchRequest.WadPath}" );
                     _pendingShellLaunchRequestId = launchRequest.RequestId;
+                    _pendingShellLaunchConfig = launchRequest.Config;
                     SelectWad( launchRequest.WadPath );
                     LaunchSelectedWad();
                 }
@@ -361,6 +371,19 @@
             {
                 TryEnterMultiplayerPvpMatch();
             }
+            else if ( session?.CoopLaunchSerial > _multiplayerModeController.HandledCoopLaunchSerial )
+            {
+                TryEnterMultiplayerCoopMatch();
+            }
+            else if ( session?.CoopActive == true
+                && !_multiplayerModeController.CoopMatchLoaded
+                && !_multiplayerModeController.CoopLaunchPending )
+            {
+                TryEnterMultiplayerCoopMatch();
+            }
+
+            CancelCoopMenuSelectionIfAbandoned();
+            MonitorCoopPeerLoss( session );
 
             ReportMultiplayerAnalytics( session );
 
@@ -408,6 +431,34 @@
 
                         _activeSharedSimulationPvpCommandTic = _nextSharedSimulationPvpTic;
                     }
+                    else if ( UseSharedSimulationCoop( activeSession ) )
+                    {
+                        // A state resync freezes tic consumption on both peers
+                        // until they have loaded the same snapshot.
+                        if ( PumpCoopStateResync( activeSession ) )
+                        {
+                            break;
+                        }
+
+                        if ( !EnsureSharedSimulationPvpStartBarrier( activeSession ) )
+                        {
+                            break;
+                        }
+
+                        QueueSharedSimulationPvpLocalCommands( activeSession );
+
+                        // While wiping, Doom.Update skips game.Update entirely, so
+                        // let the wipe animate without consuming a shared tic.
+                        if ( !_doom.Wiping )
+                        {
+                            if ( !CanAdvanceSharedSimulationPvpTic( activeSession ) )
+                            {
+                                break;
+                            }
+
+                            _activeSharedSimulationPvpCommandTic = _nextSharedSimulationPvpTic;
+                        }
+                    }
                     else if ( activeSession?.PvpActive == true )
                     {
                         ApplyOwnedRemotePlayerMovementForHost( activeSession );
@@ -448,6 +499,7 @@
             if ( updated )
             {
                 UpdatePvpLoadedState();
+                UpdateCoopLoadedState();
 
                 if ( (_multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current)?.PvpActive == true )
                 {
@@ -466,6 +518,15 @@
                         PumpAuthoritativePvpDestroyedWorldThingState();
                         PumpAuthoritativePvpWorldState();
                         UpdatePvpRoundWinState( activeSession );
+                    }
+                }
+                else if ( (_multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current)?.CoopActive == true )
+                {
+                    var activeSession = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+                    if ( UseSharedSimulationCoop( activeSession )
+                        && _doom.Game?.State == ManagedDoom.GameState.Level )
+                    {
+                        PumpSharedSimulationCoopChecksum( activeSession );
                     }
                 }
                 StateHasChanged();
@@ -1269,6 +1330,7 @@
 
     private const bool StartInShell = true;
     private string _pendingShellLaunchRequestId = string.Empty;
+    private SboxManagedDoomShellBridgeService.ShellLaunchConfig _pendingShellLaunchConfig;
     private DateTime _nextShellLaunchPollUtc = DateTime.MinValue;
 
     private void PumpShellLaunchPoll()
@@ -1783,8 +1845,356 @@
 
     private void ShowMultiplayerCoopMode()
     {
+        if ( _multiplayerSession is null || _doom is null )
+        {
+            return;
+        }
+
         _multiplayerModeController.SelectCoopMode();
-        SboxManagedDoomMultiplayerPanelService.SetMatchStatus( SboxManagedDoomMultiplayerModeCatalog.CoopPendingStatus );
+        _coopMenuSelectionArmed = true;
+        _ignoreStartedMultiplayerMatch = true;
+        _doom.NewGameInterceptor = OnCoopNewGameSelected;
+        SboxManagedDoomMultiplayerPanelService.Close();
+        _doom.Menu.OpenNewGameMenu();
+        StateHasChanged();
+    }
+
+    private void OnCoopNewGameSelected( ManagedDoom.GameSkill skill, int episode, int map )
+    {
+        // Disarm before launching: TryEnterMultiplayerCoopMatch calls
+        // _doom.NewGame itself and must not be intercepted again.
+        _coopMenuSelectionArmed = false;
+        _doom.NewGameInterceptor = null;
+
+        if ( _multiplayerSession is null )
+        {
+            return;
+        }
+
+        // Fresh match: restore the full desync-recovery budget.
+        _coopDesyncLevelRestarts = 0;
+        _showCoopRestartNoticeWhenLoaded = false;
+
+        _doom.Menu.Close();
+        var mapName = _doom.Options?.GameMode == ManagedDoom.GameMode.Commercial
+            ? $"MAP{Math.Clamp( map, 1, 32 ):00}"
+            : $"E{Math.Clamp( episode, 1, 9 )}M{Math.Clamp( map, 1, 9 )}";
+        _multiplayerSession.StartCoopRpc( mapName, (int)skill );
+        PublishHostedLobbyDiscoveryState();
+        TryEnterMultiplayerCoopMatch();
+        StateHasChanged();
+    }
+
+    private void MonitorCoopPeerLoss( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        var coopMatchInProgress =
+            _multiplayerModeController.CoopLaunchPending || _multiplayerModeController.CoopMatchLoaded;
+
+        if ( !coopMatchInProgress )
+        {
+            _coopPeerMissingSinceUtc = DateTime.MinValue;
+            return;
+        }
+
+        // The session object is host-owned; if it vanished the host is gone.
+        if ( session is null )
+        {
+            EndCoopMatchForPeerLoss( null );
+            return;
+        }
+
+        // CoopActive false with the session still alive means the match was
+        // stopped via RPC. A reason means it was aborted (e.g. desync) and
+        // this peer should exit with the message; no reason means the host
+        // ended it deliberately and the normal reset path cleans up quietly.
+        if ( session.CoopActive != true )
+        {
+            _coopPeerMissingSinceUtc = DateTime.MinValue;
+            if ( !string.IsNullOrWhiteSpace( session.CoopEndReason ) )
+            {
+                EndCoopMatchLocally(
+                    $"CO-OP MATCH ENDED: {session.CoopEndReason}.",
+                    $"CO-OP MATCH ENDED: {session.CoopEndReason}." );
+            }
+            return;
+        }
+
+        // The lockstep barrier freezes both sims when a peer stops sending
+        // commands, so a lost peer would otherwise hang the match forever.
+        var peerPresent = Networking.IsActive && Sandbox.Connection.All.Count >= 2;
+        if ( peerPresent )
+        {
+            _coopPeerMissingSinceUtc = DateTime.MinValue;
+            return;
+        }
+
+        if ( _coopPeerMissingSinceUtc == DateTime.MinValue )
+        {
+            _coopPeerMissingSinceUtc = DateTime.UtcNow;
+            return;
+        }
+
+        if ( DateTime.UtcNow - _coopPeerMissingSinceUtc >= TimeSpan.FromSeconds( 2.0 ) )
+        {
+            EndCoopMatchForPeerLoss( session );
+        }
+    }
+
+    private void EndCoopMatchForPeerLoss( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        Log.Info( $"[MP-COOP] Peer lost during co-op match; ending match. host={Networking.IsHost}" );
+        session?.StopCoopRpc();
+        EndCoopMatchLocally( "CO-OP MATCH ENDED: PLAYER DISCONNECTED.", "CO-OP MATCH ENDED: CONNECTION TO HOST LOST." );
+    }
+
+    private void EndCoopMatchForDesync( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        Log.Warning( $"[MP-COOP] Unrecoverable desync; ending match. host={Networking.IsHost}" );
+        session?.StopCoopWithReasonRpc( "GAME LOST SYNC" );
+        EndCoopMatchLocally( "CO-OP MATCH ENDED: GAME LOST SYNC.", "CO-OP MATCH ENDED: GAME LOST SYNC." );
+    }
+
+    private void EndCoopMatchLocally( string hostStatus, string joinStatus )
+    {
+        _coopPeerMissingSinceUtc = DateTime.MinValue;
+        _coopResyncStartedUtc = DateTime.MinValue;
+        _outgoingCoopResyncChunks.Clear();
+        _showCoopRestartNoticeWhenLoaded = false;
+        _ignoreStartedMultiplayerMatch = true;
+
+        ResetMultiplayerGameplayOverrides();
+        _doom?.EndGame();
+
+        if ( Networking.IsHost )
+        {
+            if ( _multiplayerSession is not null )
+            {
+                _multiplayerSession.MatchStarted = false;
+            }
+            PublishHostedLobbyDiscoveryState();
+            SboxManagedDoomMultiplayerPanelService.SetHostStatus( hostStatus );
+            SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.HostInfo );
+            UpdateMultiplayerRostersFromConnections();
+        }
+        else
+        {
+            SboxManagedDoomMultiplayerPanelService.SetJoinStatus( joinStatus );
+            SboxManagedDoomMultiplayerPanelService.Show( SboxManagedDoomMultiplayerPanelService.MultiplayerPanelView.JoinInfo );
+        }
+
+        StateHasChanged();
+    }
+
+    private void BeginCoopStateResync( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        _coopResyncAttempts++;
+        if ( _coopResyncAttempts > MaxCoopResyncAttemptsPerMatch )
+        {
+            HandleCoopResyncFailure( session );
+            return;
+        }
+
+        byte[] snapshot;
+        try
+        {
+            snapshot = ManagedDoom.SaveAndLoad.SaveToMemory( _doom.Game, "COOP RESYNC" );
+        }
+        catch ( Exception ex )
+        {
+            Log.Warning( $"[MP-COOP] Resync snapshot failed: {ex}" );
+            HandleCoopResyncFailure( session );
+            return;
+        }
+
+        var encoded = Convert.ToBase64String( snapshot );
+        _outgoingCoopResyncChunks.Clear();
+        for ( var start = 0; start < encoded.Length; start += CoopResyncChunkChars )
+        {
+            var length = Math.Min( CoopResyncChunkChars, encoded.Length - start );
+            _outgoingCoopResyncChunks.Add( encoded.Substring( start, length ) );
+        }
+        _nextOutgoingCoopResyncChunk = 0;
+
+        Log.Warning( $"[MP-COOP] Starting state resync attempt {_coopResyncAttempts}/{MaxCoopResyncAttemptsPerMatch}: {snapshot.Length} bytes in {_outgoingCoopResyncChunks.Count} chunks." );
+        session.BeginCoopResyncRpc( _outgoingCoopResyncChunks.Count );
+    }
+
+    // Returns true while a resync is in flight, which freezes tic consumption.
+    private bool PumpCoopStateResync( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session?.CoopResyncActive != true )
+        {
+            if ( _coopResyncStartedUtc != DateTime.MinValue )
+            {
+                // Resync just finished; drop the stalled time so the sim
+                // resumes in real time instead of fast-forwarding the gap,
+                // and forget the mismatch signature so a recurrence of the
+                // exact same divergence can still trigger another resync.
+                _coopResyncStartedUtc = DateTime.MinValue;
+                _tickAccumulator = 0;
+                _lastReportedPvpChecksumMismatchSignature = string.Empty;
+                _outgoingCoopResyncChunks.Clear();
+                _localCoopResyncLoadFailed = false;
+                return true;
+            }
+            return false;
+        }
+
+        if ( _coopResyncStartedUtc == DateTime.MinValue )
+        {
+            _coopResyncStartedUtc = DateTime.UtcNow;
+        }
+        else
+        {
+            // The host decides the fallback; the joiner waits longer so the
+            // host's level-restart RPC can arrive before it gives up.
+            var timeoutSeconds = Networking.IsHost ? 15.0 : 30.0;
+            if ( DateTime.UtcNow - _coopResyncStartedUtc > TimeSpan.FromSeconds( timeoutSeconds ) )
+            {
+                Log.Warning(
+                    $"[MP-COOP] Resync timed out after {timeoutSeconds}s. host={Networking.IsHost} "
+                    + $"received={session.CountReceivedCoopResyncChunks()}/{session.CoopResyncChunkCount} "
+                    + $"loaded0={session.Player0CoopResyncLoaded} loaded1={session.Player1CoopResyncLoaded}" );
+                HandleCoopResyncFailure( session );
+                return true;
+            }
+        }
+
+        // Pace the snapshot out a few chunks per frame instead of flooding
+        // the reliable channel with the whole thing at once.
+        if ( Networking.IsHost && _nextOutgoingCoopResyncChunk < _outgoingCoopResyncChunks.Count )
+        {
+            var batchEnd = Math.Min( _nextOutgoingCoopResyncChunk + 4, _outgoingCoopResyncChunks.Count );
+            for ( ; _nextOutgoingCoopResyncChunk < batchEnd; _nextOutgoingCoopResyncChunk++ )
+            {
+                session.CoopResyncChunkRpc(
+                    session.CoopResyncSerial,
+                    _nextOutgoingCoopResyncChunk,
+                    _outgoingCoopResyncChunks[_nextOutgoingCoopResyncChunk] );
+            }
+        }
+
+        if ( _lastHandledCoopResyncSerial != session.CoopResyncSerial )
+        {
+            _lastHandledCoopResyncSerial = session.CoopResyncSerial;
+            _localCoopResyncLoadReported = false;
+            _localCoopResyncLoadFailed = false;
+        }
+
+        if ( !_localCoopResyncLoadReported
+            && !_localCoopResyncLoadFailed
+            && session.TryGetCompleteCoopResyncData( out var snapshot ) )
+        {
+            try
+            {
+                ManagedDoom.SaveAndLoad.LoadFromMemory( _doom.Game, snapshot );
+            }
+            catch ( Exception ex )
+            {
+                Log.Warning( $"[MP-COOP] Resync snapshot load failed: {ex}" );
+                _localCoopResyncLoadFailed = true;
+                if ( Networking.IsHost )
+                {
+                    HandleCoopResyncFailure( session );
+                }
+                // Joiner: stay paused; the host's timeout will trigger the
+                // level-restart fallback, which needs no byte transfer.
+                return true;
+            }
+
+            _localCoopResyncLoadReported = true;
+            var localPlayerIndex = Networking.IsHost ? 0 : 1;
+            session.SetCoopResyncLoadedRpc( localPlayerIndex, session.CoopResyncSerial );
+
+            var consolePlayer = _doom.Options?.Players?[_doom.Options.ConsolePlayer];
+            consolePlayer?.SendMessage( "NET GAME RESYNCED." );
+            Log.Warning( $"[MP-COOP] Resync snapshot loaded ({snapshot.Length} bytes). host={Networking.IsHost}" );
+        }
+
+        if ( Networking.IsHost
+            && session.Player0CoopResyncLoaded
+            && session.Player1CoopResyncLoaded )
+        {
+            Log.Warning( "[MP-COOP] State resync complete on both peers; resuming lockstep." );
+            session.CompleteCoopResyncRpc();
+        }
+
+        return true;
+    }
+
+    // Recovery ladder when a snapshot resync cannot complete: restart the
+    // current level (a fresh deterministic load needs no byte transfer at
+    // all), and only end the match once the restart budget is spent.
+    private void HandleCoopResyncFailure( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( !Networking.IsHost )
+        {
+            EndCoopMatchForDesync( session );
+            return;
+        }
+
+        if ( _coopDesyncLevelRestarts < MaxCoopDesyncLevelRestartsPerMatch )
+        {
+            _coopDesyncLevelRestarts++;
+            _coopResyncAttempts = 0;
+            RestartCoopLevelForDesync( session );
+            return;
+        }
+
+        EndCoopMatchForDesync( session );
+    }
+
+    private void RestartCoopLevelForDesync( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        var options = _doom?.Options;
+        if ( session is null || options is null )
+        {
+            EndCoopMatchForDesync( session );
+            return;
+        }
+
+        // Both peers are on the same level in lockstep, so the host's current
+        // episode/map is the right restart target even mid-episode.
+        var mapName = options.GameMode == ManagedDoom.GameMode.Commercial
+            ? $"MAP{Math.Clamp( options.Map, 1, 32 ):00}"
+            : $"E{Math.Clamp( options.Episode, 1, 9 )}M{Math.Clamp( options.Map, 1, 9 )}";
+
+        Log.Warning( $"[MP-COOP] Resync failed; restarting level {mapName} for both peers ({_coopDesyncLevelRestarts}/{MaxCoopDesyncLevelRestartsPerMatch} restarts used)." );
+
+        _coopResyncStartedUtc = DateTime.MinValue;
+        _outgoingCoopResyncChunks.Clear();
+        _tickAccumulator = 0;
+
+        ResetMultiplayerGameplayOverrides();
+        session.StartCoopRpc( mapName, session.CoopSkill );
+        PublishHostedLobbyDiscoveryState();
+        _showCoopRestartNoticeWhenLoaded = true;
+        TryEnterMultiplayerCoopMatch();
+        StateHasChanged();
+    }
+
+    private void CancelCoopMenuSelectionIfAbandoned()
+    {
+        if ( !_coopMenuSelectionArmed || _doom is null )
+        {
+            return;
+        }
+
+        if ( _doom.Menu?.Active == true )
+        {
+            return;
+        }
+
+        // Host backed out of the native menu without picking a skill.
+        _coopMenuSelectionArmed = false;
+        _doom.NewGameInterceptor = null;
+        _multiplayerModeController.ShowModeMenu();
+        SboxManagedDoomMultiplayerPanelService.ShowMatchMenu( SboxManagedDoomMultiplayerModeCatalog.SelectModeStatus );
         StateHasChanged();
     }
 
@@ -1795,6 +2205,7 @@
         if ( _multiplayerSession is not null )
         {
             _multiplayerSession.StopPvpRpc();
+            _multiplayerSession.StopCoopRpc();
             _multiplayerSession.CloseMatchMenuRpc();
             _multiplayerSession.MatchStarted = false;
         }
@@ -1821,6 +2232,7 @@
         _ignoreStartedMultiplayerMatch = true;
 
         _multiplayerSession?.StopPvpRpc();
+        _multiplayerSession?.StopCoopRpc();
         PublishHostedLobbyDiscoveryState();
         ResetMultiplayerGameplayOverrides();
 
@@ -1887,16 +2299,93 @@
         StateHasChanged();
     }
 
+    private void TryEnterMultiplayerCoopMatch()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+
+        // A newer launch serial while a match is already loaded is a level
+        // restart (e.g. the desync fallback): tear the old match state down
+        // first or the launch plan is refused as "already in this map".
+        if ( session is not null
+            && session.CoopLaunchSerial > _multiplayerModeController.HandledCoopLaunchSerial
+            && ( _multiplayerModeController.CoopMatchLoaded || _multiplayerModeController.CoopLaunchPending ) )
+        {
+            ResetMultiplayerGameplayOverrides();
+            _showCoopRestartNoticeWhenLoaded = true;
+        }
+
+        if ( !_multiplayerModeController.TryCreateCoopLaunchPlan( _doom, _input, session, Networking.IsHost, out var launchPlan ) )
+        {
+            return;
+        }
+
+        Log.Info( $"[MP-COOP] Entering co-op launch for map {launchPlan.MapName} skill={launchPlan.Skill} as host={Networking.IsHost}, currentState={_doom.State}, currentGameState={_doom.Game?.State}" );
+
+        var options = _doom.Options;
+        _multiplayerModeController.ApplyPvpGameplayOverrides( options );
+        options.NetGame = true;
+        options.Deathmatch = 0;
+        options.NoMonsters = false;
+        options.FastMonsters = false;
+        options.RespawnMonsters = false;
+        options.ConsolePlayer = launchPlan.ConsolePlayer;
+
+        for ( var i = 0; i < ManagedDoom.Player.MaxPlayerCount; i++ )
+        {
+            options.Players[i].InGame = i < 2;
+        }
+
+        _doom.ExternalTicCmdBuilder = BuildSharedSimulationCoopCommands;
+        _doom.Menu.Close();
+
+        SboxManagedDoomMultiplayerPanelService.Close();
+        _tickAccumulator = 0;
+        _ignoreStartedMultiplayerMatch = true;
+        _coopResyncAttempts = 0;
+        _lastHandledCoopResyncSerial = session.CoopResyncSerial;
+        _localCoopResyncLoadReported = false;
+        _coopResyncStartedUtc = DateTime.MinValue;
+        _multiplayerModeController.BeginCoopLaunch( session, launchPlan.MapName );
+
+        Log.Info( $"[MP-COOP] Launching lockstep co-op map {launchPlan.MapName} as player slot {options.ConsolePlayer}." );
+        _doom.NewGame( (ManagedDoom.GameSkill)launchPlan.Skill, launchPlan.Episode, launchPlan.Map );
+        Log.Info( $"[MP-COOP] _doom.NewGame completed for map {launchPlan.MapName}. host={Networking.IsHost}, newState={_doom.State}, newGameState={_doom.Game?.State}" );
+        StateHasChanged();
+    }
+
     private void UpdatePvpLoadedState()
     {
         var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
         if ( session?.PvpActive != true )
         {
-            ResetMultiplayerGameplayOverrides();
+            // Never reset while co-op is live: that would null the tic
+            // builder and restore NetGame mid-match.
+            if ( session?.CoopActive != true )
+            {
+                ResetMultiplayerGameplayOverrides();
+            }
             return;
         }
 
         _multiplayerModeController.UpdatePvpLoadedState( _doom, session, EnsurePvpPickupTrackingInitialized );
+    }
+
+    private void UpdateCoopLoadedState()
+    {
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        if ( session?.CoopActive != true )
+        {
+            return;
+        }
+
+        _multiplayerModeController.UpdateCoopLoadedState( _doom, session );
+
+        if ( _showCoopRestartNoticeWhenLoaded && _multiplayerModeController.CoopMatchLoaded )
+        {
+            _showCoopRestartNoticeWhenLoaded = false;
+            var consolePlayer = _doom.Options?.Players?[_doom.Options.ConsolePlayer];
+            consolePlayer?.SendMessage( "NET GAME RESYNCED - LEVEL RESTARTED." );
+        }
     }
 
     private void ResetMultiplayerGameplayOverrides()
@@ -2214,7 +2703,25 @@
     private static readonly int PvpLocalSnapDistance = ManagedDoom.Fixed.FromInt(48).Data;
     private static readonly int PvpLocalReconcileDistance = ManagedDoom.Fixed.FromInt(2).Data;
     private static readonly int PvpRemoteSnapDistance = ManagedDoom.Fixed.FromInt(64).Data;
-    private const int SharedSimulationPvpCommandLeadTics = 2;
+    // 4 tics of lead (~114ms) buffers network jitter between lockstep peers;
+    // 2 proved too tight and stalls the sim on every late packet.
+    private const int SharedSimulationPvpCommandLeadTics = 4;
+    private bool _coopMenuSelectionArmed;
+    private DateTime _coopPeerMissingSinceUtc = DateTime.MinValue;
+    private const int MaxCoopResyncAttemptsPerMatch = 3;
+    private const int MaxCoopDesyncLevelRestartsPerMatch = 1;
+    // Small chunks paced a few per frame keep each RPC well under message
+    // size limits; a typical 50-150KB snapshot is ~15-35 chunks.
+    private const int CoopResyncChunkChars = 6144;
+    private int _coopResyncAttempts;
+    private int _coopDesyncLevelRestarts;
+    private int _lastHandledCoopResyncSerial;
+    private bool _localCoopResyncLoadReported;
+    private bool _localCoopResyncLoadFailed;
+    private bool _showCoopRestartNoticeWhenLoaded;
+    private DateTime _coopResyncStartedUtc = DateTime.MinValue;
+    private readonly List<string> _outgoingCoopResyncChunks = new();
+    private int _nextOutgoingCoopResyncChunk;
     private const bool EnableSharedSimulationPvp = false;
     private readonly HashSet<int> _initialPvpPickupThingIndexes = new();
     private readonly HashSet<int> _initialPvpDestroyableThingIndexes = new();
@@ -3045,6 +3552,56 @@
             && _doom.Game.World is not null;
     }
 
+    // Co-op must be lockstep from the very first tic (the level-load tic) and
+    // must stay lockstep through intermission/finale, so unlike the PVP gate
+    // this intentionally has no DoomState/GameState requirement: it turns on
+    // the moment the launch begins, before the sim ever advances.
+    private bool UseSharedSimulationCoop( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session?.CoopActive != true || _doom is null )
+        {
+            return false;
+        }
+
+        // While the launch is pending the state machine is still transitioning
+        // into DoomState.Game, so only require it once the match is loaded;
+        // if the player later quits to the menu, stop consuming shared tics.
+        return _multiplayerModeController.CoopLaunchPending
+            || ( _multiplayerModeController.CoopMatchLoaded && _doom.State == ManagedDoom.DoomState.Game );
+    }
+
+    private void BuildSharedSimulationCoopCommands( ManagedDoom.TicCmd[] cmds, ManagedDoom.GameOptions options )
+    {
+        if ( _input is null )
+        {
+            return;
+        }
+
+        var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        var remotePlayerIndex = localPlayerIndex == 0 ? 1 : 0;
+
+        if ( session is null || _activeSharedSimulationPvpCommandTic < 0 )
+        {
+            cmds[localPlayerIndex].Clear();
+            cmds[remotePlayerIndex].Clear();
+            return;
+        }
+
+        if ( !_sharedSimulationLocalPvpCommands.TryGetValue( _activeSharedSimulationPvpCommandTic, out var localCommand ) )
+        {
+            localCommand = BuildCurrentSharedSimulationPvpCommand();
+            _sharedSimulationLocalPvpCommands[_activeSharedSimulationPvpCommandTic] = localCommand;
+        }
+
+        ApplySharedSimulationTicCommand( localCommand, cmds[localPlayerIndex] );
+
+        if ( !session.TryCopyQueuedPlayerCommandTo( remotePlayerIndex, _activeSharedSimulationPvpCommandTic, cmds[remotePlayerIndex] ) )
+        {
+            cmds[remotePlayerIndex].Clear();
+        }
+    }
+
     private bool IsJoinerAuthoritativePvpReplica()
     {
         var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
@@ -3446,6 +4003,116 @@
         }
 
         _lastReportedPvpChecksumMismatchSignature = string.Empty;
+    }
+
+    private void PumpSharedSimulationCoopChecksum( SboxManagedDoomMultiplayerSessionComponent session )
+    {
+        if ( session is null || _doom?.Game?.World is null )
+        {
+            return;
+        }
+
+        var levelTime = _doom.Game.World.LevelTime;
+        var localPlayerIndex = Networking.IsHost ? 0 : 1;
+        var localChecksum = BuildSharedSimulationCoopChecksum();
+        session.SetPvpChecksumRpc( localPlayerIndex, levelTime, localChecksum );
+
+        if ( string.IsNullOrEmpty( session.Player0PvpChecksum )
+            || string.IsNullOrEmpty( session.Player1PvpChecksum )
+            || session.Player0PvpChecksumLevelTime != session.Player1PvpChecksumLevelTime )
+        {
+            return;
+        }
+
+        var mismatchSignature = string.Format(
+            "{0}:{1}:{2}",
+            session.Player0PvpChecksumLevelTime,
+            session.Player0PvpChecksum,
+            session.Player1PvpChecksum );
+
+        if ( session.Player0PvpChecksum != session.Player1PvpChecksum )
+        {
+            if ( mismatchSignature != _lastReportedPvpChecksumMismatchSignature )
+            {
+                _lastReportedPvpChecksumMismatchSignature = mismatchSignature;
+                Log.Warning(
+                    $"[MP-COOP] Lockstep checksum mismatch at levelTime={session.Player0PvpChecksumLevelTime}. "
+                    + $"host={session.Player0PvpChecksum} joiner={session.Player1PvpChecksum}" );
+                LogSharedSimulationMismatchDetails( session.Player0PvpChecksumLevelTime );
+
+                if ( Networking.IsHost && !session.CoopResyncActive )
+                {
+                    BeginCoopStateResync( session );
+                }
+            }
+
+            return;
+        }
+
+        _lastReportedPvpChecksumMismatchSignature = string.Empty;
+    }
+
+    // Unlike the PVP checksum this hashes every live mobj (monsters included),
+    // so any lockstep divergence in AI or item state shows up within a tic.
+    private string BuildSharedSimulationCoopChecksum()
+    {
+        if ( _doom?.Game?.World is null )
+        {
+            return string.Empty;
+        }
+
+        var world = _doom.Game.World;
+        var players = _doom.Options.Players;
+        uint hash = 2166136261u;
+
+        AddChecksumInt( ref hash, world.LevelTime );
+
+        for ( var playerIndex = 0; playerIndex < 2; playerIndex++ )
+        {
+            var player = players[playerIndex];
+            AddChecksumBool( ref hash, player?.InGame == true );
+
+            if ( player is null )
+            {
+                continue;
+            }
+
+            AddChecksumInt( ref hash, (int)player.PlayerState );
+            AddChecksumInt( ref hash, player.Health );
+            AddChecksumInt( ref hash, player.ArmorPoints );
+            AddChecksumInt( ref hash, (int)player.ReadyWeapon );
+            AddChecksumInt( ref hash, BuildOwnedWeaponMask( player ) );
+
+            for ( var ammoIndex = 0; ammoIndex < (int)ManagedDoom.AmmoType.Count; ammoIndex++ )
+            {
+                AddChecksumInt( ref hash, player.Ammo[ammoIndex] );
+            }
+
+            if ( player.Mobj is not null )
+            {
+                AddChecksumInt( ref hash, player.Mobj.X.Data );
+                AddChecksumInt( ref hash, player.Mobj.Y.Data );
+                AddChecksumInt( ref hash, player.Mobj.Z.Data );
+                AddChecksumInt( ref hash, unchecked( (int)player.Mobj.Angle.Data ) );
+            }
+        }
+
+        foreach ( var thinker in world.Thinkers )
+        {
+            if ( thinker is not ManagedDoom.Mobj mobj || mobj.ThinkerState == ManagedDoom.ThinkerState.Removed )
+            {
+                continue;
+            }
+
+            AddChecksumInt( ref hash, (int)mobj.Type );
+            AddChecksumInt( ref hash, mobj.X.Data );
+            AddChecksumInt( ref hash, mobj.Y.Data );
+            AddChecksumInt( ref hash, mobj.Z.Data );
+            AddChecksumInt( ref hash, mobj.Health );
+            AddChecksumInt( ref hash, mobj.State.Number );
+        }
+
+        return hash.ToString( "x8" );
     }
 
     private void LogSharedSimulationMismatchDetails( int levelTime )
