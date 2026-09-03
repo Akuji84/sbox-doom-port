@@ -184,7 +184,9 @@
         new( "FreeDM", "doom/freedm.wad" ),
         new( "DOOM", "doom/doom.wad" ),
         new( "REKKR", "doom/rekkrsa.wad" ),
-        new( "HacX", "doom/hacx.wad" )
+        new( "HacX", "doom/hacx.wad" ),
+        new( "Chex Quest", "doom/chex.wad" ),
+        new( "Harmony", "doom/freedoom2.wad;doom/harmonyc.wad" )
     };
     private string _selectedWadPath = DefaultWadPath;
     private string _shellSurfaceUrl = string.Empty;
@@ -228,8 +230,20 @@
             Log.Info( $"[ManagedDoomHost] Bootstrap requested. wad={wadPath} pendingRequest={_pendingShellLaunchRequestId}" );
             _launchSurfaceState = LaunchSurfaceState.LaunchingDoom;
             _error = null;
-            var args = new ManagedDoom.CommandLineArgs( new[] { "-iwad", wadPath } );
-            ManagedDoom.ConfigUtilities.SetHostWadPaths( wadPath );
+            // A ';'-separated path list loads the first entry as the IWAD and
+            // the rest as PWADs on top of it (e.g. Harmony over Freedoom 2).
+            var wadPaths = wadPath.Split( ';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries );
+            var argList = new List<string> { "-iwad", wadPaths[0] };
+            if ( wadPaths.Length > 1 )
+            {
+                argList.Add( "-file" );
+                for ( var i = 1; i < wadPaths.Length; i++ )
+                {
+                    argList.Add( wadPaths[i] );
+                }
+            }
+            var args = new ManagedDoom.CommandLineArgs( argList.ToArray() );
+            ManagedDoom.ConfigUtilities.SetHostWadPaths( wadPaths );
 
             var config = new ManagedDoom.Config( ManagedDoom.ConfigUtilities.GetConfigPath() );
             if ( _pendingShellLaunchConfig is not null )

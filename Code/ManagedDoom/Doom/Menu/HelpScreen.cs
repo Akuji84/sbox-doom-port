@@ -27,7 +27,10 @@ namespace ManagedDoom
 
         public HelpScreen(DoomMenu menu) : base(menu)
         {
-            if (menu.Options.GameMode == GameMode.Shareware)
+            // Shareware shows a second help page, but only when the WAD
+            // actually has one (chex.wad runs as Shareware without HELP2).
+            if (menu.Options.GameMode == GameMode.Shareware &&
+                menu.Doom.Content.Wad.GetLumpNumber("HELP2") != -1)
             {
                 pageCount = 2;
             }

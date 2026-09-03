@@ -592,6 +592,7 @@ namespace ManagedDoom
             }
         }
 
+        public GameContent Content => content;
         public DoomState State => currentState;
         public OpeningSequence Opening => opening;
         public DemoPlayback DemoPlayback => demoPlayback;

@@ -30,6 +30,7 @@ namespace ManagedDoom
         private GameVersion gameVersion;
         private GameMode gameMode;
         private MissionPack missionPack;
+        private bool isChexQuest;
 
         public Wad(params string[] fileNames)
         {
@@ -44,6 +45,7 @@ namespace ManagedDoom
                     AddFile(fileName);
                 }
 
+                isChexQuest = names.Contains("chex");
                 gameMode = GetGameMode();
                 missionPack = GetMissionPack(names);
                 gameVersion = GetGameVersion();
@@ -173,6 +175,7 @@ namespace ManagedDoom
                     case "doom2":
                     case "freedoom2":
                     case "freedm":
+                    case "chex":
                         return GameVersion.Version109;
                     case "doom":
                     case "doom1":
@@ -203,6 +206,12 @@ namespace ManagedDoom
                     case "freedoom2":
                     case "freedm":
                         return GameMode.Commercial;
+                    case "chex":
+                        // chex.wad carries all Ultimate Doom map slots (so the
+                        // lump probe would say Retail), but only E1M1-E1M5 are
+                        // Chex content; Shareware keeps the game to episode 1
+                        // like chex.exe did.
+                        return GameMode.Shareware;
                     case "doom":
                     case "freedoom1":
                         if (HasLump("E4M1") && HasLump("M_EPI4"))
@@ -267,5 +276,6 @@ namespace ManagedDoom
         public GameVersion GameVersion => gameVersion;
         public GameMode GameMode => gameMode;
         public MissionPack MissionPack => missionPack;
+        public bool IsChexQuest => isChexQuest;
     }
 }

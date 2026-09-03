@@ -303,7 +303,10 @@ namespace ManagedDoom
                 this,
                 "M_DOOM", 94, 2,
                 0,
-                new SimpleMenuItem("M_NGAME", 65, 59, 97, 64, null, episodeMenu),
+                new SimpleMenuItem("M_NGAME", 65, 59, 97, 64, null,
+                    // Chex Quest has exactly one real episode, so new game
+                    // goes straight to skill select like commercial does.
+                    doom.Content.Wad.IsChexQuest ? skillMenu : episodeMenu),
                 new SimpleMenuItem("M_OPTION", 65, 75, 97, 80, null, optionMenu),
                 new SimpleMenuItem("M_LEADB", 65, 91, 97, 96, null, leaderboard),
                 new SimpleMenuItem("M_LOADG", 65, 107, 97, 112, null, load),
@@ -425,7 +428,10 @@ namespace ManagedDoom
         public void OpenNewGameMenu()
         {
             selectedEpisode = 1;
-            SetCurrent(doom.Options.GameMode == GameMode.Commercial ? skillMenu : episodeMenu);
+            var skipEpisodeSelect =
+                doom.Options.GameMode == GameMode.Commercial ||
+                doom.Content.Wad.IsChexQuest;
+            SetCurrent(skipEpisodeSelect ? skillMenu : episodeMenu);
             Open();
             StartSound(Sfx.SWTCHN);
         }

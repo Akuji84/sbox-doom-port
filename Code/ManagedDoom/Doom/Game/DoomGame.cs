@@ -360,6 +360,14 @@ namespace ManagedDoom
 				}
 			}
 
+			if (content.Wad.IsChexQuest && options.Map == 5)
+			{
+				// chex.exe ends the episode after E1M5; the later map slots in
+				// chex.wad are leftover Doom maps players were never meant to see.
+				gameAction = GameAction.Victory;
+				return;
+			}
+
 			if (options.GameMode != GameMode.Commercial)
 			{
 				switch (options.Map)
