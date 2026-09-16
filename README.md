@@ -7,7 +7,7 @@ The project brings classic Doom gameplay into s&box with a retro desktop-style i
 ## Play your way
 
 - **Single-player:** explore campaigns with classic Doom movement and combat.
-- **Co-op:** tackle levels together with friends.
+- **Co-op:** tackle levels together with friends. (COMING SOON)
 - **PvP:** compete in multiplayer matches.
 - **One launcher:** choose a game and configure your controls from the retro desktop.
 - **Save your progress:** local save/load support for single-player sessions.
