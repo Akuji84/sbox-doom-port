@@ -13,8 +13,6 @@ September 16, 2026: restrict packaged WADs to Freedoom Phase 1, Phase 2 and
 FreeDM 0.13.0; preserve their license/credits; render menu labels from bundled
 fonts; add the license viewer and dated upstream modification notices; make
 source licensing explicit and SDK build paths configurable. Preserve MIT and
-other upstream component notices. The remote server update is not included in
-this game source publication and has not been deployed.
+other upstream component notices.
 
-This document records project changes, not ownership of original third-party
-works or additional rights to the native engine. See LICENSING.md.
+See LICENSING.md for source and component licenses.

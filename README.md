@@ -54,8 +54,7 @@ Choose a bundled WAD from the launcher. Game data and the music soundfont are st
 
 The original integrated game/host code is licensed under GPL-2.0-or-later.
 See [LICENSING.md](LICENSING.md) for the explicit grant and third-party exceptions.
-See [SOURCE_RELEASE.md](SOURCE_RELEASE.md) for the tagged source, build instructions
-and verification limits.
+See [SOURCE_RELEASE.md](SOURCE_RELEASE.md) for the tagged source and build instructions.
 
 See:
 
@@ -66,6 +65,4 @@ The bundled Freedoom and FreeDM 0.13.0 data uses BSD-3-Clause. Its notices and c
 in `Assets/doom` and the launcher's **Licenses & credits** window.
 
 Before publishing, run `python tools/verify_release_assets.py` and follow
-[SOURCE_RELEASE.md](SOURCE_RELEASE.md). Removing files locally does not retract
-an old published package. The native-engine dependency question remains unresolved;
-source availability is not certification of full GPL or Play Fund compliance.
+[SOURCE_RELEASE.md](SOURCE_RELEASE.md).

@@ -21,7 +21,3 @@ Exceptions and separate works:
   This is the s&Doom shell adaptation, not an unmodified Windows 98 GE release.
 - Other assets, trademarks, SDK assemblies and native engine components are
   not relicensed by this declaration. GeneralUser-GS.sf2 has separate terms.
-
-This declaration applies only to rights the project has authority to grant.
-It does not grant an exception for linking GPL code to the native s&box engine,
-nor certify that the complete dependency combination is GPL-compatible.
