@@ -1,6 +1,6 @@
 # sbox-doom-port
 
-`sbox-doom-port` is a singleplayer Doom/Freedoom port for `s&box`, built by hosting vendored Managed Doom runtime code inside an `s&box` game package.
+`sbox-doom-port` is a single-player and multiplayer Doom/Freedoom port for `s&box`, built by hosting vendored Managed Doom runtime code inside an `s&box` game package.
 
 Current features:
 - Freedoom title screen, demos, and gameplay running inside `s&box`
@@ -44,7 +44,10 @@ Music synthesis uses:
 
 ## Licensing
 
-This project includes GPL-covered Doom runtime code and should be treated as a GPL source release.
+The original integrated game/host code is licensed under GPL-2.0-or-later.
+See [LICENSING.md](LICENSING.md) for the explicit grant and third-party exceptions.
+See [SOURCE_RELEASE.md](SOURCE_RELEASE.md) for the tagged source, build instructions
+and verification limits.
 
 See:
 - [LICENSE](./LICENSE)
@@ -53,3 +56,12 @@ See:
 Third-party components currently noted:
 - Managed Doom
 - MeltySynth
+
+The current bundled game data is limited to Freedoom Phase 1, Freedoom Phase 2
+and FreeDM 0.13.0. Their BSD-3-Clause notices and contributor/music credits are
+in `Assets/doom` and the launcher's **Licenses & credits** window.
+
+Before publishing, run `python tools/verify_release_assets.py` and follow
+[SOURCE_RELEASE.md](SOURCE_RELEASE.md). Removing files locally does not retract
+an old published package. The native-engine dependency question remains unresolved;
+source availability is not certification of full GPL or Play Fund compliance.

@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+
+<!--/* $OpenBSD: index.html,v 1.0 2025/03/02 win98ge Exp $ */
+
+/*
+
+* Author: GELASIO EBEL JUNIOR <gelasio.e@aluno.ifsc.edu.br>
+
+* Copyright (c) 2025 GELASIO EBEL JUNIOR <gelasio.e@aluno.ifsc.edu.br>
+
+*                    All rights reserved
+
+* Windows 98 GE Desktop Interface. This web interface recreates the classic
+
+* appearance of Windows 98 SE, offering a nostalgic and interactive experience.
+
+* The software includes desktop icons, taskbar, and characteristic visual elements
+
+* of Windows 98 SE.
+
+*
+
+* As far as I am concerned, the code I have written for this software
+
+* can be used freely for any purpose. Any derived versions of this
+
+* software must be clearly marked as such, and if the derived work is
+
+* incompatible with the original design, it must be called by a name
+
+* other than "Windows 98 GE".
+
+*
+
+* Redistribution and use in source and binary forms, with or without
+
+* modification, are permitted provided that the following conditions
+
+* are met:
+
+* 1. Redistributions of source code must retain the above copyright
+
+*    notice, this list of conditions and the following disclaimer.
+
+* 2. Redistributions in binary form must reproduce the above copyright
+
+*    notice, this list of conditions and the following disclaimer in the
+
+*    documentation and/or other materials provided with the distribution.
+
+*
+
+* THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+
+* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+
+* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+
+* IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+
+* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+
+* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+
+* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+
+* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*/-->
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Windows 98 GE Desktop</title>
+
+    <link rel="stylesheet" href="./shell.css?v=BETA_DEV">
+
+</head>
+
+<body>
+
+<!-- Desktop Icons -->
+
+<div class="desktop-icons">
+
+    <div class="desktop-icon" data-window="myComputer">
+
+        <img class="icon-img" src="./assets/icons/my_computer.png" alt="My Computer">
+
+        <div class="icon-text">My Computer</div>
+
+    </div>
+
+    <div class="desktop-icon" data-window="myDocuments">
+
+        <img class="icon-img" src="./assets/icons/my_documents.png" alt="My Documents">
+
+        <div class="icon-text">My Documents</div>
+
+    </div>
+
+    <div class="desktop-icon" data-window="networkNeighborhood">
+
+        <img class="icon-img" src="./assets/icons/network_neighborhood.ico" alt="Network Neighborhood">
+
+        <div class="icon-text">Network Neighborhood</div>
+
+    </div>
+
+    <div class="desktop-icon" data-window="internetExplorer">
+
+        <img class="icon-img" src="./assets/icons/internet_explorer.png" alt="Internet Explorer">
+
+        <div class="icon-text">Internet Explorer</div>
+
+    </div>
+
+    <div class="desktop-icon" data-window="recycle">
+
+        <img class="icon-img" src="./assets/icons/recycle_bin_empty.png" alt="Recycle Bin">
+
+        <div class="icon-text">Recycle Bin</div>
+
+    </div>
+
+    <div class="desktop-icon" data-window="notepadWindow">
+        <img class="icon-img" src="./assets/icons/notepad.png" alt="Notepad">
+        <div class="icon-text">Notepad</div>
+    </div>
+    <div class="desktop-icon" data-window="myComputer" data-open-path="C:/DOOM">
+        <img class="icon-img" src="./assets/icons/folder_open.png" alt="DOOM">
+        <div class="icon-text">DOOM</div>
+    </div>
+</div>
+
+
+<!-- TODO: Implement desktop right-click context menu
+
+     Should include options like:
+
+     - Arrange Icons
+
+     - Line Up Icons
+
+     - Refresh
+
+     - Paste
+
+     - New (with submenu)
+
+     - Properties -->
+
+
+
+<!-- TODO: Implement desktop selection area (rubber-band)
+
+     This should be a draggable rectangle that allows selecting multiple icons -->
+
+<div class="selection-box"></div>
+
+
+
+<!-- Start Menu -->
+
+<div class="start-menu" id="startMenu">
+
+    <div class="start-menu-banner">
+
+        <div class="banner-text">Windows98</div>
+
+    </div>
+
+    <div class="start-menu-items">
+
+        <div class="menu-item has-submenu">
+
+            <img src="./assets/icons/start_menu_shortcuts.png" alt="Programs Menu">
+
+            Programs
+
+            <div class="submenu">
+
+                <div class="menu-item" data-window="internetExplorer">
+
+                    <img src="./assets/icons/internet_explorer.png" alt="Internet Explorer">
+
+                    Internet Explorer
+
+                </div>
+
+                <div class="menu-item" data-window="notepadWindow">
+
+                    <img src="./assets/icons/notepad.png" alt="Notepad">
+
+                    Notepad
+
+                </div>
+
+                <div class="menu-item">
+
+                    <img src="./assets/icons/windows_explorer.png" alt="Windows Explorer">
+
+                    Windows Explorer
+
+                </div>
+
+                <div class="menu-item" data-window="dosWindow">
+
+                    <img src="./assets/icons/msdos.png" alt="MS-DOS Prompt">
+
+                    MS-DOS Prompt
+
+                </div>
+
+                <div class="menu-item" id="menuBugReport">
+
+                    <img src="./assets/icons/help.png" alt="Bug Report">
+
+                    Bug Report Wizard
+
+                </div>
+
+                <div class="menu-item" id="menuMessenger">
+
+                    <img src="./assets/icons/entire_network.png" alt="Messenger">
+
+                    Messenger
+
+                </div>
+
+                <div class="menu-item has-submenu">
+
+                    <img src="./assets/icons/folder_open.png" alt="Accessories">
+
+                    Accessories
+
+                    <div class="submenu">
+
+                        <div class="menu-item" data-window="notepadWindow">
+
+                            <img src="./assets/icons/notepad.png" alt="Notepad">
+
+                            Notepad
+
+                        </div>
+
+                        <div class="menu-item" data-window="paintWindow">
+
+                            <img src="./assets/icons/paint.png" alt="Paint">
+
+                            Paint
+
+                        </div>
+
+                        <div class="menu-item" data-window="wordpadWindow">
+
+                            <img src="./assets/icons/wordpad.png" alt="WordPad">
+
+                            WordPad
+
+                        </div>
+
+                        <div class="menu-item" data-window="cdPlayerWindow">
+
+                            <img src="./assets/icons/cd_drive.png" alt="CD Player">
+
+                            CD Player
+
+                        </div>
+
+                        <div class="menu-item" data-window="calculatorWindow">
+
+                            <img src="./assets/icons/calculator.png" alt="Calculator">
+
+                            Calculator
+
+                        </div>
+
+                        <div class="menu-item has-submenu">
+
+                            <img src="./assets/icons/executable_gear.png" alt="System Tools">
+
+                            System Tools
+
+                            <div class="submenu">
+
+                                <div class="menu-item" id="menuDefrag">
+
+                                    <img src="./assets/icons/hard_drive.png" alt="Disk Defragmenter">
+
+                                    Disk Defragmenter
+
+                                </div>
+
+                                <div class="menu-item" data-window="dosWindow">
+
+                                    <img src="./assets/icons/msdos.png" alt="MS-DOS Prompt">
+
+                                    MS-DOS Prompt
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="menu-item has-submenu">
+
+                    <img src="./assets/icons/folder_open.png" alt="Games">
+
+                    Games
+
+                    <div class="submenu">
+
+                        <div class="menu-item" data-window="minesweeperWindow">
+
+                            <img src="./assets/icons/executable.png" alt="Minesweeper">
+
+                            Minesweeper
+
+                        </div>
+
+                        <div class="menu-item" data-window="solitaireWindow">
+
+                            <img src="./assets/icons/executable.png" alt="Solitaire">
+
+                            Solitaire
+
+                        </div>
+
+                        <div class="menu-item" data-window="freecellWindow">
+
+                            <img src="./assets/icons/executable.png" alt="FreeCell">
+
+                            FreeCell
+
+                        </div>
+
+                        <div class="menu-item" data-window="doomWindow">
+
+                            <img src="./assets/icons/doom_program.png" alt="DOOM">
+
+                            DOOM
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="menu-item has-submenu">
+
+            <img src="./assets/icons/favorites.png" alt="Favorites">
+
+            Favorites
+
+            <div class="submenu">
+
+                <div id="menuFavsDynamic"></div>
+
+                <div class="menu-item" data-window="internetExplorer">
+
+                    <img src="./assets/icons/internet_explorer.png" alt="Internet Explorer">
+
+                    Open Internet Explorer
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="menu-item has-submenu">
+
+            <img src="./assets/icons/my_documents.png" alt="Documents">
+
+            Documents
+
+            <div class="submenu">
+
+                <div class="menu-item" data-window="myDocuments">
+
+                    <img src="./assets/icons/my_documents.png" alt="My Documents">
+
+                    My Documents
+
+                </div>
+
+                <div id="menuDocsDynamic"></div>
+
+            </div>
+
+        </div>
+
+        <div class="menu-item has-submenu">
+
+            <img src="./assets/icons/control_panel.png" alt="Settings">
+
+            Settings
+
+            <div class="submenu">
+
+                <div class="menu-item has-submenu">
+
+                    <img src="./assets/icons/control_panel.png" alt="Control Panel">
+
+                    Control Panel
+
+                    <div class="submenu">
+
+                        <div class="menu-item">
+
+                            <img src="./assets/icons/executable_gear.png" alt="Add/Remove Programs">
+
+                            Add/Remove Programs
+
+                        </div>
+
+                        <div class="menu-item">
+
+                            <img src="./assets/icons/entire_network.png" alt="Regional Settings">
+
+                            Regional Settings
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="menu-item">
+
+                    <img src="./assets/icons/start_menu_shortcuts.png" alt="Taskbar & Start Menu">
+
+                    Taskbar & Start Menu
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="menu-item" id="menuFind">
+
+            <img src="./assets/icons/search.png" alt="Find">
+
+            Find
+
+        </div>
+
+        <div class="menu-item" id="menuHelp">
+
+            <img src="./assets/icons/help.png" alt="Help">
+
+            Help
+
+        </div>
+
+        <div class="menu-item" id="menuRun">
+
+            <img src="./assets/icons/executable.png" alt="Run">
+
+            Run...
+
+        </div>
+
+        <div class="menu-divider"></div>
+
+        <div class="menu-item" id="menuLogOff">
+
+            <img src="./assets/icons/power_management.ico" alt="Log Off">
+
+            Log Off...
+
+        </div>
+
+        <div class="menu-item" id="menuShutDown">
+
+            <img src="./assets/icons/power_management.ico" alt="Shut Down">
+
+            Shut Down...
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Windows 98 Windows -->
+
+
+
+<!-- Welcome to Windows 98 Window -->
+
+<div class="window" id="welcomeWindow" data-window-title="Welcome to Windows 98" data-window-icon="./assets/icons/welcome.png" data-window-controls="minimize,maximize,close" style="top: 100px; left: 50%; transform: translateX(-50%); width: 420px; height: 340px; display: block;">
+
+    <div class="window-content">
+
+        <div class="welcome-dialog">
+
+            <div class="welcome-header">
+
+                <img class="welcome-logo" src="./assets/icons/windows98_logo.png" alt="Windows 98 Logo">
+
+            </div>
+
+            <div class="welcome-body">
+
+                <div class="welcome-sidebar">
+
+                    <div class="sidebar-item active">
+
+                        Register Now
+
+                    </div>
+
+                    <div class="sidebar-item">
+
+                        Connect to the Internet
+
+                    </div>
+
+                    <div class="sidebar-item">
+
+                        Discover Windows 98
+
+                    </div>
+
+                    <div class="sidebar-item">
+
+                        Maintain Your Computer
+
+                    </div>
+
+                </div>
+
+                <div class="welcome-content">
+
+                    <h2>Welcome</h2>
+
+                    <p>Welcome to the exciting new world of Windows 98, where your computer desktop meets the Internet!</p>
+
+                    <p>Sit back and allow us to take you on a brief tour of the exciting new features available in Windows 98.</p>
+
+                    <p>If you want to explore on your own, just click ok.</p>
+
+                </div>
+
+            </div>
+
+            <div class="welcome-footer">
+
+                <div class="welcome-info">
+
+                    (If this page is shown each time Windows 98 starts)
+
+                </div>
+
+                <div class="welcome-button">
+
+                    Close
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- My Computer Window -->
+
+<div class="window" id="myComputer" data-window-title="My Computer" data-window-icon="./assets/icons/my_computer.png" data-window-controls="minimize,maximize,close" style="top: 120px; left: 160px; width: 500px; height: 350px; display: none;">
+
+    <div class="window-content">
+
+        <div class="my-computer">
+
+            <div class="window-menubar">
+
+                <div class="window-menu-item">File</div>
+
+                <div class="window-menu-item">Edit</div>
+
+                <div class="window-menu-item">View</div>
+
+                <div class="window-menu-item">Go</div>
+
+                <div class="window-menu-item">Favorites</div>
+
+                <div class="window-menu-item">Help</div>
+
+            </div>
+
+            <div class="window-toolbar">
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_back.png" alt="Back">
+
+                    Back
+
+                </div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_forward.png" alt="Forward">
+
+                    Forward
+
+                </div>
+
+                <div class="window-toolbar-separator"></div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_up.png" alt="Up">
+
+                    Up
+
+                </div>
+
+                <div class="window-toolbar-separator"></div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_cut.png" alt="Cut">
+
+                    Cut
+
+                </div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_copy.png" alt="Copy">
+
+                    Copy
+
+                </div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_paste.png" alt="Paste">
+
+                    Paste
+
+                </div>
+
+                <div class="window-toolbar-separator"></div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_properties.png" alt="Properties">
+
+                    Properties
+
+                </div>
+
+            </div>
+
+            <div class="window-address-bar">
+
+                <div class="address-label">Address:</div>
+
+                <div class="address-input">My Computer</div>
+
+            </div>
+
+            <div class="window-contents">
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/hard_drive.png" alt="Hard Drive">
+
+                    <div class="folder-name">Drive C:</div>
+
+                </div>
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/floppy_drive.png" alt="Floppy">
+
+                    <div class="folder-name">Drive A:</div>
+
+                </div>
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/cd_drive.png" alt="CD-ROM">
+
+                    <div class="folder-name">CD-ROM (D:)</div>
+
+                </div>
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/network_folder.ico" alt="Network">
+
+                    <div class="folder-name">Network</div>
+
+                </div>
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/control_panel.png" alt="Control Panel">
+
+                    <div class="folder-name">Control Panel</div>
+
+                </div>
+
+            </div>
+
+            <div class="window-statusbar">
+
+                5 object(s)
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TODO: Implement resize handlers for all windows -->
+
+</div>
+
+
+
+<!-- Internet Explorer Window -->
+
+<div class="window" id="internetExplorer" data-window-title="Internet Explorer" data-window-icon="./assets/icons/internet_explorer.png" data-window-controls="minimize,maximize,close" style="top: 80px; left: 200px; width: 600px; height: 400px; display: none;">
+
+    <div class="window-content">
+
+        <div class="ie-window">
+
+            <div class="window-menubar">
+
+                <div class="window-menu-item">File</div>
+
+                <div class="window-menu-item">Edit</div>
+
+                <div class="window-menu-item">View</div>
+
+                <div class="window-menu-item">Favorites</div>
+
+                <div class="window-menu-item">Tools</div>
+
+                <div class="window-menu-item">Help</div>
+
+            </div>
+
+            <div class="window-toolbar">
+
+                <div class="window-toolbar-button" id="ie-back">
+
+                    <img src="./assets/icons/toolbar_back.png" alt="Back">
+
+                    Back
+
+                </div>
+
+                <div class="window-toolbar-button" id="ie-forward">
+
+                    <img src="./assets/icons/toolbar_forward.png" alt="Forward">
+
+                    Forward
+
+                </div>
+
+                <div class="window-toolbar-button" id="ie-stop">
+
+                    <img src="./assets/icons/toolbar_stop.png" alt="Stop">
+
+                    Stop
+
+                </div>
+
+                <div class="window-toolbar-button" id="ie-refresh">
+
+                    <img src="./assets/icons/toolbar_refresh.png" alt="Refresh">
+
+                    Refresh
+
+                </div>
+
+                <div class="window-toolbar-button" id="ie-home">
+
+                    <img src="./assets/icons/toolbar_home.png" alt="Home">
+
+                    Home
+
+                </div>
+
+                <div class="window-toolbar-separator"></div>
+
+                <div class="window-toolbar-button" id="ie-search">
+
+                    <img src="./assets/icons/search.png" alt="Search">
+
+                    Search
+
+                </div>
+
+            </div>
+
+            <div class="window-address-bar">
+
+                <div class="address-label">Address:</div>
+
+                <input type="text" class="address-input ie-address" id="ieAddressInput" value="">
+
+            </div>
+
+            <div class="ie-frame-wrap">
+
+                <iframe id="ieFrame" class="ie-browser-frame" sandbox="allow-same-origin"></iframe>
+
+            </div>
+
+            <div class="window-statusbar" id="ieStatus">
+
+                Done
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Notepad Window -->
+
+<div class="window" id="notepadWindow" data-window-title="Untitled - Notepad" data-window-icon="./assets/icons/notepad.png" data-window-controls="minimize,maximize,close" style="top: 140px; left: 240px; width: 450px; height: 350px; display: none;">
+
+    <div class="window-content">
+
+        <div class="notepad-window">
+
+            <div class="notepad-menubar">
+
+                <div class="notepad-menu-item" data-menu="file">File
+
+                    <div class="dropdown-menu">
+
+                        <div class="menu-option" id="new-option">New</div>
+
+                        <div class="menu-option" id="open-option">Open...</div>
+
+                        <div class="menu-option" id="save-option">Save</div>
+
+                        <div class="menu-option" id="saveas-option">Save As...</div>
+
+                        <div class="menu-separator"></div>
+
+                        <div class="menu-option" id="pagesetup-option">Page Setup...</div>
+
+                        <div class="menu-option" id="print-option">Print...</div>
+
+                        <div class="menu-separator"></div>
+
+                        <div class="menu-option" id="exit-option">Exit</div>
+
+                    </div>
+
+                </div>
+
+                <div class="notepad-menu-item" data-menu="edit">Edit
+
+                    <div class="dropdown-menu">
+
+                        <div class="menu-option" id="undo-option">Undo</div>
+
+                        <div class="menu-separator"></div>
+
+                        <div class="menu-option" id="cut-option">Cut</div>
+
+                        <div class="menu-option" id="copy-option">Copy</div>
+
+                        <div class="menu-option" id="paste-option">Paste</div>
+
+                        <div class="menu-option" id="delete-option">Delete</div>
+
+                        <div class="menu-separator"></div>
+
+                        <div class="menu-option" id="selectall-option">Select All</div>
+
+                        <div class="menu-option" id="timedate-option">Time/Date</div>
+
+                        <div class="menu-separator"></div>
+
+                        <div class="menu-option" id="wordwrap-option">Word Wrap</div>
+
+                    </div>
+
+                </div>
+
+                <div class="notepad-menu-item" data-menu="search">Search
+
+                    <div class="dropdown-menu">
+
+                        <div class="menu-option" id="find-option">Find...</div>
+
+                        <div class="menu-option" id="findnext-option">Find Next</div>
+
+                        <div class="menu-option" id="replace-option">Replace...</div>
+
+                        <div class="menu-option" id="goto-option">Go To...</div>
+
+                    </div>
+
+                </div>
+
+                <div class="notepad-menu-item" data-menu="help">Help
+
+                    <div class="dropdown-menu">
+
+                        <div class="menu-option" id="helptopics-option">Help Topics</div>
+
+                        <div class="menu-separator"></div>
+
+                        <div class="menu-option" id="about-option">About Notepad</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="notepad-content">
+
+                <div class="textarea-container">
+
+                    <textarea class="notepad-textarea" id="notepad-textarea" spellcheck="false"></textarea>
+
+                </div>
+
+            </div>
+
+            <div class="notepad-statusbar">
+
+                <div id="cursor-position">Ln 1, Col 1</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- My Documents Window -->
+
+<div class="window" id="myDocuments" data-window-title="My Documents" data-window-icon="./assets/icons/my_documents.png" data-window-controls="minimize,maximize,close" style="top: 100px; left: 180px; width: 500px; height: 350px; display: none;">
+
+    <div class="window-content">
+
+        <div class="my-computer">
+
+            <div class="window-menubar">
+
+                <div class="window-menu-item">File</div>
+
+                <div class="window-menu-item">Edit</div>
+
+                <div class="window-menu-item">View</div>
+
+                <div class="window-menu-item">Go</div>
+
+                <div class="window-menu-item">Favorites</div>
+
+                <div class="window-menu-item">Help</div>
+
+            </div>
+
+            <div class="window-toolbar">
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_back.png" alt="Back">
+
+                    Back
+
+                </div>
+
+                <div class="window-toolbar-separator"></div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_cut.png" alt="Cut">
+
+                    Cut
+
+                </div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_copy.png" alt="Copy">
+
+                    Copy
+
+                </div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_paste.png" alt="Paste">
+
+                    Paste
+
+                </div>
+
+                <div class="window-toolbar-separator"></div>
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/toolbar_properties.png" alt="Properties">
+
+                    Properties
+
+                </div>
+
+            </div>
+
+            <div class="window-address-bar">
+
+                <div class="address-label">Address:</div>
+
+                <div class="address-input">My Documents</div>
+
+            </div>
+
+            <div class="window-contents">
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/my_music.png" alt="My Music">
+
+                    <div class="folder-name">My Music</div>
+
+                </div>
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/my_pictures.ico" alt="My Pictures">
+
+                    <div class="folder-name">My Pictures</div>
+
+                </div>
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/document.png" alt="Text File">
+
+                    <div class="folder-name">Readme.txt</div>
+
+                </div>
+
+            </div>
+
+            <div class="window-statusbar">
+
+                3 object(s)
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Network Neighborhood Window -->
+
+<div class="window" id="networkNeighborhood" data-window-title="Network Neighborhood" data-window-icon="./assets/icons/network_neighborhood.ico" data-window-controls="minimize,maximize,close" style="top: 120px; left: 220px; width: 500px; height: 350px; display: none;">
+
+    <div class="window-content">
+
+        <div class="my-computer">
+
+            <div class="window-menubar">
+
+                <div class="window-menu-item">File</div>
+
+                <div class="window-menu-item">Edit</div>
+
+                <div class="window-menu-item">View</div>
+
+                <div class="window-menu-item">Go</div>
+
+                <div class="window-menu-item">Favorites</div>
+
+                <div class="window-menu-item">Help</div>
+
+            </div>
+
+            <div class="window-address-bar">
+
+                <div class="address-label">Address:</div>
+
+                <div class="address-input">Network Neighborhood</div>
+
+            </div>
+
+            <div class="window-contents">
+
+                <div class="folder-item">
+
+                    <img class="folder-icon" src="./assets/icons/entire_network.png" alt="Entire Network">
+
+                    <div class="folder-name">Entire Network</div>
+
+                </div>
+
+            </div>
+
+            <div class="window-statusbar">
+
+                1 object(s)
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Recycle Bin Window -->
+
+<div class="window" id="recycle" data-window-title="Recycle Bin" data-window-icon="./assets/icons/recycle_bin_empty.png" data-window-controls="minimize,maximize,close" style="top: 140px; left: 260px; width: 500px; height: 350px; display: none;">
+
+    <div class="window-content">
+
+        <div class="my-computer">
+
+            <div class="window-menubar">
+
+                <div class="window-menu-item">File</div>
+
+                <div class="window-menu-item">Edit</div>
+
+                <div class="window-menu-item">View</div>
+
+                <div class="window-menu-item">Help</div>
+
+            </div>
+
+            <div class="window-toolbar">
+
+                <div class="window-toolbar-button">
+
+                    <img src="./assets/icons/recycle_bin_empty.png" alt="Empty Recycle Bin">
+
+                    Empty Recycle Bin
+
+                </div>
+
+            </div>
+
+            <div class="window-contents">
+
+                <div style="text-align: center; padding: 50px; color: #808080;">
+
+                    The Recycle Bin is empty
+
+                </div>
+
+            </div>
+
+            <div class="window-statusbar">
+
+                0 object(s)
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+<!-- DOOM Launcher Window -->
+
+<div class="window" id="doomWindow" data-window-title="DOOM" data-window-icon="./assets/icons/folder_open.png" data-window-controls="minimize,maximize,close" style="top: 150px; left: 240px; width: 430px; height: 250px; display: none;">
+
+    <div class="window-content">
+
+        <div class="doom-launcher">
+            <p>Open a DOOM program just like you would in Windows 98.</p>
+            <div class="doom-wad-list" id="doomWadList">
+                <div>Loading programs...</div>
+            </div>
+            <div class="doom-launch-actions">
+                <div class="btn" id="doom-launch-btn">Open</div>
+            </div>
+            <div class="doom-launch-status" id="doom-launch-status"></div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<!-- Minesweeper -->
+<div class="window" id="minesweeperWindow" data-window-title="Minesweeper" data-window-icon="./assets/icons/executable.png" data-window-controls="minimize,close" style="top: 110px; left: 320px; width: 184px; height: 276px; display: none;">
+    <div class="window-content">
+        <div class="mine-app">
+            <div class="notepad-menubar">
+                <div class="notepad-menu-item" data-menu="minegame">Game
+                    <div class="dropdown-menu">
+                        <div class="menu-option" data-mine-level="beginner">Beginner</div>
+                        <div class="menu-option" data-mine-level="intermediate">Intermediate</div>
+                        <div class="menu-option" data-mine-level="expert">Expert</div>
+                        <div class="menu-separator"></div>
+                        <div class="menu-option" id="mineBestOption">Best Times...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mine-header">
+                <div class="mine-lcd" id="mineCount">010</div>
+                <div class="mine-smiley" id="mineSmiley">🙂</div>
+                <div class="mine-lcd" id="mineTimer">000</div>
+            </div>
+            <div class="mine-grid" id="mineGrid"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Solitaire -->
+<div class="window" id="solitaireWindow" data-window-title="Solitaire" data-window-icon="./assets/icons/executable.png" data-window-controls="minimize,maximize,close" style="top: 60px; left: 220px; width: 560px; height: 480px; display: none;">
+    <div class="window-content">
+        <div class="sol-app">
+            <div class="notepad-menubar">
+                <div class="notepad-menu-item" data-menu="solgame">Game
+                    <div class="dropdown-menu">
+                        <div class="menu-option" id="solDealOption">Deal</div>
+                        <div class="menu-separator"></div>
+                        <div class="menu-option" id="solDrawOneOption">Draw One</div>
+                        <div class="menu-option" id="solDrawThreeOption">Draw Three</div>
+                        <div class="menu-option" id="solCardBackOption">Change Card Back</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sol-table" id="solTable"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Calculator -->
+<div class="window" id="calculatorWindow" data-window-title="Calculator" data-window-icon="./assets/icons/calculator.png" data-window-controls="minimize,close" style="top: 140px; left: 380px; width: 220px; height: 262px; display: none;">
+    <div class="window-content">
+        <div class="calc-app">
+            <div class="calc-display" id="calcDisplay">0</div>
+            <div class="calc-row">
+                <div class="calc-btn calc-wide red" data-key="Back">Back</div>
+                <div class="calc-btn calc-wide red" data-key="CE">CE</div>
+                <div class="calc-btn calc-wide red" data-key="C">C</div>
+            </div>
+            <div class="calc-grid">
+                <div class="calc-btn red" data-key="MC">MC</div>
+                <div class="calc-btn" data-key="7">7</div>
+                <div class="calc-btn" data-key="8">8</div>
+                <div class="calc-btn" data-key="9">9</div>
+                <div class="calc-btn" data-key="/">/</div>
+                <div class="calc-btn" data-key="sqrt">sqrt</div>
+                <div class="calc-btn red" data-key="MR">MR</div>
+                <div class="calc-btn" data-key="4">4</div>
+                <div class="calc-btn" data-key="5">5</div>
+                <div class="calc-btn" data-key="6">6</div>
+                <div class="calc-btn" data-key="*">*</div>
+                <div class="calc-btn" data-key="%">%</div>
+                <div class="calc-btn red" data-key="MS">MS</div>
+                <div class="calc-btn" data-key="1">1</div>
+                <div class="calc-btn" data-key="2">2</div>
+                <div class="calc-btn" data-key="3">3</div>
+                <div class="calc-btn" data-key="-">-</div>
+                <div class="calc-btn" data-key="1/x">1/x</div>
+                <div class="calc-btn red" data-key="M+">M+</div>
+                <div class="calc-btn" data-key="0">0</div>
+                <div class="calc-btn" data-key="+/-">+/-</div>
+                <div class="calc-btn" data-key=".">.</div>
+                <div class="calc-btn" data-key="+">+</div>
+                <div class="calc-btn" data-key="=">=</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Paint -->
+<div class="window" id="paintWindow" data-window-title="untitled - Paint" data-window-icon="./assets/icons/paint.png" data-window-controls="minimize,maximize,close" style="top: 70px; left: 260px; width: 560px; height: 440px; display: none;">
+    <div class="window-content">
+        <div class="paint-app">
+            <div class="notepad-menubar">
+                <div class="notepad-menu-item" data-menu="paintfile">File
+                    <div class="dropdown-menu">
+                        <div class="menu-option" id="paintNewOption">New</div>
+                        <div class="menu-option" id="paintSaveOption">Save</div>
+                        <div class="menu-separator"></div>
+                        <div class="menu-option" id="paintWallpaperCenterOption">Set As Wallpaper (Centered)</div>
+                        <div class="menu-option" id="paintWallpaperTileOption">Set As Wallpaper (Tiled)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="paint-main">
+                <div class="paint-tools">
+                    <div class="paint-tool active" data-tool="pencil" title="Pencil">✏</div>
+                    <div class="paint-tool" data-tool="brush" title="Brush">🖌</div>
+                    <div class="paint-tool" data-tool="eraser" title="Eraser">▭</div>
+                    <div class="paint-tool" data-tool="fill" title="Fill With Color">🪣</div>
+                    <div class="paint-tool" data-tool="line" title="Line">╲</div>
+                    <div class="paint-tool" data-tool="rect" title="Rectangle">□</div>
+                    <div class="paint-tool" data-tool="ellipse" title="Ellipse">◯</div>
+                </div>
+                <div class="paint-canvas-wrap">
+                    <canvas id="paintCanvas" width="640" height="400"></canvas>
+                </div>
+            </div>
+            <div class="paint-colors">
+                <div class="paint-primary" id="paintPrimary"></div>
+                <div class="paint-palette" id="paintPalette"></div>
+            </div>
+            <div class="window-statusbar" id="paintStatus">For Help, click Help Topics on the Help Menu.</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Run Dialog -->
+<div class="dialog run-dialog" id="run-dialog" style="width: 360px;">
+    <div class="dialog-titlebar">Run</div>
+    <div class="dialog-content">
+        <div class="shutdown-body">
+            <img class="shutdown-icon" src="./assets/icons/executable.png" alt="">
+            <div class="shutdown-question">Type the name of a program, folder, or document, and Windows will open it for you.</div>
+        </div>
+        <div class="form-row">
+            <div class="form-label">Open:</div>
+            <input type="text" class="form-input" id="runInput">
+        </div>
+    </div>
+    <div class="dialog-buttons">
+        <div class="btn" id="run-ok-btn">OK</div>
+        <div class="btn" id="run-cancel-btn">Cancel</div>
+    </div>
+</div>
+
+
+<!-- Run Error Dialog -->
+<div class="dialog" id="run-error-dialog" style="width: 340px;">
+    <div class="dialog-titlebar">Error</div>
+    <div class="dialog-content">
+        <div class="shutdown-body">
+            <img class="shutdown-icon" src="./assets/icons/msg_error.png" alt="">
+            <div class="shutdown-question" id="runErrorText"></div>
+        </div>
+    </div>
+    <div class="dialog-buttons">
+        <div class="btn" id="run-error-ok-btn">OK</div>
+    </div>
+</div>
+
+
+<!-- Close Program (Ctrl+Alt+Del) Dialog -->
+<div class="dialog" id="cad-dialog" style="width: 340px;">
+    <div class="dialog-titlebar">Close Program</div>
+    <div class="dialog-content">
+        <div class="cad-list" id="cadTaskList"></div>
+        <div class="cad-note">WARNING: Pressing CTRL+ALT+DEL again will restart your computer. You will lose unsaved information in all programs that are running.</div>
+    </div>
+    <div class="dialog-buttons">
+        <div class="btn" id="cad-endtask-btn">End Task</div>
+        <div class="btn" id="cad-shutdown-btn">Shut Down</div>
+        <div class="btn" id="cad-cancel-btn">Cancel</div>
+    </div>
+</div>
+
+
+<!-- MS-DOS Prompt -->
+<div class="window" id="dosWindow" data-window-title="MS-DOS Prompt" data-window-icon="./assets/icons/msdos.png" data-window-controls="minimize,maximize,close" style="top: 90px; left: 250px; width: 560px; height: 380px; display: none;">
+    <div class="window-content">
+        <div class="dos-app">
+            <pre class="dos-output" id="dosOutput"></pre>
+            <div class="dos-input-line"><span id="dosPromptLabel">C:\WINDOWS&gt;</span><input type="text" id="dosInput" class="dos-input" spellcheck="false" autocomplete="off"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- FreeCell -->
+<div class="window" id="freecellWindow" data-window-title="FreeCell" data-window-icon="./assets/icons/executable.png" data-window-controls="minimize,maximize,close" style="top: 50px; left: 200px; width: 600px; height: 480px; display: none;">
+    <div class="window-content">
+        <div class="sol-app">
+            <div class="notepad-menubar">
+                <div class="notepad-menu-item" data-menu="fcgame">Game
+                    <div class="dropdown-menu">
+                        <div class="menu-option" id="fcDealOption">New Game</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sol-table" id="fcTable"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Date/Time Properties -->
+<div class="window" id="dateTimeWindow" data-window-title="Date/Time Properties" data-window-icon="./assets/icons/control_panel.png" data-window-controls="close" style="top: 130px; left: 340px; width: 400px; height: 300px; display: none;">
+    <div class="window-content">
+        <div class="dt-body">
+            <div class="dt-cal-panel">
+                <div id="dtMonthLabel" class="dt-month"></div>
+                <div id="dtCalendar" class="dt-grid"></div>
+            </div>
+            <div class="dt-clock-panel">
+                <canvas id="dtClock" width="130" height="130"></canvas>
+                <div id="dtDigital" class="dt-digital"></div>
+            </div>
+        </div>
+        <div class="dp-buttons" style="padding: 0 10px 10px;">
+            <div class="btn dp-btn" id="dt-ok-btn">OK</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Volume Control Mixer -->
+<div class="window" id="volumeMixerWindow" data-window-title="Volume Control" data-window-icon="./assets/icons/executable_gear.png" data-window-controls="close" style="top: 160px; left: 300px; width: 380px; height: 250px; display: none;">
+    <div class="window-content">
+        <div class="mixer-body">
+            <div class="mixer-col">
+                <div class="mixer-label">Volume Control</div>
+                <input type="range" id="mixMaster" class="mixer-slider" min="0" max="100">
+                <label class="volume-mute"><input type="checkbox" id="mixMasterMute"> Mute all</label>
+            </div>
+            <div class="mixer-col">
+                <div class="mixer-label">Wave</div>
+                <input type="range" class="mixer-slider" min="0" max="100" value="80">
+                <label class="volume-mute"><input type="checkbox"> Mute</label>
+            </div>
+            <div class="mixer-col">
+                <div class="mixer-label">MIDI</div>
+                <input type="range" class="mixer-slider" min="0" max="100" value="70">
+                <label class="volume-mute"><input type="checkbox"> Mute</label>
+            </div>
+            <div class="mixer-col">
+                <div class="mixer-label">CD Audio</div>
+                <input type="range" class="mixer-slider" min="0" max="100" value="60">
+                <label class="volume-mute"><input type="checkbox"> Mute</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Disk Defragmenter -->
+<div class="window" id="defragWindow" data-window-title="Disk Defragmenter" data-window-icon="./assets/icons/hard_drive.png" data-window-controls="minimize,close" style="top: 150px; left: 320px; width: 380px; height: 260px; display: none;">
+    <div class="window-content">
+        <div class="defrag-body">
+            <canvas id="defragCanvas" width="350" height="140"></canvas>
+            <div class="window-statusbar" id="defragStatus">Preparing to defragment drive C: ...</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Find: Files or Folders -->
+<div class="window" id="findFilesWindow" data-window-title="Find: All Files" data-window-icon="./assets/icons/search.png" data-window-controls="minimize,close" style="top: 120px; left: 280px; width: 420px; height: 320px; display: none;">
+    <div class="window-content">
+        <div class="find-body">
+            <div class="dp-row" style="padding: 8px 8px 4px;">
+                <span>Named:</span>
+                <input type="text" class="form-input" id="findFilesInput" style="flex:1;">
+                <div class="btn dp-btn" id="findFilesGo">Find Now</div>
+            </div>
+            <div class="find-results" id="findFilesResults"></div>
+            <div class="window-statusbar" id="findFilesStatus"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bug Report Wizard -->
+<div class="window" id="bugReportWindow" data-window-title="Bug Report Wizard" data-window-icon="./assets/icons/help.png" data-window-controls="close" style="top: 110px; left: 300px; width: 420px; height: 330px; display: none;">
+    <div class="window-content">
+        <div class="bug-body">
+            <div class="bug-step" id="bugStep0">
+                <h3>Welcome to the Bug Report Wizard</h3>
+                <p>This wizard helps you send a problem report straight to the developer's den.</p>
+                <p>You will be asked to describe what happened. Screenshots not supported until Windows 2098.</p>
+                <p>Click Next to continue.</p>
+            </div>
+            <div class="bug-step" id="bugStep1" style="display:none;">
+                <div class="form-row">
+                    <div class="form-label">Contact:</div>
+                    <input type="text" class="form-input" id="bugContact" placeholder="(optional)">
+                </div>
+                <div style="font-size:11px; margin: 4px 0;">What happened, and how can it be reproduced?</div>
+                <textarea id="bugDetails" class="bug-textarea"></textarea>
+            </div>
+            <div class="bug-step" id="bugStep2" style="display:none;">
+                <h3>Thank you!</h3>
+                <p>Your report has been dispatched by carrier modem.</p>
+                <p>Click Finish to close the wizard.</p>
+            </div>
+            <div class="bug-status" id="bugWizardStatus"></div>
+            <div class="dp-buttons">
+                <div class="btn dp-btn" id="bug-back-btn">&lt; Back</div>
+                <div class="btn dp-btn" id="bug-next-btn">Next &gt;</div>
+                <div class="btn dp-btn" id="bug-cancel-btn">Cancel</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Minesweeper Best Times Dialog -->
+<div class="dialog" id="mine-best-dialog" style="width: 260px;">
+    <div class="dialog-titlebar">Fastest Mine Sweepers</div>
+    <div class="dialog-content">
+        <pre id="mineBestText" style="font-size: 11px; font-family: inherit;"></pre>
+    </div>
+    <div class="dialog-buttons">
+        <div class="btn" id="mine-best-ok-btn">OK</div>
+    </div>
+</div>
+
+
+<!-- Alt+Tab Switcher -->
+<div class="alttab-box" id="altTabBox">
+    <div class="alttab-icons" id="altTabIcons"></div>
+    <div class="alttab-label" id="altTabLabel"></div>
+</div>
+
+
+<!-- System Properties -->
+<div class="window" id="sysPropsWindow" data-window-title="System Properties" data-window-icon="./assets/icons/my_computer.png" data-window-controls="close" style="top: 120px; left: 320px; width: 400px; height: 320px; display: none;">
+    <div class="window-content">
+        <div class="dp-body">
+            <div class="dp-tabs">
+                <div class="dp-tab dp-tab-active">General</div>
+                <div class="dp-tab">Device Manager</div>
+                <div class="dp-tab">Performance</div>
+            </div>
+            <div class="dp-panel" style="flex-direction: row; align-items: flex-start; gap: 16px;">
+                <img src="./assets/icons/my_computer.png" alt="" style="width: 64px; height: 64px; image-rendering: pixelated;">
+                <div class="sysprops-text">
+                    <p><b>System:</b><br>Microsoft Windows 98<br>4.10.1998</p>
+                    <p><b>Registered to:</b><br>DOOM Marine<br>DOOM-PC</p>
+                    <p><b>Computer:</b><br>GenuineIntel Pentium II<br>266 MHz<br>64.0 MB RAM<br>Dedicated DOOM Coprocessor</p>
+                </div>
+            </div>
+            <div class="dp-buttons">
+                <div class="btn dp-btn" id="sysprops-ok-btn">OK</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add/Remove Programs -->
+<div class="window" id="addRemoveWindow" data-window-title="Add/Remove Programs Properties" data-window-icon="./assets/icons/executable_gear.png" data-window-controls="close" style="top: 110px; left: 300px; width: 400px; height: 360px; display: none;">
+    <div class="window-content">
+        <div class="dp-body">
+            <div class="dp-group" style="flex: 1;">
+                <div class="dp-group-label">Install/Uninstall</div>
+                <div class="dp-help">The following software can be automatically removed by Windows:</div>
+                <div class="cad-list" id="addRemoveList" style="height: 160px;"></div>
+                <div class="bug-status" id="addRemoveStatus"></div>
+            </div>
+            <div class="dp-buttons">
+                <div class="btn dp-btn" id="addremove-remove-btn">Add/Remove...</div>
+                <div class="btn dp-btn" id="addremove-ok-btn">OK</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Imaging Preview -->
+<div class="window" id="imageViewerWindow" data-window-title="Imaging Preview" data-window-icon="./assets/icons/my_pictures.ico" data-window-controls="minimize,maximize,close" style="top: 100px; left: 280px; width: 480px; height: 400px; display: none;">
+    <div class="window-content">
+        <div class="imgview-body">
+            <div class="imgview-frame"><img id="imageViewerImg" alt=""></div>
+            <div class="window-statusbar" id="imageViewerStatus"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- CD Player -->
+<div class="window" id="cdPlayerWindow" data-window-title="CD Player" data-window-icon="./assets/icons/cd_drive.png" data-window-controls="minimize,close" style="top: 150px; left: 340px; width: 320px; height: 280px; display: none;">
+    <div class="window-content">
+        <div class="cd-body">
+            <div class="mine-lcd" id="cdLcd" style="font-size: 20px; padding: 4px 10px; text-align: center;">[01] 00:00</div>
+            <div class="cd-controls">
+                <div class="btn dp-btn" id="cd-prev-btn">|&lt;</div>
+                <div class="btn dp-btn" id="cd-play-btn">Play</div>
+                <div class="btn dp-btn" id="cd-stop-btn">Stop</div>
+                <div class="btn dp-btn" id="cd-next-btn">&gt;|</div>
+            </div>
+            <div class="cad-list" id="cdTrackList" style="flex: 1; height: auto;"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- WordPad -->
+<div class="window" id="wordpadWindow" data-window-title="Document - WordPad" data-window-icon="./assets/icons/wordpad.png" data-window-controls="minimize,maximize,close" style="top: 80px; left: 240px; width: 560px; height: 420px; display: none;">
+    <div class="window-content">
+        <div class="wordpad-app">
+            <div class="notepad-menubar">
+                <div class="notepad-menu-item" data-menu="wpfile">File
+                    <div class="dropdown-menu">
+                        <div class="menu-option" id="wordpadNewOption">New</div>
+                        <div class="menu-option" id="wordpadSaveOption">Save</div>
+                    </div>
+                </div>
+            </div>
+            <div class="window-toolbar">
+                <div class="window-toolbar-button" data-wp-cmd="bold"><b>B</b></div>
+                <div class="window-toolbar-button" data-wp-cmd="italic"><i>I</i></div>
+                <div class="window-toolbar-button" data-wp-cmd="underline"><u>U</u></div>
+                <div class="window-toolbar-separator"></div>
+                <select id="wordpadFontSize" class="dp-select">
+                    <option value="2">Small</option>
+                    <option value="3" selected>Normal</option>
+                    <option value="5">Large</option>
+                    <option value="7">Huge</option>
+                </select>
+            </div>
+            <div class="wordpad-editor" id="wordpadEditor" contenteditable="true"></div>
+            <div class="window-statusbar" id="wordpadStatus">For Help, press F1 (it will not help)</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Messenger -->
+<div class="window" id="messengerWindow" data-window-title="Messenger" data-window-icon="./assets/icons/entire_network.png" data-window-controls="minimize,close" style="top: 90px; left: 380px; width: 340px; height: 400px; display: none;">
+    <div class="window-content">
+        <div class="msgr-body">
+            <div class="dp-row" style="padding: 6px 8px 2px;">
+                <span>Name:</span>
+                <input type="text" class="form-input" id="msgrName" style="flex: 1;" placeholder="Anonymous Marine">
+            </div>
+            <div class="msgr-list" id="msgrList"></div>
+            <div class="dp-row" style="padding: 2px 8px 6px;">
+                <input type="text" class="form-input" id="msgrInput" style="flex: 1;" placeholder="Type a message...">
+                <div class="btn dp-btn" id="msgr-send-btn">Send</div>
+            </div>
+            <div class="window-statusbar" id="msgrStatus">Signing in...</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Help / About -->
+<div class="window" id="helpWindow" data-window-title="Windows Help" data-window-icon="./assets/icons/help.png" data-window-controls="minimize,close" style="top: 100px; left: 300px; width: 440px; height: 380px; display: none;">
+    <div class="window-content">
+        <div class="ctl-help" style="margin: 8px; height: calc(100% - 16px);">
+            <h3>Getting started</h3>
+            <p>Double-click the <b>DOOM</b> folder on the desktop and pick a game. Run <b>CONTROLS.EXE</b> in that folder to set your keys - they apply in-game.</p>
+            <h3>Things to try</h3>
+            <p>- <b>Internet Explorer</b> really browses: visit leaderboards.akuji.org for live rankings.</p>
+            <p>- <b>Network Neighborhood</b> shows who is online; <b>Messenger</b> (Start &gt; Programs) lets you chat with them.</p>
+            <p>- <b>Start &gt; Programs &gt; Games</b> has Minesweeper, Solitaire and FreeCell if the demons get too much.</p>
+            <p>- Right-click the desktop for wallpapers, screen savers and color schemes.</p>
+            <h3>Found a problem?</h3>
+            <p>Start &gt; Programs &gt; <b>Bug Report Wizard</b> sends it straight to the developer.</p>
+            <h3>About this desktop</h3>
+            <p>Based on <b>"Windows 98 GE"</b> by Gelasio Ebel Junior, modified and extended for s&amp;Doom. This is a fan recreation of a 1998 user interface.</p>
+            <p><small>Windows and the Windows logo are trademarks of Microsoft Corporation. DOOM is a trademark of id Software. This project is not affiliated with or endorsed by Microsoft or id Software.</small></p>
+        </div>
+    </div>
+</div>
+
+
+<!-- Controls Window (opened by C:\DOOM\CONTROLS.EXE; logic in js/controls.js) -->
+<div class="window" id="controlsWindow" data-window-title="Controls" data-window-icon="./assets/icons/executable_gear.png" data-window-controls="minimize,close" style="top: 70px; left: 200px; width: 440px; height: 460px; display: none;">
+    <div class="window-content">
+        <div class="dp-body">
+            <div class="dp-tabs">
+                <div class="dp-tab dp-tab-active" data-ctl-tab="bindings">Controls</div>
+                <div class="dp-tab" data-ctl-tab="settings">Settings</div>
+                <div class="dp-tab" data-ctl-tab="help">Help</div>
+            </div>
+            <div class="ctl-panel" id="ctl-panel-bindings">
+                <div class="ctl-hint">Click a binding, then press the key or mouse button you want to use. Press Esc to cancel.</div>
+                <div class="ctl-bind-list" id="ctlBindList"></div>
+            </div>
+            <div class="ctl-panel" id="ctl-panel-settings" style="display:none;">
+                <div class="dp-group">
+                    <div class="dp-group-label">Mouse</div>
+                    <div class="dp-row">
+                        <span>Sensitivity:</span>
+                        <input type="range" id="ctl-mouse-sensitivity" min="1" max="9" style="width:110px;">
+                        <span id="ctl-mouse-sensitivity-label">5</span>
+                    </div>
+                </div>
+                <div class="dp-group">
+                    <div class="dp-group-label">Game</div>
+                    <label class="dp-check"><input type="checkbox" id="ctl-always-run"> Always run</label>
+                    <label class="dp-check"><input type="checkbox" id="ctl-show-messages"> Show messages</label>
+                    <label class="dp-check"><input type="checkbox" id="ctl-uncapped-fps"> Uncapped frame rate</label>
+                </div>
+                <div class="dp-group">
+                    <div class="dp-group-label">Audio</div>
+                    <label class="dp-check"><input type="checkbox" id="ctl-music-enabled"> Music</label>
+                    <label class="dp-check"><input type="checkbox" id="ctl-sfx-enabled"> Sound effects</label>
+                </div>
+            </div>
+            <div class="ctl-panel" id="ctl-panel-help" style="display:none;">
+                <div class="ctl-help">
+                    <h3>Getting started</h3>
+                    <p>Double-click a program in the <b>C:\DOOM</b> folder to play. Your control bindings and settings on this screen apply to every game.</p>
+                    <h3>Moving around</h3>
+                    <p><b>Move Forward / Backward</b> walks; hold <b>Run</b> to sprint. <b>Strafe Left / Right</b> side-steps, which is faster and safer than turning to dodge projectiles.</p>
+                    <p><b>Turn Left / Right</b> rotates you. If you play with the mouse, turning is usually easier by moving the mouse and keeping your hands on strafe keys.</p>
+                    <h3>Fighting and doors</h3>
+                    <p><b>Fire</b> shoots your current weapon. <b>Weapon 1-7</b> selects weapons - all seven slots are rebindable below. <b>Use / Open Door</b> opens doors, flips switches and activates lifts - if something looks like a switch, walk up and press Use.</p>
+                    <h3>Tips</h3>
+                    <p>- Hold <b>Strafe Mode</b> to turn your Turn keys into strafe keys, the classic 1993 way.</p>
+                    <p>- <b>Always run</b> in Settings removes the need to hold the Run key. Almost everyone plays this way.</p>
+                    <p>- Secrets hide behind misaligned or discolored wall textures. Press Use on suspicious walls.</p>
+                </div>
+            </div>
+            <div class="dp-buttons">
+                <div class="btn dp-btn" id="ctl-ok-btn">OK</div>
+                <div class="btn dp-btn" id="ctl-cancel-btn">Cancel</div>
+                <div class="btn dp-btn" id="ctl-apply-btn">Apply</div>
+                <div class="btn dp-btn" id="ctl-defaults-btn">Defaults</div>
+            </div>
+            <div class="window-statusbar" id="ctl-statusbar">Ready</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Display Properties Window -->
+<div class="window" id="displayProperties" data-window-title="Display Properties" data-window-icon="./assets/icons/control_panel.png" data-window-controls="close" style="top: 60px; left: 240px; width: 404px; height: 470px; display: none;">
+    <div class="window-content">
+        <div class="dp-body">
+            <div class="dp-tabs">
+                <div class="dp-tab dp-tab-active" data-dp-tab="background">Background</div>
+                <div class="dp-tab" data-dp-tab="screensaver">Screen Saver</div>
+                <div class="dp-tab" data-dp-tab="appearance">Appearance</div>
+                <div class="dp-tab" data-dp-tab="effects">Effects</div>
+            </div>
+            <div class="dp-panel" id="dp-panel-background">
+                <div class="dp-monitor">
+                    <div class="dp-monitor-bezel">
+                        <div class="dp-monitor-screen" id="dpMonitorScreen"></div>
+                    </div>
+                    <div class="dp-monitor-neck"></div>
+                    <div class="dp-monitor-base"></div>
+                </div>
+                <div class="dp-group">
+                    <div class="dp-group-label">Wallpaper</div>
+                    <div class="dp-help">Select an HTML Document or a picture:</div>
+                    <div class="dp-list" id="dpWallpaperList"></div>
+                    <div class="dp-row">
+                        <span>Display:</span>
+                        <select id="dpWallpaperMode" class="dp-select">
+                            <option value="center">Center</option>
+                            <option value="tile">Tile</option>
+                            <option value="stretch">Stretch</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="dp-panel" id="dp-panel-screensaver" style="display:none;">
+                <div class="dp-monitor">
+                    <div class="dp-monitor-bezel">
+                        <div class="dp-monitor-screen" id="dpSaverScreen"></div>
+                    </div>
+                    <div class="dp-monitor-neck"></div>
+                    <div class="dp-monitor-base"></div>
+                </div>
+                <div class="dp-group">
+                    <div class="dp-group-label">Screen Saver</div>
+                    <div class="dp-row">
+                        <select id="dpSaverSelect" class="dp-select">
+                            <option value="none">(None)</option>
+                            <option value="flying">Flying Windows</option>
+                            <option value="starfield">Starfield Simulation</option>
+                            <option value="mystify">Mystify Your Mind</option>
+                            <option value="marquee">Marquee</option>
+                        </select>
+                        <div class="btn dp-btn" id="dpSaverPreview">Preview</div>
+                    </div>
+                    <div class="dp-row">
+                        <span>Wait:</span>
+                        <input type="number" id="dpSaverWait" min="1" max="60" value="10" class="dp-wait">
+                        <span>minutes of inactivity before the screen saver starts.</span>
+                    </div>
+                    <div class="dp-row">
+                        <span>Marquee text:</span>
+                        <input type="text" id="dpMarqueeText" class="form-input" style="flex:1;">
+                    </div>
+                </div>
+            </div>
+            <div class="dp-panel" id="dp-panel-appearance" style="display:none;">
+                <div class="dp-scheme-preview" id="dpSchemePreview">
+                    <div class="dp-pv-window dp-pv-back">
+                        <div class="dp-pv-title-i">Inactive Window</div>
+                    </div>
+                    <div class="dp-pv-window dp-pv-front">
+                        <div class="dp-pv-title">Active Window</div>
+                        <div class="dp-pv-body">
+                            <div class="dp-pv-text">Window Text</div>
+                            <div class="dp-pv-hilight">Selected</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dp-group">
+                    <div class="dp-group-label">Scheme</div>
+                    <div class="dp-row">
+                        <select id="dpSchemeSelect" class="dp-select" style="flex:1;"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="dp-panel" id="dp-panel-effects" style="display:none;">
+                <div class="dp-group">
+                    <div class="dp-group-label">Visual effects</div>
+                    <label class="dp-check"><input type="checkbox" id="dpCrt"> CRT monitor effect (scanlines)</label>
+                    <label class="dp-check"><input type="checkbox" disabled> Smooth edges of screen fonts</label>
+                    <label class="dp-check"><input type="checkbox" disabled checked> Show window contents while dragging</label>
+                    <label class="dp-check"><input type="checkbox" disabled checked> Use large icons</label>
+                </div>
+            </div>
+            <div class="dp-buttons">
+                <div class="btn dp-btn" id="dp-ok-btn">OK</div>
+                <div class="btn dp-btn" id="dp-cancel-btn">Cancel</div>
+                <div class="btn dp-btn" id="dp-apply-btn">Apply</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Shut Down Windows Dialog -->
+<div class="dialog shutdown-dialog" id="shutdown-dialog">
+    <div class="dialog-titlebar">Shut Down Windows</div>
+    <div class="dialog-content">
+        <div class="shutdown-body">
+            <img class="shutdown-icon" src="./assets/icons/power_management.ico" alt="">
+            <div class="shutdown-options">
+                <div class="shutdown-question">What do you want the computer to do?</div>
+                <label class="shutdown-choice"><input type="radio" name="shutdownChoice" value="standby" disabled> Stand by</label>
+                <label class="shutdown-choice"><input type="radio" name="shutdownChoice" value="shutdown" checked> Shut down</label>
+                <label class="shutdown-choice"><input type="radio" name="shutdownChoice" value="restart"> Restart</label>
+                <label class="shutdown-choice"><input type="radio" name="shutdownChoice" value="dos"> Restart in MS-DOS mode</label>
+            </div>
+        </div>
+    </div>
+    <div class="dialog-buttons">
+        <div class="btn" id="shutdown-ok-btn">OK</div>
+        <div class="btn" id="shutdown-cancel-btn">Cancel</div>
+        <div class="btn" id="shutdown-help-btn">Help</div>
+    </div>
+</div>
+
+
+<!-- Log Off Windows Dialog -->
+<div class="dialog logoff-dialog" id="logoff-dialog">
+    <div class="dialog-titlebar">Log Off Windows</div>
+    <div class="dialog-content">
+        <div class="shutdown-body">
+            <img class="shutdown-icon" src="./assets/icons/power_management.ico" alt="">
+            <div class="shutdown-question">Are you sure you want to log off?</div>
+        </div>
+    </div>
+    <div class="dialog-buttons">
+        <div class="btn" id="logoff-yes-btn">Yes</div>
+        <div class="btn" id="logoff-no-btn">No</div>
+    </div>
+</div>
+
+
+<!-- Notepad Dialogs -->
+
+<div class="overlay" id="overlay"></div>
+
+
+
+<!-- Find Dialog -->
+
+<div class="dialog find-dialog" id="find-dialog">
+
+    <div class="dialog-titlebar">Find</div>
+
+    <div class="dialog-content">
+
+        <div class="find-form">
+
+            <div class="form-row">
+
+                <div class="form-label">Find what:</div>
+
+                <input type="text" class="form-input" id="find-input">
+
+            </div>
+
+            <div class="form-checkboxes">
+
+                <div class="form-checkbox">
+
+                    <input type="checkbox" id="match-case">
+
+                    <label for="match-case">Match case</label>
+
+                </div>
+
+                <div class="form-checkbox">
+
+                    <input type="checkbox" id="search-up">
+
+                    <label for="search-up">Search up</label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="find-next-btn">Find Next</div>
+
+        <div class="btn" id="find-cancel-btn">Cancel</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Go To Dialog -->
+
+<div class="dialog goto-dialog" id="goto-dialog">
+
+    <div class="dialog-titlebar">Go To Line</div>
+
+    <div class="dialog-content">
+
+        <div class="find-form">
+
+            <div class="form-row">
+
+                <div class="form-label">Line number:</div>
+
+                <input type="number" min="1" class="form-input" id="goto-input">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="goto-btn">Go To</div>
+
+        <div class="btn" id="goto-cancel-btn">Cancel</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Save As Dialog -->
+
+<div class="dialog saveas-dialog" id="saveas-dialog">
+
+    <div class="dialog-titlebar">Save As</div>
+
+    <div class="dialog-content">
+
+        <div class="form-row">
+
+            <div class="form-label">Save in:</div>
+
+            <input type="text" class="form-input" value="My Documents" disabled>
+
+        </div>
+
+        <div class="dialog-file-container">
+
+            <ul class="dialog-file-list">
+
+                <li class="dialog-file-item">
+
+                    <img src="./assets/icons/folder_closed.png" alt="Folder">
+
+                    My Music
+
+                </li>
+
+                <li class="dialog-file-item">
+
+                    <img src="./assets/icons/folder_closed.png" alt="Folder">
+
+                    My Pictures
+
+                </li>
+
+                <li class="dialog-file-item">
+
+                    <img src="./assets/icons/document.png" alt="Text File">
+
+                    Readme.txt
+
+                </li>
+
+            </ul>
+
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-label">File name:</div>
+
+            <input type="text" class="form-input" id="filename-input" value="*.txt">
+
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-label">Save as type:</div>
+
+            <input type="text" class="form-input" value="Text Documents (*.txt)" disabled>
+
+        </div>
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="save-btn">Save</div>
+
+        <div class="btn" id="saveas-cancel-btn">Cancel</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- About Dialog -->
+
+<div class="dialog" id="about-dialog" style="width: 300px;">
+
+    <div class="dialog-titlebar">About Notepad</div>
+
+    <div class="dialog-content" style="text-align: center;">
+
+        <img src="./assets/icons/notepad.png" alt="Notepad Icon" style="width: 32px; height: 32px; margin-bottom: 10px;">
+
+        <p style="font-size: 11px;">Notepad for Windows 98</p>
+
+        <p style="font-size: 11px; margin-top: 10px;">© Microsoft Corporation</p>
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="about-ok-btn">OK</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- TODO: Implement Print dialog
+
+     Windows 98 has a standard Print dialog that should be displayed
+
+     when the Print option is selected from the File menu. -->
+
+<div class="dialog" id="print-dialog" style="width: 400px; display: none;">
+
+    <div class="dialog-titlebar">Print</div>
+
+    <div class="dialog-content">
+
+        <!-- Print dialog content would go here -->
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="print-ok-btn">Print</div>
+
+        <div class="btn" id="print-cancel-btn">Cancel</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- TODO: Implement File Open dialog
+
+     Similar to Save As dialog but for opening files. Should show
+
+     the file system and allow navigation. -->
+
+<div class="dialog saveas-dialog" id="open-dialog" style="display: none;">
+
+    <div class="dialog-titlebar">Open</div>
+
+    <div class="dialog-content">
+
+        <!-- Open dialog content would go here -->
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="open-btn">Open</div>
+
+        <div class="btn" id="open-cancel-btn">Cancel</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- TODO: Implement Replace dialog
+
+     Needed for Notepad's Search > Replace functionality -->
+
+<div class="dialog" id="replace-dialog" style="width: 350px; display: none;">
+
+    <div class="dialog-titlebar">Replace</div>
+
+    <div class="dialog-content">
+
+        <!-- Replace dialog content would go here -->
+
+    </div>
+
+    <div class="dialog-buttons">
+
+        <div class="btn" id="replace-find-btn">Find Next</div>
+
+        <div class="btn" id="replace-btn">Replace</div>
+
+        <div class="btn" id="replace-all-btn">Replace All</div>
+
+        <div class="btn" id="replace-cancel-btn">Cancel</div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Taskbar -->
+
+<div class="taskbar">
+
+    <div class="start-button" id="startBtn">
+
+        <div class="start-button-inner">
+
+            <img class="start-logo" src="./assets/icons/start_flag.png" alt="">
+
+            <span>Start</span>
+
+        </div>
+
+    </div>
+
+    <div class="taskbar-divider"></div>
+
+    <!-- TODO: Implement Quick Launch area
+
+         This area should display icons for frequently used applications
+
+         and allow one-click launching. -->
+
+    <div class="quick-launch">
+
+        <div class="quick-launch-btn" data-window="internetExplorer" title="Launch Internet Explorer Browser">
+            <img src="./assets/icons/internet_explorer.png" alt="Internet Explorer">
+        </div>
+        <div class="quick-launch-btn" id="quickShowDesktop" title="Show Desktop">
+            <img src="./assets/icons/show_desktop.png" alt="Show Desktop">
+        </div>
+        <div class="quick-launch-btn" data-window="doomWindow" title="DOOM">
+            <img src="./assets/icons/doom_program.png" alt="DOOM">
+        </div>
+
+    </div>
+
+    <div class="taskbar-divider"></div>
+
+    <div class="taskbar-items" id="taskbarItems">
+
+        <div class="taskbar-item active" data-window="welcomeWindow">
+
+            <img src="./assets/icons/welcome.png" alt="Welcome">
+
+            Welcome to Windows 98
+
+        </div>
+
+    </div>
+
+    <div class="taskbar-divider"></div>
+
+    <div class="taskbar-tray">
+
+        <!-- TODO: Implement system tray icons
+
+             Windows 98 typically shows volume, network, etc. icons in the tray -->
+
+        <div class="tray-icons">
+
+            <img class="tray-icon" id="trayVolume" src="./assets/icons/tray_volume.png" alt="Volume" title="Volume">
+            <img class="tray-icon" id="trayNetwork" src="./assets/icons/tray_network.png" alt="Network" title="Network">
+
+        </div>
+
+        <div class="tray-time">12:00 PM</div>
+
+    </div>
+
+</div>
+
+
+
+<script src="./js/core.js?v=BETA_DEV"></script>
+<script src="./js/sounds.js?v=BETA_DEV"></script>
+<script src="./js/chrome.js?v=BETA_DEV"></script>
+<script src="./js/windows.js?v=BETA_DEV"></script>
+<script src="./js/notepad.js?v=BETA_DEV"></script>
+<script src="./js/doom.js?v=BETA_DEV"></script>
+<script src="./js/filesystem.js?v=BETA_DEV"></script>
+<script src="./js/controls.js?v=BETA_DEV"></script>
+<script src="./js/minesweeper.js?v=BETA_DEV"></script>
+<script src="./js/solitaire.js?v=BETA_DEV"></script>
+<script src="./js/calculator.js?v=BETA_DEV"></script>
+<script src="./js/paint.js?v=BETA_DEV"></script>
+<script src="./js/freecell.js?v=BETA_DEV"></script>
+<script src="./js/dosprompt.js?v=BETA_DEV"></script>
+<script src="./js/ie.js?v=BETA_DEV"></script>
+<script src="./js/network.js?v=BETA_DEV"></script>
+<script src="./js/bugreport.js?v=BETA_DEV"></script>
+<script src="./js/messenger.js?v=BETA_DEV"></script>
+<script src="./js/imageviewer.js?v=BETA_DEV"></script>
+<script src="./js/cpanel.js?v=BETA_DEV"></script>
+<script src="./js/cdplayer.js?v=BETA_DEV"></script>
+<script src="./js/wordpad.js?v=BETA_DEV"></script>
+<script src="./js/system.js?v=BETA_DEV"></script>
+<script src="./js/extras.js?v=BETA_DEV"></script>
+<script src="./js/desktop.js?v=BETA_DEV"></script>
+</body>
+</html>

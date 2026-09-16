@@ -1,0 +1,4152 @@
+/* Win98 shell styles - extracted verbatim from index.html.
+   The filesystem module injects a few extra rules at runtime
+   (see injectFilesystemStyles in js/filesystem.js). */
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+            font-family: 'MS Sans Serif', 'Tahoma', 'Arial', sans-serif;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default;
+
+            user-select: none;
+
+        }
+
+
+
+        /* html gets its own background so the body background (wallpaper)
+           is NOT propagated to the canvas; propagation would size the
+           wallpaper against the zero-height root box and never paint it. */
+        html {
+
+            background-color: var(--w98-desktop, #008080);
+
+        }
+
+       body {
+
+            background-color: var(--w98-desktop, #008080); /* Windows 98 teal background */
+
+            overflow: hidden;
+
+            width: 100vw;
+
+            height: 100vh;
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+        }
+
+
+
+        /* Windows 98 Desktop Icons. The container spans the whole desktop
+           (pointer-events off so it never blocks clicks) which lets icons be
+           dragged anywhere; default layout flows in columns like Win98. */
+
+        .desktop-icons {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            right: 0;
+
+            bottom: 28px;
+
+            padding: 10px;
+
+            display: flex;
+
+            flex-flow: column wrap;
+
+            align-content: flex-start;
+
+            gap: 10px;
+
+            pointer-events: none;
+
+        }
+
+        .desktop-icon {
+
+            pointer-events: auto;
+
+        }
+
+
+
+        .desktop-icon {
+
+            width: 70px;
+
+            text-align: center;
+
+            color: white;
+
+            text-shadow: 1px 1px 1px black;
+
+            font-size: 11px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            padding: 5px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .desktop-icon:hover {
+
+            background-color: rgba(255, 255, 255, 0.1);
+
+        }
+
+
+
+        .desktop-icon.active {
+
+            background-color: rgba(11, 36, 106, 0.7);
+
+        }
+
+
+
+        .icon-img {
+
+            width: 32px;
+
+            height: 32px;
+
+            margin-bottom: 5px;
+
+            image-rendering: pixelated;
+
+        }
+
+
+
+        .icon-text {
+
+            width: 100%;
+
+            text-align: center;
+
+            word-break: break-word;
+
+        }
+
+
+
+        /* Windows 98 Taskbar */
+
+        .taskbar {
+
+            position: fixed;
+
+            bottom: 0;
+
+            left: 0;
+
+            right: 0;
+
+            height: 28px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #ffffff;
+
+            display: flex;
+
+            z-index: 1000;
+
+        }
+
+
+
+        .start-button {
+
+            height: 100%;
+
+            padding: 1px;
+
+            display: flex;
+
+            align-items: center;
+
+        }
+
+
+
+        .start-button-inner {
+
+            display: flex;
+
+            align-items: center;
+
+            height: 100%;
+
+            padding: 0 4px;
+
+            font-weight: bold;
+
+            font-size: 11px;
+
+            border-top: 1px solid #ffffff;
+
+            border-left: 1px solid #ffffff;
+
+            border-bottom: 1px solid #808080;
+
+            border-right: 1px solid #808080;
+
+        }
+
+
+
+        .start-button-inner:active, .start-button.active .start-button-inner {
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-bottom: 1px solid #ffffff;
+
+            border-right: 1px solid #ffffff;
+
+            padding: 1px 3px 0 5px;
+
+        }
+
+
+
+        .start-logo {
+
+            width: 16px;
+
+            height: 16px;
+
+            margin-right: 2px;
+
+        }
+
+
+
+        .taskbar-divider {
+
+            width: 1px;
+
+            height: 100%;
+
+            background-color: #808080;
+
+            margin: 0 2px;
+
+        }
+
+
+
+        .taskbar-items {
+
+            display: flex;
+
+            flex-grow: 1;
+
+            height: 100%;
+
+            padding: 2px;
+
+            gap: 2px;
+
+        }
+
+
+
+        .taskbar-item {
+
+            height: 22px;
+
+            min-width: 150px;
+
+            max-width: 200px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-bottom: 1px solid #ffffff;
+
+            border-right: 1px solid #ffffff;
+
+            font-size: 11px;
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 0 4px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+            overflow: hidden;
+
+            white-space: nowrap;
+
+            text-overflow: ellipsis;
+
+        }
+
+
+
+        .taskbar-item.active {
+
+            border-top: 1px solid #000000;
+
+            border-left: 1px solid #000000;
+
+            border-bottom: 1px solid var(--w98-face, #c0c0c0);
+
+            border-right: 1px solid var(--w98-face, #c0c0c0);
+
+        }
+
+
+
+        .taskbar-item img {
+
+            width: 16px;
+
+            height: 16px;
+
+            margin-right: 4px;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .taskbar-tray {
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 0 5px;
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            height: 100%;
+
+        }
+
+
+
+        .tray-time {
+
+            font-size: 11px;
+
+        }
+
+
+
+        /* TODO: Implement system tray icons (volume, network, etc.)
+
+           Windows 98 typically shows several system icons in the tray area.
+
+           Each icon should have hover states and click actions to show relevant dialogs. */
+
+        .tray-icons {
+
+            display: flex;
+
+            margin-right: 5px;
+
+        }
+
+
+
+        /* TODO: Add quick launch area in taskbar
+
+           Windows 98 has a section between the Start button and taskbar items for quick launch icons.
+
+           This area needs proper styling and functionality to launch pinned applications. */
+
+        .quick-launch {
+
+            display: flex;
+
+            height: 100%;
+
+            padding: 2px;
+
+            gap: 2px;
+
+        }
+
+
+
+        /* Start Menu */
+
+        .start-menu {
+
+            position: fixed;
+
+            left: 0;
+
+            bottom: 28px;
+
+            width: 200px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #ffffff;
+
+            border-left: 1px solid #ffffff;
+
+            border-bottom: 1px solid #808080;
+
+            border-right: 1px solid #808080;
+
+            display: none;
+
+            flex-direction: column;
+
+            z-index: 1000;
+
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+
+        }
+
+
+
+        .start-menu.active {
+
+            display: flex;
+
+        }
+
+
+
+        .start-menu-banner {
+
+            height: 60px;
+
+            background: linear-gradient(to bottom, var(--w98-title1, var(--w98-hilight, #000080)), var(--w98-title2, #1084d0));
+
+            display: flex;
+
+            align-items: flex-end;
+
+        }
+
+
+
+        .banner-text {
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 20px;
+
+            padding: 5px 10px;
+
+            writing-mode: vertical-rl;
+
+            text-orientation: mixed;
+
+            transform: rotate(180deg);
+
+        }
+
+
+
+        .start-menu-items {
+
+            display: flex;
+
+            flex-direction: column;
+
+            width: 100%;
+
+            padding: 5px 0;
+
+        }
+
+
+
+        .menu-divider {
+
+            height: 1px;
+
+            background-color: #808080;
+
+            margin: 3px 0;
+
+            width: 100%;
+
+        }
+
+
+
+        .menu-item {
+
+            height: 30px;
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 0 10px;
+
+            font-size: 11px;
+
+            position: relative;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .menu-item:hover {
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+        }
+
+
+
+        .menu-item img {
+
+            width: 24px;
+
+            height: 24px;
+
+            margin-right: 8px;
+
+        }
+
+
+
+        .menu-item.has-submenu::after {
+
+            content: "►";
+
+            font-size: 8px;
+
+            margin-left: auto;
+
+        }
+
+
+
+        /* Submenu */
+
+        .submenu {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 100%;
+
+            width: 200px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #ffffff;
+
+            border-left: 1px solid #ffffff;
+
+            border-bottom: 1px solid #808080;
+
+            border-right: 1px solid #808080;
+
+            display: none;
+
+            flex-direction: column;
+
+            z-index: 1001;
+
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+
+        }
+
+
+
+        .menu-item:hover > .submenu {
+
+            display: flex;
+
+        }
+
+
+
+        /* Windows 98 Window */
+
+        .window {
+
+            position: absolute;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border: 2px solid;
+
+            border-top-color: #dfdfdf;
+
+            border-left-color: #dfdfdf;
+
+            border-right-color: #808080;
+
+            border-bottom-color: #808080;
+
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+
+            z-index: 100;
+
+            min-width: 300px;
+
+            min-height: 200px;
+
+            display: none;
+
+        }
+
+
+
+        .window.active {
+
+            z-index: 900;
+
+        }
+
+
+
+        .window.minimized {
+
+            display: none;
+
+        }
+
+
+
+        .window.maximized {
+
+            top: 0 !important;
+
+            left: 0 !important;
+
+            width: 100vw !important;
+
+            height: calc(100vh - 28px) !important;
+
+            transform: none !important;
+
+        }
+
+
+
+        /* TODO: Implement window resize handles
+
+           Windows 98 allows resizing from all edges and corners.
+
+           Need to add 8 resize handles (4 corners, 4 edges) and cursor styling. */
+
+        .resize-handle {
+
+            position: absolute;
+
+            z-index: 1000;
+
+        }
+
+        .resize-n { top: -3px; left: 0; right: 0; height: 5px; cursor: n-resize; }
+
+        .resize-e { top: 0; right: -3px; bottom: 0; width: 5px; cursor: e-resize; }
+
+        .resize-s { bottom: -3px; left: 0; right: 0; height: 5px; cursor: s-resize; }
+
+        .resize-w { top: 0; left: -3px; bottom: 0; width: 5px; cursor: w-resize; }
+
+        .resize-ne { top: -3px; right: -3px; width: 10px; height: 10px; cursor: ne-resize; }
+
+        .resize-se { bottom: -3px; right: -3px; width: 10px; height: 10px; cursor: se-resize; }
+
+        .resize-sw { bottom: -3px; left: -3px; width: 10px; height: 10px; cursor: sw-resize; }
+
+        .resize-nw { top: -3px; left: -3px; width: 10px; height: 10px; cursor: nw-resize; }
+
+
+
+        .window-titlebar {
+
+            height: 18px;
+
+            background: linear-gradient(90deg, var(--w98-title1, var(--w98-hilight, #000080)), var(--w98-title2, #1084d0));
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 2px 0 3px;
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 11px;
+
+        }
+
+
+
+        .window.active .window-titlebar {
+
+            background: linear-gradient(90deg, var(--w98-title1, var(--w98-hilight, #000080)), var(--w98-title2, #1084d0));
+
+        }
+
+
+
+        .window:not(.active) .window-titlebar {
+
+            background: linear-gradient(90deg, var(--w98-title-i1, #808080), var(--w98-title-i2, #b5b5b5));
+
+        }
+
+
+
+        .window-title {
+
+            display: flex;
+
+            align-items: center;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+        }
+
+
+
+        .window-title img {
+
+            width: 16px;
+
+            height: 16px;
+
+            margin-right: 4px;
+
+        }
+
+
+
+        .window-controls {
+
+            display: flex;
+
+        }
+
+
+
+        .window-control {
+
+            width: 14px;
+
+            height: 14px;
+
+            border: 1px solid;
+
+            border-top-color: #dfdfdf;
+
+            border-left-color: #dfdfdf;
+
+            border-right-color: #404040;
+
+            border-bottom-color: #404040;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin-left: 2px;
+
+            line-height: 14px;
+
+            font-size: 9px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .window-control:active {
+
+            border-top-color: #404040;
+
+            border-left-color: #404040;
+
+            border-right-color: #dfdfdf;
+
+            border-bottom-color: #dfdfdf;
+
+        }
+
+
+
+        .window-content {
+
+            width: 100%;
+
+            padding: 0;
+
+            position: relative;
+
+            height: calc(100% - 18px);
+
+            overflow: auto;
+
+        }
+
+
+
+        /* Welcome to Windows 98 Dialog */
+
+        .welcome-dialog {
+
+            width: 100%;
+
+            height: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+        .welcome-header {
+
+            background-color: #ffffff;
+
+            padding: 10px;
+
+            border-bottom: 1px solid #808080;
+
+            display: flex;
+
+            align-items: center;
+
+        }
+
+
+
+        .welcome-logo {
+
+            width: 180px;
+
+            height: auto;
+
+        }
+
+
+
+        .welcome-body {
+
+            display: flex;
+
+            flex-grow: 1;
+
+        }
+
+
+
+        .welcome-sidebar {
+
+            width: 200px;
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+            font-size: 11px;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .sidebar-item {
+
+            padding: 4px 10px;
+
+            margin: 2px 0;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .sidebar-item.active {
+
+            background-color: #0855df;
+
+        }
+
+
+
+        .welcome-content {
+
+            flex-grow: 1;
+
+            background-color: #ffffff;
+
+            padding: 10px;
+
+            font-size: 11px;
+
+            overflow: auto;
+
+        }
+
+
+
+        .welcome-content h2 {
+
+            margin-bottom: 10px;
+
+            font-size: 14px;
+
+        }
+
+
+
+        .welcome-content p {
+
+            margin-bottom: 10px;
+
+            line-height: 1.4;
+
+        }
+
+
+
+        .welcome-footer {
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            padding: 10px;
+
+            border-top: 1px solid #dfdfdf;
+
+        }
+
+
+
+        .welcome-info {
+
+            font-size: 10px;
+
+            color: #808080;
+
+        }
+
+
+
+        .welcome-button {
+
+            padding: 4px 10px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #dfdfdf;
+
+            border-left: 1px solid #dfdfdf;
+
+            border-bottom: 1px solid #404040;
+
+            border-right: 1px solid #404040;
+
+            font-size: 11px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .welcome-button:active {
+
+            border-top: 1px solid #404040;
+
+            border-left: 1px solid #404040;
+
+            border-bottom: 1px solid #dfdfdf;
+
+            border-right: 1px solid #dfdfdf;
+
+            padding: 5px 9px 3px 11px;
+
+        }
+
+
+
+        /* My Computer */
+
+        .my-computer {
+
+            height: 100%;
+
+        }
+
+
+
+        .window-menubar {
+
+            display: flex;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-bottom: 1px solid #808080;
+
+        }
+
+
+
+        .window-menu-item {
+
+            padding: 2px 10px;
+
+            font-size: 11px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .window-menu-item:hover {
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+        }
+
+
+
+        /* TODO: Implement menu dropdowns for window menu bars
+
+           Each window menu item should have a dropdown with appropriate options.
+
+           These need proper styling and event handling. */
+
+        .window-menu-dropdown {
+
+            position: absolute;
+
+            top: 100%;
+
+            left: 0;
+
+            display: none;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border: 1px solid;
+
+            border-top-color: #dfdfdf;
+
+            border-left-color: #dfdfdf;
+
+            border-right-color: #808080;
+
+            border-bottom-color: #808080;
+
+            z-index: 1000;
+
+        }
+
+
+
+        .window-toolbar {
+
+            display: flex;
+
+            padding: 4px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-bottom: 1px solid #808080;
+
+        }
+
+
+
+        .window-toolbar-button {
+
+            padding: 2px 4px;
+
+            margin-right: 4px;
+
+            border-top: 1px solid #ffffff;
+
+            border-left: 1px solid #ffffff;
+
+            border-bottom: 1px solid #808080;
+
+            border-right: 1px solid #808080;
+
+            display: flex;
+
+            align-items: center;
+
+            font-size: 11px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .window-toolbar-button:active {
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-bottom: 1px solid #ffffff;
+
+            border-right: 1px solid #ffffff;
+
+            padding: 3px 3px 1px 5px;
+
+        }
+
+
+
+        .window-toolbar-button img {
+
+            width: 16px;
+
+            height: 16px;
+
+            margin-right: 4px;
+
+        }
+
+
+
+        .window-toolbar-separator {
+
+            width: 1px;
+
+            height: 20px;
+
+            background-color: #808080;
+
+            border-right: 1px solid #ffffff;
+
+            margin: 0 4px;
+
+        }
+
+
+
+        .window-address-bar {
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 4px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-bottom: 1px solid #808080;
+
+            font-size: 11px;
+
+        }
+
+
+
+        .address-label {
+
+            margin-right: 4px;
+
+        }
+
+
+
+        .address-input {
+
+            flex-grow: 1;
+
+            height: 20px;
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-bottom: 1px solid #ffffff;
+
+            border-right: 1px solid #ffffff;
+
+            background-color: #ffffff;
+
+            padding: 2px 4px;
+
+            font-size: 11px;
+
+        }
+
+
+
+        /* TODO: Implement address bar dropdown functionality
+
+           Windows 98 Explorer has a dropdown button in the address bar.
+
+           This should show navigation history or folder hierarchy. */
+
+        .address-dropdown {
+
+            width: 16px;
+
+            height: 20px;
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-bottom: 1px solid #ffffff;
+
+            border-right: 1px solid #ffffff;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin-left: 1px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        /* TODO: Implement view options toolbar
+
+           Explorer windows should have a view toolbar with options like:
+
+           - Details view
+
+           - List view
+
+           - Small icons
+
+           - Large icons */
+
+        .view-toolbar {
+
+            display: flex;
+
+            padding: 4px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-bottom: 1px solid #808080;
+
+        }
+
+
+
+        .window-contents {
+
+            background-color: #ffffff;
+
+            flex-grow: 1;
+
+            padding: 10px;
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            align-content: flex-start;
+
+            overflow: auto;
+
+            height: calc(100% - 90px);
+
+        }
+
+
+
+        .folder-item {
+
+            width: 80px;
+
+            text-align: center;
+
+            margin: 5px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .folder-item:hover {
+
+            background-color: #e9e9e9;
+
+        }
+
+
+
+        .folder-item.selected {
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+        }
+
+
+
+        .folder-icon {
+
+            width: 32px;
+
+            height: 32px;
+
+            margin-bottom: 4px;
+
+        }
+
+
+
+        .folder-name {
+
+            font-size: 11px;
+
+            word-break: break-word;
+
+        }
+
+
+
+        .window-statusbar {
+
+            display: flex;
+
+            padding: 2px 4px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #808080;
+
+            font-size: 11px;
+
+        }
+
+
+
+        /* Internet Explorer */
+
+        .ie-window {
+
+            height: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+        .ie-content {
+
+            flex-grow: 1;
+
+            background-color: #ffffff;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+
+            text-align: center;
+
+        }
+
+
+
+        .ie-logo {
+
+            width: 100px;
+
+            height: 100px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+
+        .ie-text {
+
+            font-size: 14px;
+
+            margin-bottom: 10px;
+
+        }
+
+
+
+        .ie-text small {
+
+            font-size: 12px;
+
+            color: #808080;
+
+        }
+
+
+
+        /* TODO: Implement Internet Explorer browsing functionality
+
+           Add a render area for web content, with:
+
+           - Page loading indicator
+
+           - Error handling for invalid URLs
+
+           - Basic rendering of HTML */
+
+        .ie-browser-content {
+
+            width: 100%;
+
+            height: 100%;
+
+            border: none;
+
+            background-color: #ffffff;
+
+        }
+
+
+
+        /* Notepad */
+
+        .notepad-window {
+
+            height: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+        .notepad-menubar {
+
+            display: flex;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-bottom: 1px solid #808080;
+
+        }
+
+
+
+        .notepad-menu-item {
+
+            padding: 2px 10px;
+
+            font-size: 11px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+            position: relative;
+
+        }
+
+
+
+        .notepad-menu-item:hover, .notepad-menu-item.active {
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+        }
+
+
+
+        /* Dropdown Menu */
+
+        .dropdown-menu {
+
+            position: absolute;
+
+            top: 100%;
+
+            left: 0;
+
+            width: 200px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #ffffff;
+
+            border-bottom: 1px solid #000000;
+
+            border-right: 1px solid #000000;
+
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+
+            display: none;
+
+            z-index: 100;
+
+        }
+
+
+
+        .notepad-menu-item.active .dropdown-menu {
+
+            display: block;
+
+        }
+
+
+
+        .menu-option {
+
+            padding: 4px 20px;
+
+            font-size: 11px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .menu-option:hover {
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+        }
+
+
+
+        .menu-option.disabled {
+
+            color: #808080;
+
+            cursor: default;
+
+        }
+
+
+
+        .menu-option.disabled:hover {
+
+            background-color: transparent;
+
+            color: #808080;
+
+        }
+
+
+
+        .menu-separator {
+
+            height: 1px;
+
+            background-color: #808080;
+
+            margin: 3px 1px;
+
+        }
+
+
+
+        .notepad-content {
+
+            flex-grow: 1;
+
+            background-color: #ffffff;
+
+            padding: 0;
+
+            position: relative;
+
+        }
+
+
+
+        .textarea-container {
+
+            width: 100%;
+
+            height: 100%;
+
+        }
+
+
+
+        .notepad-textarea {
+
+            width: 100%;
+
+            height: 100%;
+
+            border: none;
+
+            padding: 4px;
+
+            font-family: 'Lucida Console', monospace;
+
+            font-size: 12px;
+
+            resize: none;
+
+            outline: none;
+
+            overflow: auto;
+
+        }
+
+
+
+        .notepad-statusbar {
+
+            height: 20px;
+
+            display: flex;
+
+            align-items: center;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #808080;
+
+            padding: 0 4px;
+
+            font-size: 11px;
+
+        }
+
+
+
+
+
+        .doom-launcher {
+
+            padding: 14px;
+
+            font-size: 11px;
+
+        }
+
+
+
+        .doom-launcher p {
+
+            margin: 0 0 10px 0;
+
+        }
+
+
+
+        .doom-wad-list {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+
+            margin-bottom: 14px;
+
+            padding: 8px;
+
+            min-height: 86px;
+
+            background-color: #ffffff;
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-right: 1px solid #dfdfdf;
+
+            border-bottom: 1px solid #dfdfdf;
+
+        }
+
+
+
+        .doom-wad-item {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+
+        .doom-launch-actions {
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 6px;
+
+        }
+
+
+
+        .doom-launch-status {
+
+            margin-top: 10px;
+
+            min-height: 14px;
+
+            color: var(--w98-hilight, #000080);
+
+        }
+
+
+
+        /* Dialog Windows */
+
+        .dialog {
+
+            position: absolute;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border: 2px solid;
+
+            border-top-color: #dfdfdf;
+
+            border-left-color: #dfdfdf;
+
+            border-right-color: #808080;
+
+            border-bottom-color: #808080;
+
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+
+            top: 50%;
+
+            left: 50%;
+
+            transform: translate(-50%, -50%);
+
+            z-index: 1000;
+
+            display: none;
+
+        }
+
+
+
+        .dialog-titlebar {
+
+            height: 18px;
+
+            background: linear-gradient(90deg, var(--w98-title1, var(--w98-hilight, #000080)), var(--w98-title2, #1084d0));
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 11px;
+
+            display: flex;
+
+            align-items: center;
+
+            padding-left: 4px;
+
+        }
+
+
+
+        .dialog-content {
+
+            padding: 10px;
+
+        }
+
+
+
+        .dialog-buttons {
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            padding: 10px;
+
+            gap: 5px;
+
+        }
+
+
+
+        .btn {
+
+            padding: 4px 10px;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #dfdfdf;
+
+            border-left: 1px solid #dfdfdf;
+
+            border-right: 1px solid #404040;
+
+            border-bottom: 1px solid #404040;
+
+            font-size: 11px;
+
+            min-width: 70px;
+
+            text-align: center;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .btn:active {
+
+            border-top: 1px solid #404040;
+
+            border-left: 1px solid #404040;
+
+            border-right: 1px solid #dfdfdf;
+
+            border-bottom: 1px solid #dfdfdf;
+
+            padding-top: 5px;
+
+            padding-left: 11px;
+
+            padding-right: 9px;
+
+            padding-bottom: 3px;
+
+        }
+
+
+
+        /* Find Dialog */
+
+        .find-dialog {
+
+            width: 340px;
+
+        }
+
+
+
+        .find-form {
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+
+        .form-row {
+
+            display: flex;
+
+            margin-bottom: 10px;
+
+            align-items: center;
+
+        }
+
+
+
+        .form-label {
+
+            width: 80px;
+
+            font-size: 11px;
+
+        }
+
+
+
+        .form-input {
+
+            flex-grow: 1;
+
+            height: 20px;
+
+            border-top: 1px solid #808080;
+
+            border-left: 1px solid #808080;
+
+            border-bottom: 1px solid #dfdfdf;
+
+            border-right: 1px solid #dfdfdf;
+
+            background-color: white;
+
+            font-size: 11px;
+
+            padding: 2px 4px;
+
+        }
+
+
+
+        .form-checkboxes {
+
+            margin-left: 80px;
+
+        }
+
+
+
+        .form-checkbox {
+
+            display: flex;
+
+            align-items: center;
+
+            margin-bottom: 5px;
+
+        }
+
+
+
+        .form-checkbox input {
+
+            margin-right: 5px;
+
+        }
+
+
+
+        .form-checkbox label {
+
+            font-size: 11px;
+
+        }
+
+
+
+        /* Go To Dialog */
+
+        .goto-dialog {
+
+            width: 280px;
+
+        }
+
+
+
+        /* Save As Dialog */
+
+        .saveas-dialog {
+
+            width: 450px;
+
+            height: 400px;
+
+        }
+
+
+
+        .dialog-file-container {
+
+            border: 1px solid #808080;
+
+            background-color: white;
+
+            height: 200px;
+
+            margin-bottom: 10px;
+
+            overflow-y: auto;
+
+        }
+
+
+
+        .dialog-file-list {
+
+            list-style-type: none;
+
+        }
+
+
+
+        .dialog-file-item {
+
+            padding: 2px 5px;
+
+            font-size: 11px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+            display: flex;
+
+            align-items: center;
+
+        }
+
+
+
+        .dialog-file-item img {
+
+            width: 16px;
+
+            height: 16px;
+
+            margin-right: 5px;
+
+        }
+
+
+
+        .dialog-file-item:hover {
+
+            background-color: var(--w98-hilight, #000080);
+
+            color: white;
+
+        }
+
+
+
+        .overlay {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            right: 0;
+
+            bottom: 0;
+
+            background-color: rgba(0, 0, 0, 0.3);
+
+            z-index: 950;
+
+            display: none;
+
+        }
+
+
+
+        /* TODO: Implement context menus for desktop and Explorer items
+
+           Windows 98 has detailed context menus that appear on right-click.
+
+           These should be styled properly and contain appropriate options. */
+
+        .context-menu {
+
+            position: absolute;
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-top: 1px solid #dfdfdf;
+
+            border-left: 1px solid #dfdfdf;
+
+            border-right: 1px solid #404040;
+
+            border-bottom: 1px solid #404040;
+
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+            padding: 2px;
+
+            z-index: 1000;
+
+            display: none;
+
+        }
+
+
+
+        /* TODO: Implement desktop area selection (rubber-band)
+
+           Windows 98 allows users to drag-select multiple desktop icons.
+
+           This requires styles for the selection area and multi-selected icons. */
+
+        .selection-box {
+
+            position: absolute;
+
+            border: 1px dashed #000;
+
+            background-color: rgba(0, 0, 255, 0.1);
+
+            z-index: 50;
+
+            display: none;
+
+        }
+
+
+
+        /* Make the entire layout responsive */
+
+        @media (max-width: 800px) {
+
+            .window {
+
+                max-width: 90vw;
+
+                max-height: 80vh;
+
+            }
+
+        }
+
+
+
+        /* TODO: Implement file upload/download UI
+
+           In a real Windows 98, file operations would show progress dialogs.
+
+           These need proper styling to match the Windows 98 appearance. */
+
+        .progress-dialog {
+
+            width: 300px;
+
+        }
+
+
+
+        .progress-bar-container {
+
+            height: 20px;
+
+            border: 1px solid #808080;
+
+            background-color: white;
+
+            margin: 10px 0;
+
+        }
+
+
+
+        .progress-bar {
+
+            height: 100%;
+
+            background-color: var(--w98-hilight, #000080);
+
+            width: 0%;
+
+        }
+
+
+
+        /* TODO: Implement properties dialog styling
+
+           Windows 98 file/folder properties dialogs have a specific style with tabs.
+
+           These need proper implementation to match Windows 98 UI. */
+
+        .properties-dialog {
+
+            width: 350px;
+
+        }
+
+
+
+        .properties-tabs {
+
+            display: flex;
+
+            margin-bottom: 10px;
+
+        }
+
+
+
+        .properties-tab {
+
+            padding: 4px 10px;
+
+            border: 1px solid #808080;
+
+            margin-right: 2px;
+
+            cursor: url('./assets/cursors/arrow.png') 0 0, default; /* Win98 used the arrow everywhere */
+
+        }
+
+
+
+        .properties-tab.active {
+
+            background-color: var(--w98-face, #c0c0c0);
+
+            border-bottom: none;
+
+        }
+
+
+
+        @media (max-width: 480px) {
+
+            .desktop-icons {
+
+                gap: 5px;
+
+            }
+
+
+
+            .desktop-icon {
+
+                width: 50px;
+
+                font-size: 9px;
+
+            }
+
+
+
+            .icon-img {
+
+                width: 24px;
+
+                height: 24px;
+
+                margin-bottom: 3px;
+
+            }
+
+
+
+            .taskbar {
+
+                height: 20px;
+
+            }
+
+
+
+            .start-button-inner {
+
+                font-size: 9px;
+
+            }
+
+
+
+            .taskbar-item {
+
+                font-size: 9px;
+
+                min-width: 100px;
+
+            }
+
+
+
+            .tray-time {
+
+                font-size: 9px;
+
+            }
+
+
+
+            .window-titlebar {
+
+                height: 14px;
+
+                font-size: 9px;
+
+            }
+
+
+
+            .window-title img {
+
+                width: 12px;
+
+                height: 12px;
+
+                margin-right: 2px;
+
+            }
+
+
+
+            .window-control {
+
+                width: 12px;
+
+                height: 12px;
+
+                font-size: 7px;
+
+                margin-left: 1px;
+
+            }
+
+        }
+
+
+
+        @media (max-width: 768px) {
+
+            .desktop-icons {
+
+                gap: 8px;
+
+            }
+
+
+
+            .desktop-icon {
+
+                width: 60px;
+
+                font-size: 10px;
+
+            }
+
+
+
+            .icon-img {
+
+                width: 28px;
+
+                height: 28px;
+
+                margin-bottom: 4px;
+
+            }
+
+
+
+            .taskbar {
+
+                height: 24px;
+
+            }
+
+
+
+            .start-button-inner {
+
+                font-size: 10px;
+
+            }
+
+
+
+            .taskbar-item {
+
+                font-size: 10px;
+
+                min-width: 120px;
+
+            }
+
+
+
+            .tray-time {
+
+                font-size: 10px;
+
+            }
+
+
+
+            .window-titlebar {
+
+                height: 16px;
+
+                font-size: 10px;
+
+            }
+
+
+
+            .window-title img {
+
+                width: 14px;
+
+                height: 14px;
+
+                margin-right: 3px;
+
+            }
+
+
+
+            .window-control {
+
+                width: 13px;
+
+                height: 13px;
+
+                font-size: 8px;
+
+                margin-left: 1.5px;
+
+            }
+
+        }
+
+
+
+        @media (max-width: 1024px) {
+
+            .desktop-icons {
+
+                gap: 9px;
+
+            }
+
+
+
+            .desktop-icon {
+
+                width: 65px;
+
+                font-size: 10.5px;
+
+            }
+
+
+
+            .icon-img {
+
+                width: 30px;
+
+                height: 30px;
+
+                margin-bottom: 4.5px;
+
+            }
+
+
+
+            .taskbar {
+
+                height: 26px;
+
+            }
+
+
+
+            .start-button-inner {
+
+                font-size: 10.5px;
+
+            }
+
+
+
+            .taskbar-item {
+
+                font-size: 10.5px;
+
+                min-width: 135px;
+
+            }
+
+
+
+            .tray-time {
+
+                font-size: 10.5px;
+
+            }
+
+
+
+            .window-titlebar {
+
+                height: 17px;
+
+                font-size: 10.5px;
+
+            }
+
+
+
+            .window-title img {
+
+                width: 15px;
+
+                height: 15px;
+
+                margin-right: 3.5px;
+
+            }
+
+
+
+            .window-control {
+
+                width: 13.5px;
+
+                height: 13.5px;
+
+                font-size: 8.5px;
+
+                margin-left: 1.75px;
+
+            }
+
+        }
+
+/* Styles that previously sat inline next to the notepad dialogs. */
+.cfg-key-input {
+    display: block;
+    width: 100%;
+    padding: 2px 5px;
+    border: 2px inset #808080;
+    background: #fff;
+    cursor: pointer;
+    font-size: 11px;
+    min-height: 18px;
+    line-height: 18px;
+    user-select: none;
+    box-sizing: border-box;
+}
+.cfg-key-input.capturing {
+    background: var(--w98-hilight, #000080);
+    color: #fff;
+    border-color: var(--w98-hilight, #000080);
+}
+.cfg-key-input:hover:not(.capturing) {
+    background: #f0f0f0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Win98 1:1 chrome pass: real glyphs, tray, quick launch, display     */
+/* properties, boot/shutdown screens, screensaver, CRT effect.         */
+/* ------------------------------------------------------------------ */
+
+.start-logo {
+    image-rendering: pixelated;
+}
+
+/* Titlebar buttons use the Marlett-style glyph images; the text glyph
+   from chrome.js stays in the DOM as a fallback but is hidden. */
+.window-control {
+    font-size: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+}
+
+.window-control.minimize-btn { background-image: url('./assets/icons/glyph_minimize.png'); }
+.window-control.maximize-btn { background-image: url('./assets/icons/glyph_maximize.png'); }
+.window.maximized .window-control.maximize-btn { background-image: url('./assets/icons/glyph_restore.png'); }
+.window-control.close-btn {
+    background-image: url('./assets/icons/glyph_close.png');
+    margin-left: 4px; /* Win98 separates close from min/max */
+}
+
+/* Quick Launch */
+.quick-launch-btn {
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+}
+
+.quick-launch-btn:hover {
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-bottom-color: #808080;
+    border-right-color: #808080;
+}
+
+.quick-launch-btn:active {
+    border-top-color: #808080;
+    border-left-color: #808080;
+    border-bottom-color: #ffffff;
+    border-right-color: #ffffff;
+}
+
+.quick-launch-btn img {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+/* System tray */
+.tray-icon {
+    width: 16px;
+    height: 16px;
+    margin: 0 2px;
+    image-rendering: pixelated;
+}
+
+.volume-popup {
+    position: fixed;
+    bottom: 30px;
+    right: 4px;
+    width: 60px;
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 1px solid #dfdfdf;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #404040;
+    border-bottom: 1px solid #404040;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+    padding: 6px 4px;
+    z-index: 1200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.volume-popup.active {
+    display: flex;
+}
+
+.volume-popup .volume-label {
+    font-size: 11px;
+}
+
+.volume-popup input[type="range"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    height: 90px;
+    width: 20px;
+}
+
+.volume-popup .volume-mute {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+}
+
+/* Display Properties */
+.dp-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    gap: 6px;
+}
+
+.dp-tabs {
+    display: flex;
+    border-bottom: 2px solid #808080;
+}
+
+.dp-tab {
+    padding: 3px 14px;
+    border: 1px solid #808080;
+    border-bottom: none;
+    background: #a0a0a0;
+    font-size: 11px;
+    margin-right: 2px;
+    position: relative;
+    bottom: -1px;
+}
+
+.dp-tab.dp-tab-active {
+    background: var(--w98-face, #c0c0c0);
+}
+
+.dp-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.dp-monitor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.dp-monitor-bezel {
+    width: 180px;
+    height: 136px;
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 2px solid #dfdfdf;
+    border-left: 2px solid #dfdfdf;
+    border-right: 2px solid #404040;
+    border-bottom: 2px solid #404040;
+    border-radius: 6px 6px 4px 4px;
+    padding: 10px;
+}
+
+.dp-monitor-screen {
+    width: 100%;
+    height: 100%;
+    background-color: var(--w98-desktop, #008080);
+    border: 2px solid #000000;
+    background-size: cover;
+    overflow: hidden;
+}
+
+.dp-monitor-neck {
+    width: 40px;
+    height: 8px;
+    background-color: #b0b0b0;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #404040;
+}
+
+.dp-monitor-base {
+    width: 90px;
+    height: 8px;
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 1px solid #dfdfdf;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #404040;
+    border-bottom: 1px solid #404040;
+}
+
+.dp-group {
+    width: 100%;
+    border: 1px solid #808080;
+    box-shadow: 1px 1px 0 #ffffff inset;
+    padding: 8px;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dp-group-label {
+    margin-top: -14px;
+    align-self: flex-start;
+    background-color: var(--w98-face, #c0c0c0);
+    padding: 0 4px;
+    font-size: 11px;
+}
+
+.dp-help {
+    font-size: 11px;
+}
+
+.dp-list {
+    height: 74px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+}
+
+.dp-list-item {
+    padding: 2px 5px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dp-list-item img {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+.dp-list-item.selected {
+    background-color: var(--w98-hilight, #000080);
+    color: white;
+}
+
+.dp-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.dp-select {
+    font-size: 11px;
+    background-color: #ffffff;
+    border: 1px solid #808080;
+    padding: 1px 2px;
+}
+
+.dp-wait {
+    width: 40px;
+    font-size: 11px;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    padding: 1px 2px;
+}
+
+.dp-check {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+}
+
+.dp-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.btn.dp-btn {
+    font-size: 11px;
+    padding: 3px 14px;
+    min-width: 0;
+}
+
+/* Shut Down / Log Off dialogs */
+.shutdown-dialog { width: 320px; }
+.logoff-dialog { width: 300px; }
+
+.shutdown-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 4px;
+}
+
+.shutdown-icon {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+}
+
+.shutdown-question {
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.shutdown-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shutdown-choice {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+}
+
+/* Screen dither shown behind the shutdown dialog (Win98 grayed the
+   desktop with a 50% black checker pattern). */
+.dither-overlay {
+    position: fixed;
+    inset: 0;
+    background-image: url('./assets/icons/dither.png');
+    background-repeat: repeat;
+    z-index: 940;
+    display: none;
+}
+
+.dither-overlay.active {
+    display: block;
+}
+
+/* Boot sequence */
+.boot-screen {
+    position: fixed;
+    inset: 0;
+    background-color: #000000;
+    z-index: 30000;
+    display: flex;
+    flex-direction: column;
+}
+
+.boot-bios {
+    flex: 1;
+    padding: 18px 22px;
+    font-family: 'Perfect DOS VGA', 'Lucida Console', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.35;
+    color: var(--w98-face, #c0c0c0);
+    white-space: pre-wrap;
+}
+
+.boot-splash {
+    position: absolute;
+    inset: 0;
+    background-color: #000000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.boot-splash img {
+    max-width: 55%;
+    image-rendering: auto;
+}
+
+.boot-splash-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 10px;
+    background: repeating-linear-gradient(90deg,
+        #00007b 0px, #1084d0 40px, #00007b 80px);
+    background-size: 80px 100%;
+    animation: boot-bar-scroll 1s linear infinite;
+}
+
+@keyframes boot-bar-scroll {
+    from { background-position: 0 0; }
+    to { background-position: 80px 0; }
+}
+
+/* "It's now safe to turn off your computer." */
+.poweroff-screen {
+    position: fixed;
+    inset: 0;
+    background-color: #000000;
+    z-index: 30000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #ffa500;
+    font-family: 'Perfect DOS VGA', 'Lucida Console', 'Courier New', monospace;
+    font-size: 26px;
+}
+
+/* Screensaver */
+.screensaver-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 25000;
+    background-color: #000000;
+}
+
+/* CRT scanline + vignette overlay (Effects tab) */
+.crt-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 24000;
+    pointer-events: none;
+    display: none;
+    background:
+        radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.28) 100%),
+        repeating-linear-gradient(0deg,
+            rgba(0, 0, 0, 0.13) 0px, rgba(0, 0, 0, 0.13) 1px,
+            rgba(0, 0, 0, 0) 1px, rgba(0, 0, 0, 0) 3px);
+}
+
+body.crt-enabled .crt-overlay {
+    display: block;
+}
+
+/* ------------------------------------------------------------------ */
+/* Apps pass: controls sheet, minesweeper, solitaire, calculator,      */
+/* paint, IE browser, run/CAD dialogs, BSOD, ScanDisk, zoom anim.      */
+/* ------------------------------------------------------------------ */
+
+/* Controls property sheet */
+.ctl-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ctl-hint {
+    font-size: 10px;
+    color: #555;
+}
+
+.ctl-bind-list {
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    padding: 4px 6px;
+}
+
+.ctl-bind-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.ctl-bind-row:last-child {
+    border-bottom: none;
+}
+
+.ctl-bind-label {
+    width: 46%;
+    font-size: 11px;
+    color: #333;
+}
+
+.ctl-bind-row .cfg-key-input {
+    flex: 1;
+}
+
+.ctl-help {
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.5;
+    overflow-y: auto;
+    user-select: text;
+}
+
+.ctl-help h3 {
+    font-size: 12px;
+    margin: 8px 0 4px;
+    color: var(--w98-hilight, #000080);
+}
+
+.ctl-help h3:first-child {
+    margin-top: 0;
+}
+
+.ctl-help p {
+    margin-bottom: 5px;
+}
+
+/* Minesweeper */
+#minesweeperWindow {
+    min-width: 0;
+    min-height: 0;
+}
+
+.mine-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--w98-face, #c0c0c0);
+}
+
+.mine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 6px;
+    padding: 4px 6px;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+}
+
+.mine-lcd {
+    background-color: #000000;
+    color: #ff0000;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 0 2px;
+    letter-spacing: 1px;
+}
+
+.mine-smiley {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+}
+
+.mine-smiley:active {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+}
+
+.mine-grid {
+    display: grid;
+    margin: 0 6px 6px;
+    border-top: 3px solid #808080;
+    border-left: 3px solid #808080;
+    border-bottom: 3px solid #ffffff;
+    border-right: 3px solid #ffffff;
+    width: fit-content;
+}
+
+.mine-cell {
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+}
+
+.mine-cell.revealed {
+    border: 1px solid #808080;
+    border-width: 1px 0 0 1px;
+}
+
+.mine-cell.exploded {
+    background-color: #ff0000;
+}
+
+.mine-cell.flagged {
+    color: #ff0000;
+}
+
+/* Solitaire */
+.sol-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.sol-table {
+    flex: 1;
+    background-color: #008000;
+    padding: 8px;
+    overflow: auto;
+    user-select: none;
+}
+
+.sol-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+}
+
+.sol-pile {
+    position: relative;
+    width: 60px;
+    min-height: 84px;
+    border-radius: 4px;
+}
+
+.sol-foundation,
+.sol-stock {
+    border: 1px solid #00b000;
+}
+
+.sol-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00c000;
+    font-size: 22px;
+}
+
+.sol-spacer {
+    width: 60px;
+}
+
+.sol-card {
+    position: absolute;
+    left: 0;
+    width: 60px;
+    height: 84px;
+    border-radius: 4px;
+    border: 1px solid #000000;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.sol-card.facedown {
+    background-color: #0000a8;
+    background-image: repeating-linear-gradient(45deg,
+        rgba(255, 255, 255, 0.25) 0 2px, transparent 2px 6px);
+}
+
+.sol-card.red { color: #cc0000; }
+.sol-card.black { color: #000000; }
+
+.sol-corner {
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.sol-center {
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    font-size: 22px;
+}
+
+.sol-ghost {
+    position: fixed;
+    z-index: 6000;
+    pointer-events: none;
+    opacity: 0.85;
+    width: 60px;
+}
+
+.sol-ghost .sol-card {
+    position: absolute;
+}
+
+/* Calculator */
+.calc-app {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-color: var(--w98-face, #c0c0c0);
+    height: 100%;
+}
+
+.calc-display {
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    text-align: right;
+    padding: 3px 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    min-height: 22px;
+}
+
+.calc-row {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    flex: 1;
+}
+
+.calc-btn {
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 1px solid #dfdfdf;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #404040;
+    border-bottom: 1px solid #404040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--w98-hilight, #000080);
+    min-height: 24px;
+    padding: 2px 4px;
+}
+
+.calc-btn.red {
+    color: #800000;
+}
+
+.calc-btn:active {
+    border-top: 1px solid #404040;
+    border-left: 1px solid #404040;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+}
+
+.calc-wide {
+    flex: 1;
+    max-width: 33%;
+}
+
+/* Paint */
+.paint-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.paint-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.paint-tools {
+    width: 34px;
+    background-color: var(--w98-face, #c0c0c0);
+    border-right: 1px solid #808080;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 0;
+    gap: 3px;
+}
+
+.paint-tool {
+    width: 26px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-top: 1px solid #dfdfdf;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #404040;
+    border-bottom: 1px solid #404040;
+}
+
+.paint-tool.active {
+    border-top: 1px solid #404040;
+    border-left: 1px solid #404040;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+    background-color: #dfdfdf;
+}
+
+.paint-canvas-wrap {
+    flex: 1;
+    overflow: auto;
+    background-color: #808080;
+    padding: 4px;
+}
+
+#paintCanvas {
+    background-color: #ffffff;
+    cursor: crosshair;
+}
+
+.paint-colors {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 1px solid #808080;
+}
+
+.paint-primary {
+    width: 24px;
+    height: 24px;
+    background-color: #000000;
+    border: 1px solid #404040;
+}
+
+.paint-palette {
+    display: grid;
+    grid-template-columns: repeat(8, 16px);
+    gap: 2px;
+}
+
+.paint-swatch {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #404040;
+}
+
+/* Internet Explorer browser */
+.ie-address {
+    outline: none;
+}
+
+.ie-frame-wrap {
+    flex: 1;
+    background-color: #ffffff;
+    overflow: hidden;
+    height: calc(100% - 110px);
+}
+
+.ie-browser-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #ffffff;
+}
+
+/* Close Program dialog */
+.cad-list {
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    height: 130px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+    font-size: 11px;
+}
+
+.cad-task {
+    padding: 1px 4px;
+}
+
+.cad-task.selected {
+    background-color: var(--w98-hilight, #000080);
+    color: #ffffff;
+}
+
+.cad-note {
+    font-size: 10px;
+    color: #333;
+}
+
+/* BSOD */
+.bsod-screen {
+    position: fixed;
+    inset: 0;
+    background-color: #0000aa;
+    z-index: 40000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bsod-inner {
+    color: #ffffff;
+    font-family: 'Perfect DOS VGA', 'Lucida Console', 'Courier New', monospace;
+    font-size: 16px;
+    white-space: pre-wrap;
+    max-width: 640px;
+}
+
+.bsod-title {
+    background-color: #a8a8a8;
+    color: #0000aa;
+    font-weight: bold;
+}
+
+.bsod-continue {
+    display: block;
+    text-align: center;
+}
+
+/* ScanDisk */
+.scandisk-screen {
+    position: absolute;
+    inset: 0;
+    background-color: #0000a8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-family: 'Perfect DOS VGA', 'Lucida Console', 'Courier New', monospace;
+    color: var(--w98-face, #c0c0c0);
+    padding: 40px;
+    text-align: left;
+}
+
+.scandisk-title {
+    background-color: var(--w98-face, #c0c0c0);
+    color: #0000a8;
+    font-weight: bold;
+    padding: 1px 14px;
+}
+
+.scandisk-body {
+    white-space: pre-wrap;
+    font-size: 15px;
+    max-width: 560px;
+}
+
+.scandisk-bar {
+    width: 420px;
+    height: 16px;
+    border: 1px solid var(--w98-face, #c0c0c0);
+    padding: 1px;
+}
+
+.scandisk-fill {
+    height: 100%;
+    width: 0%;
+    background-color: #ffff00;
+    transition: width 0.4s;
+}
+
+.scandisk-status {
+    font-size: 14px;
+    min-height: 16px;
+}
+
+/* Wireframe zoom animation for minimize/maximize */
+.zoom-anim {
+    position: fixed;
+    border: 2px dotted #f0f0f0;
+    mix-blend-mode: difference;
+    z-index: 5000;
+    pointer-events: none;
+    transition: all 0.18s linear;
+    box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mechanics pass: tooltips, alt-tab, DOS prompt, freecell backs,      */
+/* date/time, mixer, defrag, find, bug wizard, appearance preview.     */
+/* ------------------------------------------------------------------ */
+
+.w98-tooltip {
+    position: fixed;
+    display: none;
+    background-color: #ffffe1;
+    border: 1px solid #000000;
+    padding: 2px 5px;
+    font-size: 11px;
+    z-index: 45000;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.alttab-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--w98-face, #c0c0c0);
+    border-top: 2px solid #dfdfdf;
+    border-left: 2px solid #dfdfdf;
+    border-right: 2px solid #404040;
+    border-bottom: 2px solid #404040;
+    padding: 10px;
+    z-index: 44000;
+    display: none;
+    text-align: center;
+}
+
+.alttab-icons {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.alttab-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+}
+
+.alttab-icon img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+}
+
+.alttab-icon.selected {
+    border-color: var(--w98-hilight, #000080);
+}
+
+.alttab-label {
+    font-size: 11px;
+    border: 1px inset #808080;
+    padding: 2px 6px;
+}
+
+/* MS-DOS Prompt */
+.dos-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #000000;
+    padding: 2px;
+}
+
+.dos-output {
+    flex: 1;
+    overflow-y: auto;
+    color: #c0c0c0;
+    font-family: 'Perfect DOS VGA', 'Lucida Console', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.25;
+    white-space: pre-wrap;
+    margin: 0;
+    user-select: text;
+}
+
+.dos-input-line {
+    display: flex;
+    align-items: center;
+    color: #c0c0c0;
+    font-family: 'Perfect DOS VGA', 'Lucida Console', 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.dos-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #c0c0c0;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: text;
+}
+
+/* Solitaire card backs */
+.sol-card.sol-back-red { background-color: #a80000; }
+.sol-card.sol-back-green { background-color: #007000; }
+
+/* Date/Time Properties */
+.dt-body {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    height: calc(100% - 46px);
+}
+
+.dt-cal-panel {
+    flex: 1;
+    border: 1px solid #808080;
+    box-shadow: 1px 1px 0 #ffffff inset;
+    padding: 6px;
+}
+
+.dt-month {
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.dt-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #ffffff;
+    border: 1px inset #808080;
+    padding: 2px;
+}
+
+.dt-cell {
+    text-align: center;
+    font-size: 10px;
+    padding: 2px 0;
+}
+
+.dt-head {
+    font-weight: bold;
+    color: #000080;
+}
+
+.dt-today {
+    background-color: var(--w98-hilight, #000080);
+    color: #ffffff;
+}
+
+.dt-clock-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.dt-digital {
+    font-size: 11px;
+    border: 1px inset #808080;
+    padding: 2px 8px;
+    background-color: #ffffff;
+}
+
+/* Volume mixer */
+.mixer-body {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    height: 100%;
+}
+
+.mixer-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #808080;
+    box-shadow: 1px 1px 0 #ffffff inset;
+    padding: 8px 4px;
+    font-size: 11px;
+}
+
+.mixer-label {
+    font-size: 10px;
+    text-align: center;
+}
+
+.mixer-slider {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    height: 90px;
+    width: 20px;
+}
+
+/* Disk Defragmenter */
+.defrag-body {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+}
+
+#defragCanvas {
+    border: 1px inset #808080;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+/* Find Files */
+.find-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.find-results {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    margin: 4px 8px;
+}
+
+.find-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 5px;
+    font-size: 11px;
+}
+
+.find-row:hover {
+    background-color: var(--w98-hilight, #000080);
+    color: #ffffff;
+}
+
+.find-row img {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+.find-loc {
+    color: #808080;
+    margin-left: auto;
+    font-size: 10px;
+}
+
+.find-row:hover .find-loc {
+    color: #e0e0e0;
+}
+
+.find-empty {
+    padding: 20px;
+    text-align: center;
+    color: #808080;
+    font-size: 11px;
+}
+
+/* Bug Report Wizard */
+.bug-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 12px;
+    gap: 6px;
+}
+
+.bug-step {
+    flex: 1;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.bug-step h3 {
+    font-size: 13px;
+    color: var(--w98-hilight, #000080);
+    margin-bottom: 8px;
+}
+
+.bug-step p {
+    margin-bottom: 6px;
+}
+
+.bug-textarea {
+    width: 100%;
+    height: 110px;
+    resize: none;
+    font-family: 'MS Sans Serif', 'Tahoma', sans-serif;
+    font-size: 11px;
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    border-right: 1px solid #dfdfdf;
+    padding: 3px;
+    outline: none;
+    cursor: text;
+}
+
+.bug-status {
+    font-size: 10px;
+    color: var(--w98-hilight, #000080);
+    min-height: 13px;
+}
+
+.btn.btn-disabled {
+    color: #808080;
+}
+
+/* Login screen */
+.login-screen {
+    position: fixed;
+    inset: 0;
+    background-color: var(--w98-desktop, #008080);
+    z-index: 28000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Appearance scheme preview */
+.dp-scheme-preview {
+    width: 300px;
+    height: 150px;
+    border: 1px inset #808080;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.dp-pv-window {
+    position: absolute;
+    border: 1px solid #000000;
+    box-shadow: 1px 1px 0 #ffffff inset;
+}
+
+.dp-pv-back {
+    left: 14px;
+    top: 12px;
+    width: 200px;
+    height: 90px;
+}
+
+.dp-pv-front {
+    left: 60px;
+    top: 40px;
+    width: 210px;
+    height: 96px;
+}
+
+.dp-pv-title,
+.dp-pv-title-i {
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 4px;
+}
+
+.dp-pv-body {
+    padding: 6px;
+    font-size: 10px;
+}
+
+.dp-pv-hilight {
+    color: #ffffff;
+    display: inline-block;
+    padding: 1px 4px;
+    margin-top: 4px;
+    font-size: 10px;
+}
+
+/* Explorer view modes */
+.window-contents.view-list .folder-item,
+.window-contents.view-details .folder-item {
+    flex-direction: row;
+    width: 100%;
+    margin: 0;
+    padding: 1px 4px;
+    text-align: left;
+    align-items: center;
+    gap: 6px;
+}
+
+.window-contents.view-list .folder-icon,
+.window-contents.view-details .folder-icon {
+    width: 16px;
+    height: 16px;
+    margin-bottom: 0;
+}
+
+.window-contents.view-list .folder-meta {
+    display: none;
+}
+
+.window-contents.view-details .folder-meta {
+    margin-top: 0;
+    margin-left: auto;
+    text-align: right;
+    min-width: 110px;
+}
+
+.window-contents.view-list .folder-name,
+.window-contents.view-details .folder-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ */
+/* Unification pass: sysprops, imaging, cd player, wordpad, messenger, */
+/* online balloons.                                                    */
+/* ------------------------------------------------------------------ */
+
+.sysprops-text {
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.sysprops-text p {
+    margin-bottom: 10px;
+}
+
+.imgview-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.imgview-frame {
+    flex: 1;
+    overflow: auto;
+    background-color: #808080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
+.imgview-frame img {
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    max-width: none;
+    image-rendering: pixelated;
+}
+
+.cd-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    height: 100%;
+}
+
+.cd-controls {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+.wordpad-app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.wordpad-editor {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 8px 12px;
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+    overflow-y: auto;
+    outline: none;
+    cursor: text;
+    user-select: text;
+}
+
+.msgr-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.msgr-list {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border-top: 1px solid #808080;
+    border-bottom: 1px solid #dfdfdf;
+    margin: 4px 8px;
+    padding: 4px;
+    user-select: text;
+}
+
+.msgr-row {
+    margin-bottom: 6px;
+    font-size: 11px;
+}
+
+.msgr-who {
+    color: var(--w98-hilight, #000080);
+    font-weight: bold;
+}
+
+.msgr-text {
+    padding-left: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.w98-balloon {
+    position: fixed;
+    right: 8px;
+    bottom: 34px;
+    background-color: #ffffe1;
+    border: 1px solid #000000;
+    padding: 6px 10px;
+    font-size: 11px;
+    z-index: 43000;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.w98-balloon.visible {
+    opacity: 1;
+    transform: translateY(0);
+}

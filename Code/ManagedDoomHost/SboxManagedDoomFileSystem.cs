@@ -47,13 +47,16 @@ namespace ManagedDoom
 
         public static void WriteAllTextToData(string path, string text)
         {
-            FileSystem.Data.WriteAllText(GetDataPath(path), text ?? string.Empty);
+            var target = GetDataPath(path);
+            var separator = target.LastIndexOf('/');
+            if (separator > 0) FileSystem.Data.CreateDirectory(target[..separator]);
+            FileSystem.Data.WriteAllText(target, text ?? string.Empty);
         }
 
         public static void WriteAllBytesToData(string path, byte[] data)
         {
             var base64 = System.Convert.ToBase64String(data);
-            FileSystem.Data.WriteAllText(GetDataPath(path), base64);
+            WriteAllTextToData(path, base64);
         }
 
         public static byte[] ReadAllBytesFromData(string path)

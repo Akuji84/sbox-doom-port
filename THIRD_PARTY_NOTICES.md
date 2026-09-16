@@ -1,5 +1,18 @@
 ## Third-Party Notices
 
+### Bundled game data
+
+The distributed WADs are unmodified Freedoom Phase 1, Freedoom Phase 2 and
+FreeDM 0.13.0, copyright 2001-2024 Contributors to the Freedoom project.
+They use BSD-3-Clause, not the program's GPL license. Full notices and
+contributor/music credits are bundled in `Assets/doom/freedoom-COPYING.txt`,
+`freedm-COPYING.txt`, and the respective `CREDITS` and `CREDITS-MUSIC` files.
+They are accessible from the launcher's **Licenses & credits** button.
+Upstream: https://github.com/freedoom/freedoom/releases/tag/v0.13.0
+No endorsement by the Freedoom project or its contributors is implied.
+
+### Program code
+
 This project includes code derived from or based on:
 
 - Managed Doom

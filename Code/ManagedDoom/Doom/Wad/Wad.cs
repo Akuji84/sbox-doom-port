@@ -1,4 +1,10 @@
-﻿//
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28, 2026-07-03, 2026-08-24, 2026-09-03.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -31,6 +37,8 @@ namespace ManagedDoom
         private GameMode gameMode;
         private MissionPack missionPack;
         private bool isChexQuest;
+        private readonly List<string> contentHashes = new();
+        public string ContentIdentity { get; private set; }
 
         public Wad(params string[] fileNames)
         {
@@ -44,6 +52,9 @@ namespace ManagedDoom
                 {
                     AddFile(fileName);
                 }
+                // Ordered content hashes plus names: names affect Doom/Chex mode detection.
+                ContentIdentity = Convert.ToHexString(SaveDataHash.Compute(
+                    System.Text.Encoding.UTF8.GetBytes(string.Join("|", names) + ":" + string.Join("|", contentHashes)))).ToLowerInvariant();
 
                 isChexQuest = names.Contains("chex");
                 gameMode = GetGameMode();
@@ -62,7 +73,9 @@ namespace ManagedDoom
         {
             names.Add(SboxManagedDoomFileSystem.GetFileNameWithoutExtension(fileName).ToLower());
 
-            var stream = new MemoryStream(SboxManagedDoomFileSystem.ReadAllBytes(fileName), false);
+            var bytes = SboxManagedDoomFileSystem.ReadAllBytes(fileName);
+            contentHashes.Add(Convert.ToHexString(SaveDataHash.Compute(bytes)).ToLowerInvariant());
+            var stream = new MemoryStream(bytes, false);
             streams.Add(stream);
 
             string identification;

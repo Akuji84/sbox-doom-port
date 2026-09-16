@@ -99,7 +99,7 @@ public sealed class SboxManagedDoomSound : ManagedDoom.Audio.ISound
         var stream = new SoundStream( data.SampleRate );
         var handle = stream.Play();
         handle.ListenLocal = true;
-        handle.Volume = ( volume / (float)MaxVolume ) * sourceVolume * MaxOutputScale;
+        handle.Volume = ( volume / (float)MaxVolume ) * sourceVolume * MaxOutputScale * config.ShellMasterVolume * (config.ShellSfxEnabled ? 1.0f : 0.0f);
         handle.Pitch = pitch;
         stream.WriteData( data.Samples );
         stream.Close();

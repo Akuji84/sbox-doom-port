@@ -1,0 +1,39 @@
+.license-panel {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    z-index: 100;
+    pointer-events: all;
+    font-family: Consolas, monospace;
+    color: #eeeeee;
+
+    button {
+        background-color: #26343e;
+        color: #ffffff;
+        padding: 8px 12px;
+        margin: 3px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .license-window {
+        position: absolute;
+        right: 0;
+        top: 44px;
+        width: 850px;
+        max-width: 90vw;
+        height: 75vh;
+        padding: 20px;
+        background-color: #141c24;
+        border: 1px solid #78909c;
+        flex-direction: column;
+    }
+    .license-heading { font-size: 24px; margin-bottom: 12px; }
+    .license-tabs { flex-wrap: wrap; flex-shrink: 0; margin-bottom: 12px; }
+    .license-content {
+        flex-grow: 1;
+        flex-shrink: 1;
+        overflow: scroll;
+        white-space: pre-wrap;
+        font-size: 14px;
+    }
+}

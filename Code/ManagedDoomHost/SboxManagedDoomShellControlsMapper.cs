@@ -6,8 +6,7 @@ namespace Sandbox;
 
 // Applies the CONTROLS.EXE bindings/settings the win98 shell sends with a
 // launch onto a freshly created ManagedDoom Config. Unknown or missing
-// values always fall back to the config's existing binding, so a partial
-// or malformed payload can never leave the player without controls.
+// values retain existing bindings. Explicit empty values mean unbound.
 internal static class SboxManagedDoomShellControlsMapper
 {
     public static void Apply( Config config, SboxManagedDoomShellBridgeService.ShellLaunchConfig shellConfig )
@@ -20,6 +19,7 @@ internal static class SboxManagedDoomShellControlsMapper
         var bindings = shellConfig.Controls?.Bindings;
         if ( bindings is not null )
         {
+            config.key_automap = MapBinding( bindings, "automap", config.key_automap );
             config.key_forward = MapBinding( bindings, "forward", config.key_forward );
             config.key_backward = MapBinding( bindings, "backward", config.key_backward );
             config.key_strafeleft = MapBinding( bindings, "strafeLeft", config.key_strafeleft );
@@ -45,31 +45,25 @@ internal static class SboxManagedDoomShellControlsMapper
             config.mouse_sensitivity = Math.Clamp( settings.MouseSensitivity, 1, 9 );
             config.game_alwaysrun = settings.AlwaysRun;
             config.video_displaymessage = settings.ShowMessages;
-            if ( !settings.Music )
-            {
-                config.audio_musicvolume = 0;
-            }
-            if ( !settings.Sfx )
-            {
-                config.audio_soundvolume = 0;
-            }
+            config.ShellMusicEnabled = settings.Music;
+            config.ShellSfxEnabled = settings.Sfx;
         }
 
         if ( shellConfig.ShellVolume is double shellVolume )
         {
             var scale = Math.Clamp( shellVolume, 0.0, 1.0 );
-            config.audio_soundvolume = Math.Clamp( (int)Math.Round( config.audio_soundvolume * scale ), 0, 15 );
-            config.audio_musicvolume = Math.Clamp( (int)Math.Round( config.audio_musicvolume * scale ), 0, 15 );
+            config.ShellMasterVolume = double.IsFinite(scale) ? (float)scale : 1.0f;
         }
     }
 
     private static KeyBinding MapBinding( Dictionary<string, string> bindings, string name, KeyBinding fallback )
     {
-        if ( !bindings.TryGetValue( name, out var label ) || string.IsNullOrWhiteSpace( label ) )
+        if ( !bindings.TryGetValue( name, out var label ) || label is null )
         {
             return fallback;
         }
 
+        if ( string.IsNullOrWhiteSpace( label ) ) return KeyBinding.Empty;
         var trimmed = label.Trim();
 
         if ( trimmed.StartsWith( "Mouse ", StringComparison.OrdinalIgnoreCase ) )

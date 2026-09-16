@@ -1,0 +1,59 @@
+@using System
+@using System.Text
+@using Sandbox.UI
+@inherits Panel
+
+<root class="license-panel">
+    <button class="license-toggle" onclick="@Toggle">Licenses &amp; credits</button>
+    @if ( _open )
+    {
+        <div class="license-window">
+            <div class="license-heading">Licenses &amp; credits</div>
+            <div class="license-tabs">
+                @foreach ( var notice in Notices )
+                {
+                    <button onclick="@(() => Show( notice.Path ))">@notice.Title</button>
+                }
+                <button onclick="@Toggle">Close</button>
+            </div>
+            <div class="license-content">@_text</div>
+        </div>
+    }
+</root>
+
+@code {
+    private bool _open;
+    private string _text = string.Empty;
+    private static readonly (string Title, string Path)[] Notices =
+    {
+        ("About", "doom/NOTICES.txt"),
+        ("Freedoom license", "doom/freedoom-COPYING.txt"),
+        ("Freedoom credits", "doom/freedoom-CREDITS.txt"),
+        ("Freedoom music", "doom/freedoom-CREDITS-MUSIC.txt"),
+        ("FreeDM license", "doom/freedm-COPYING.txt"),
+        ("FreeDM credits", "doom/freedm-CREDITS.txt"),
+        ("FreeDM music", "doom/freedm-CREDITS-MUSIC.txt"),
+        ("GPL", "doom/GPL-2.0.txt"),
+        ("Other code", "doom/THIRD_PARTY_NOTICES.txt")
+    };
+
+    private void Toggle()
+    {
+        _open = !_open;
+        if ( _open ) Show( Notices[0].Path );
+        StateHasChanged();
+    }
+
+    private void Show( string path )
+    {
+        try
+        {
+            _text = Encoding.UTF8.GetString( ManagedDoom.SboxManagedDoomFileSystem.ReadAllBytes( path ) );
+        }
+        catch ( Exception )
+        {
+            _text = "This notice is missing from the installed package. Please report this packaging problem. Source repository: https://github.com/Akuji84/sbox-doom-port";
+        }
+        StateHasChanged();
+    }
+}

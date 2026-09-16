@@ -1,3 +1,8 @@
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28, 2026-07-05.
+// Original copyright and GPL terms below remain unchanged.
+
 //
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka

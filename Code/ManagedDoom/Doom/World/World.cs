@@ -1,4 +1,10 @@
-﻿//
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -138,6 +144,25 @@ namespace ManagedDoom
             dummy = new Mobj(this);
 
             options.Music.StartMusic(Map.GetMapBgm(options), true);
+        }
+
+        internal bool SavedDoneFirstTic { get => doneFirstTic; set => doneFirstTic = value; }
+        internal bool SavedSecretExit { get => secretExit; set => secretExit = value; }
+        internal bool SavedCompleted { get => completed; set => completed = value; }
+
+        internal void RebindAfterLoad(GameOptions loadedOptions, DoomGame owner)
+        {
+            options = loadedOptions;
+            random = loadedOptions.Random;
+            game = owner;
+        }
+
+        internal void PrepareLoadedWorld()
+        {
+            thinkers.UpdateFrameInterpolationInfo();
+            foreach (var sector in map.Sectors) sector.UpdateFrameInterpolationInfo();
+            foreach (var player in options.Players)
+                if (player.InGame) player.UpdateFrameInterpolationInfo();
         }
 
         public UpdateResult Update()

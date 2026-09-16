@@ -1,4 +1,10 @@
-﻿//
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -31,6 +37,7 @@ namespace ManagedDoom
         private int levelTimeCount;
 
         private Button[] buttonList;
+        internal Button[] SavedButtons => buttonList;
 
         private int[] textureTranslation;
         private int[] flatTranslation;

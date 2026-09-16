@@ -1,4 +1,10 @@
-﻿//
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28, 2026-03-29, 2026-04-30.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -107,6 +113,34 @@ namespace ManagedDoom
             gameVersion = content.Wad.GameVersion;
             gameMode = content.Wad.GameMode;
             missionPack = content.Wad.MissionPack;
+        }
+
+        internal GameOptions CreateLoadOptions()
+        {
+            var copy = new GameOptions
+            {
+                GameVersion = GameVersion, GameMode = GameMode, MissionPack = MissionPack,
+                ConsolePlayer = ConsolePlayer, Episode = Episode, Map = Map, Skill = Skill,
+                NetGame = NetGame, Deathmatch = Deathmatch, FastMonsters = FastMonsters,
+                RespawnMonsters = RespawnMonsters, NoMonsters = NoMonsters
+            };
+            for (var i = 0; i < players.Length; i++) copy.players[i].InGame = players[i].InGame;
+            return copy;
+        }
+
+        internal void AdoptLoadedState(GameOptions loaded)
+        {
+            skill = loaded.skill;
+            episode = loaded.episode;
+            map = loaded.map;
+            netGame = loaded.netGame;
+            deathmatch = loaded.deathmatch;
+            fastMonsters = loaded.fastMonsters;
+            respawnMonsters = loaded.respawnMonsters;
+            noMonsters = loaded.noMonsters;
+            random.Index = loaded.random.Index;
+            intermissionInfo = loaded.intermissionInfo;
+            Array.Copy(loaded.players, players, players.Length);
         }
 
         public GameVersion GameVersion

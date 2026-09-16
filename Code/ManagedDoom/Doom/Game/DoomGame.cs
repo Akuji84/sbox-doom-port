@@ -1,4 +1,10 @@
-﻿//
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28, 2026-03-29, 2026-05-23, 2026-09-03.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -315,7 +321,7 @@ namespace ManagedDoom
 			gameAction = GameAction.Nothing;
 			try
 			{
-				SaveAndLoad.Load(this, SaveAndLoad.GetSlotPath(loadGameSlotNumber));
+				SaveAndLoad.Load(this, SaveAndLoad.GetSlotPath(loadGameSlotNumber, content.Wad.ContentIdentity));
 				options.AnalyticsListener?.OnLoadGame(loadGameSlotNumber);
 			}
 			catch
@@ -337,7 +343,7 @@ namespace ManagedDoom
 
 			try
 			{
-				SaveAndLoad.Save(this, saveGameDescription, SaveAndLoad.GetSlotPath(saveGameSlotNumber));
+				SaveAndLoad.Save(this, saveGameDescription, SaveAndLoad.GetSlotPath(saveGameSlotNumber, content.Wad.ContentIdentity));
 				world.ConsolePlayer.SendMessage("Game saved.");
 				options.AnalyticsListener?.OnSaveGame(saveGameSlotNumber);
 			}
@@ -641,6 +647,19 @@ namespace ManagedDoom
 			gameTic = restoredGameTic;
 		}
 
+
+        internal GameContent Content => content;
+
+        internal void AdoptLoadedGame(DoomGame loaded)
+        {
+            options.AdoptLoadedState(loaded.options);
+            loaded.world.RebindAfterLoad(options, this);
+            world = loaded.world;
+            RestoreAfterLoad(loaded.gameTic);
+            options.Sound.Reset();
+            options.UserInput.Reset();
+            options.Music.StartMusic(Map.GetMapBgm(options), true);
+        }
 
 		public GameOptions Options => options;
 		public GameState State => gameState;

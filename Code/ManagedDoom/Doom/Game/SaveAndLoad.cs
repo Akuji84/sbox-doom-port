@@ -1,3 +1,9 @@
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28, 2026-08-24.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
 //
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
@@ -27,17 +33,17 @@ namespace ManagedDoom
         private static readonly byte[] VersionTag = new byte[]
         {
             (byte)'S', (byte)'B', (byte)'O', (byte)'X',
-            (byte)'0', (byte)'0', (byte)'1', 0
+            (byte)'0', (byte)'0', (byte)'2', 0
         };
 
-        public static string GetSlotPath(int slotNumber)
+        public static string GetSlotPath(int slotNumber, string contentIdentity)
         {
-            return $"{SaveGameDirectory}/slot{slotNumber}.dsg";
+            return $"{SaveGameDirectory}/{contentIdentity}/slot{slotNumber}.dsg";
         }
 
-        public static bool SlotExists(int slotNumber)
+        public static bool SlotExists(int slotNumber, string contentIdentity)
         {
-            return SboxManagedDoomFileSystem.DataFileExists(GetSlotPath(slotNumber));
+            return SboxManagedDoomFileSystem.DataFileExists(GetSlotPath(slotNumber, contentIdentity));
         }
 
         // Thinker type discriminators.
@@ -69,6 +75,14 @@ namespace ManagedDoom
             // Header.
             w.WriteString(description, DescriptionSize);
             w.WriteBytes(VersionTag);
+            var identity = game.Content.Wad.ContentIdentity;
+            w.WriteInt32(identity.Length);
+            w.WriteString(identity, identity.Length);
+            w.WriteBool(options.NetGame);
+            w.WriteInt32(options.Deathmatch);
+            w.WriteBool(options.FastMonsters);
+            w.WriteBool(options.RespawnMonsters);
+            w.WriteBool(options.NoMonsters);
             w.WriteByte((byte)options.Skill);
             w.WriteByte((byte)options.Episode);
             w.WriteByte((byte)options.Map);
@@ -80,6 +94,9 @@ namespace ManagedDoom
             w.WriteInt32(world.TotalKills);
             w.WriteInt32(world.TotalItems);
             w.WriteInt32(world.TotalSecrets);
+            w.WriteBool(world.SavedDoneFirstTic);
+            w.WriteBool(world.SavedSecretExit);
+            w.WriteBool(world.SavedCompleted);
 
             // Assign mobj indices for cross-reference resolution.
             var mobjTable = new Dictionary<Mobj, int>();
@@ -171,6 +188,7 @@ namespace ManagedDoom
                 w.WriteInt32(sector.CeilingFlat);
                 w.WriteInt16((short)sector.LightLevel);
                 w.WriteInt16((short)sector.Special);
+                w.WriteInt32(WriteMobjRef(mobjTable, sector.SoundTarget));
             }
 
             // LineDefs.
@@ -182,6 +200,26 @@ namespace ManagedDoom
                 w.WriteInt16((short)line.Flags);
                 w.WriteInt16((short)line.Special);
                 w.WriteInt16(line.Tag);
+            }
+
+            // Sidedef state and pending button resets belong to the saved world.
+            w.WriteInt32(map.Sides.Length);
+            foreach (var side in map.Sides)
+            {
+                w.WriteInt32(side.TextureOffset.Data);
+                w.WriteInt32(side.RowOffset.Data);
+                w.WriteInt32(side.TopTexture);
+                w.WriteInt32(side.MiddleTexture);
+                w.WriteInt32(side.BottomTexture);
+            }
+            w.WriteInt32(world.Specials.SavedButtons.Length);
+            foreach (var button in world.Specials.SavedButtons)
+            {
+                w.WriteInt32(button.Timer);
+                if (button.Timer <= 0) continue;
+                w.WriteInt32(Array.IndexOf(lines, button.Line));
+                w.WriteInt32((int)button.Position);
+                w.WriteInt32(button.Texture);
             }
 
             // Thinkers.
@@ -235,6 +273,8 @@ namespace ManagedDoom
             }
             w.WriteByte(ThinkerEnd);
 
+            var payload = w.ToArray();
+            w.WriteBytes(SaveDataHash.Compute(payload));
             return w.ToArray();
         }
 
@@ -247,6 +287,22 @@ namespace ManagedDoom
         // savegames and for co-op state resync (both peers load the same
         // bytes so the simulations come out bit-identical).
         public static void LoadFromMemory(DoomGame game, byte[] data)
+        {
+            if (data is null || data.Length < DescriptionSize + 8 + 32 || data.Length > 16 * 1024 * 1024)
+                throw new Exception("Invalid save size.");
+            var payload = new byte[data.Length - 32];
+            Array.Copy(data, payload, payload.Length);
+            var digest = SaveDataHash.Compute(payload);
+            for (var i = 0; i < digest.Length; i++)
+                if (digest[i] != data[payload.Length + i]) throw new Exception("Save checksum mismatch (legacy saves are not supported).");
+            var staged = new DoomGame(game.Content, game.Options.CreateLoadOptions());
+            RestoreValidatedPayload(staged, payload);
+            staged.World.PrepareLoadedWorld();
+            // Nothing above mutates the running world's options, players or callbacks.
+            game.AdoptLoadedGame(staged);
+        }
+
+        private static void RestoreValidatedPayload(DoomGame game, byte[] data)
         {
             var r = new SaveReader(data);
             var options = game.Options;
@@ -263,17 +319,33 @@ namespace ManagedDoom
                 }
             }
 
+            var identityLength = r.ReadInt32();
+            if (identityLength < 1 || identityLength > 4096) throw new Exception("Invalid content identity.");
+            if (r.ReadString(identityLength) != game.Content.Wad.ContentIdentity)
+                throw new Exception("This save belongs to different WAD content.");
+            options.NetGame = r.ReadBool();
+            options.Deathmatch = r.ReadInt32();
+            if (options.Deathmatch < 0 || options.Deathmatch > 2) throw new Exception("Invalid game mode.");
+            options.FastMonsters = r.ReadBool();
+            options.RespawnMonsters = r.ReadBool();
+            options.NoMonsters = r.ReadBool();
             var skill = (GameSkill)r.ReadByte();
             var episode = r.ReadByte();
             var map = r.ReadByte();
             var gameTic = r.ReadInt32();
             var rngIndex = r.ReadByte();
+            if ((int)skill < 0 || (int)skill > 4 || episode < 1 || map < 1 || gameTic < 0)
+                throw new Exception("Invalid save header.");
 
             // World state.
             var levelTime = r.ReadInt32();
             var totalKills = r.ReadInt32();
             var totalItems = r.ReadInt32();
             var totalSecrets = r.ReadInt32();
+            var doneFirstTic = r.ReadBool();
+            var secretExit = r.ReadBool();
+            var completed = r.ReadBool();
+            if (levelTime < 0 || totalKills < 0 || totalItems < 0 || totalSecrets < 0) throw new Exception("Invalid saved world totals.");
 
             // Rebuild the world from WAD for this map.
             options.Skill = skill;
@@ -289,6 +361,9 @@ namespace ManagedDoom
             world.TotalKills = totalKills;
             world.TotalItems = totalItems;
             world.TotalSecrets = totalSecrets;
+            world.SavedDoneFirstTic = doneFirstTic;
+            world.SavedSecretExit = secretExit;
+            world.SavedCompleted = completed;
             options.Random.Index = rngIndex;
 
             // Clear existing thinkers and sector/blockmap links before restoring.
@@ -375,7 +450,9 @@ namespace ManagedDoom
             // Sectors.
             var sectorCount = r.ReadInt32();
             var sectors = mapData.Sectors;
-            for (var i = 0; i < sectorCount && i < sectors.Length; i++)
+            var sectorSoundRefs = new int[sectors.Length];
+            if (sectorCount != sectors.Length) throw new Exception("Save sector count mismatch.");
+            for (var i = 0; i < sectorCount; i++)
             {
                 sectors[i].FloorHeight = new Fixed(r.ReadInt32());
                 sectors[i].CeilingHeight = new Fixed(r.ReadInt32());
@@ -383,16 +460,43 @@ namespace ManagedDoom
                 sectors[i].CeilingFlat = r.ReadInt32();
                 sectors[i].LightLevel = r.ReadInt16();
                 sectors[i].Special = (SectorSpecial)r.ReadInt16();
+                sectorSoundRefs[i] = r.ReadInt32();
             }
 
             // LineDefs.
             var lineCount = r.ReadInt32();
             var lines = mapData.Lines;
-            for (var i = 0; i < lineCount && i < lines.Length; i++)
+            if (lineCount != lines.Length) throw new Exception("Save linedef count mismatch.");
+            for (var i = 0; i < lineCount; i++)
             {
                 lines[i].Flags = (LineFlags)r.ReadInt16();
                 lines[i].Special = (LineSpecial)r.ReadInt16();
                 lines[i].Tag = r.ReadInt16();
+            }
+
+            var sideCount = r.ReadInt32();
+            if (sideCount != mapData.Sides.Length) throw new Exception("Save sidedef count mismatch.");
+            foreach (var side in mapData.Sides)
+            {
+                side.TextureOffset = new Fixed(r.ReadInt32());
+                side.RowOffset = new Fixed(r.ReadInt32());
+                side.TopTexture = r.ReadInt32();
+                side.MiddleTexture = r.ReadInt32();
+                side.BottomTexture = r.ReadInt32();
+            }
+            var buttons = world.Specials.SavedButtons;
+            if (r.ReadInt32() != buttons.Length) throw new Exception("Save button count mismatch.");
+            foreach (var button in buttons)
+            {
+                button.Clear();
+                button.Timer = r.ReadInt32();
+                if (button.Timer < 0) throw new Exception("Invalid button timer.");
+                if (button.Timer == 0) continue;
+                button.Line = lines[r.ReadInt32()];
+                button.Position = (ButtonPosition)r.ReadInt32();
+                if ((int)button.Position < 0 || (int)button.Position > 2) throw new Exception("Invalid button position.");
+                button.Texture = r.ReadInt32();
+                button.SoundOrigin = button.Line.SoundOrigin;
             }
 
             // Thinkers.
@@ -425,7 +529,11 @@ namespace ManagedDoom
                         {
                             var plat = ReadPlatform(r, world);
                             world.Thinkers.Add(plat);
-                            plat.Sector.SpecialData = plat;
+                            if (plat.ThinkerState != ThinkerState.Removed)
+                            {
+                                plat.Sector.SpecialData = plat;
+                                world.SectorAction.AddActivePlatform(plat);
+                            }
                         }
                         break;
 
@@ -479,12 +587,29 @@ namespace ManagedDoom
                 }
             }
 
+            if (!r.AtEnd) throw new Exception("Unexpected trailing save data.");
+
             // Second pass: resolve Mobj cross-references.
             for (var i = 0; i < mobjList.Count; i++)
             {
                 var mobj = mobjList[i];
                 mobj.Target = ResolveMobjRef(mobjList, targetRefs[i]);
                 mobj.Tracer = ResolveMobjRef(mobjList, tracerRefs[i]);
+            }
+
+            for (var i = 0; i < sectors.Length; i++)
+            {
+                sectors[i].SoundTarget = ResolveMobjRef(mobjList, sectorSoundRefs[i]);
+                if (sectors[i].FloorFlat < 0 || sectors[i].FloorFlat >= game.Content.Flats.Count
+                    || sectors[i].CeilingFlat < 0 || sectors[i].CeilingFlat >= game.Content.Flats.Count)
+                    throw new Exception("Invalid saved flat.");
+            }
+            foreach (var side in mapData.Sides)
+            {
+                if (side.TopTexture < -1 || side.TopTexture >= game.Content.Textures.Count
+                    || side.MiddleTexture < -1 || side.MiddleTexture >= game.Content.Textures.Count
+                    || side.BottomTexture < -1 || side.BottomTexture >= game.Content.Textures.Count)
+                    throw new Exception("Invalid saved texture.");
             }
 
             // Restore player-to-mobj links.
@@ -495,6 +620,12 @@ namespace ManagedDoom
 
                 player.Mobj = ResolveMobjRef(mobjList, playerMobjRefs[i]);
                 player.Attacker = ResolveMobjRef(mobjList, playerAttackerRefs[i]);
+
+                if (player.Mobj == null) throw new Exception("Active player has no saved object.");
+                if ((int)player.ReadyWeapon < 0 || (int)player.ReadyWeapon >= (int)WeaponType.Count
+                    || ((int)player.PendingWeapon != (int)WeaponType.NoChange
+                        && ((int)player.PendingWeapon < 0 || (int)player.PendingWeapon >= (int)WeaponType.Count)))
+                    throw new Exception("Invalid saved player weapon.");
 
                 if (player.Mobj != null)
                 {
@@ -514,6 +645,7 @@ namespace ManagedDoom
         {
             // Remove all thinkers from the linked list.
             world.Thinkers.Reset();
+            world.SectorAction.ClearActiveMoversForLoad();
 
             // Clear sector thing lists and specialData.
             var sectors = world.Map.Sectors;
@@ -551,7 +683,8 @@ namespace ManagedDoom
 
         private static Mobj ResolveMobjRef(List<Mobj> mobjList, int index)
         {
-            if (index < 0 || index >= mobjList.Count) return null;
+            if (index == -1) return null;
+            if (index < 0 || index >= mobjList.Count) throw new Exception("Invalid object reference.");
             return mobjList[index];
         }
 
@@ -747,7 +880,8 @@ namespace ManagedDoom
 
             // Player number (resolved later).
             var playerNum = r.ReadInt32();
-            // Player link is set after all thinkers are loaded.
+            if (playerNum < -1 || playerNum >= Player.MaxPlayerCount) throw new Exception("Invalid object player reference.");
+            if (playerNum >= 0) mobj.Player = world.Options.Players[playerNum];
 
             mobj.LastLook = r.ReadInt32();
 
@@ -954,6 +1088,7 @@ namespace ManagedDoom
         {
             private byte[] data;
             private int pos;
+            public bool AtEnd => pos == data.Length;
 
             public SaveReader(byte[] data)
             {
@@ -968,7 +1103,9 @@ namespace ManagedDoom
 
             public bool ReadBool()
             {
-                return data[pos++] != 0;
+                var value = ReadByte();
+                if (value > 1) throw new Exception("Invalid boolean in save.");
+                return value == 1;
             }
 
             public short ReadInt16()

@@ -21,6 +21,7 @@
         <div class="shell-host">
             <WebPanel class="shell-webpanel" Url="@_shellSurfaceUrl" />
         </div>
+        <SboxManagedDoomLicenses />
     }
     else if ( _frameTexture is not null )
     {
@@ -181,12 +182,7 @@
     {
         new( "Freedoom Phase 1", DefaultWadPath ),
         new( "Freedoom Phase 2", "doom/freedoom2.wad" ),
-        new( "FreeDM", "doom/freedm.wad" ),
-        new( "DOOM", "doom/doom.wad" ),
-        new( "REKKR", "doom/rekkrsa.wad" ),
-        new( "HacX", "doom/hacx.wad" ),
-        new( "Chex Quest", "doom/chex.wad" ),
-        new( "Harmony", "doom/freedoom2.wad;doom/harmonyc.wad" )
+        new( "FreeDM", "doom/freedm.wad" )
     };
     private string _selectedWadPath = DefaultWadPath;
     private string _shellSurfaceUrl = string.Empty;
@@ -227,11 +223,14 @@
 
         try
         {
+            if ( !_availableWads.Any( option => string.Equals( option.Path, wadPath, StringComparison.OrdinalIgnoreCase ) ) )
+            {
+                throw new InvalidOperationException( "This release includes only Freedoom Phase 1, Freedoom Phase 2 and FreeDM. Please update the launcher or join a host using the same release." );
+            }
             Log.Info( $"[ManagedDoomHost] Bootstrap requested. wad={wadPath} pendingRequest={_pendingShellLaunchRequestId}" );
             _launchSurfaceState = LaunchSurfaceState.LaunchingDoom;
             _error = null;
-            // A ';'-separated path list loads the first entry as the IWAD and
-            // the rest as PWADs on top of it (e.g. Harmony over Freedoom 2).
+            // The allowlist above limits this release to the three bundled IWADs.
             var wadPaths = wadPath.Split( ';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries );
             var argList = new List<string> { "-iwad", wadPaths[0] };
             if ( wadPaths.Length > 1 )
@@ -416,6 +415,7 @@
 
             UpdatePvpRuntimeHooks();
 
+            _input?.CaptureFrameInput(!SboxManagedDoomMultiplayerPanelService.IsOpen && !_doom.Menu.Active);
             _tickAccumulator += Time.Delta;
             DispatchKeyEvents();
             PumpBugReportSubmission();
@@ -756,59 +756,10 @@
 
     private static void RegisterPngPatches( ManagedDoom.GameContent content )
     {
-        var playpal = content.Wad.ReadLump( "PLAYPAL" );
-
-        if ( HasRestyledMenuFont( content ) )
-        {
-            // REKKR ships its own big-font M_MULTI lump; re-register it so a
-            // custom patch left over from another WAD can't shadow it. The two
-            // labels REKKR lacks are stitched from its own menu lettering.
-            ManagedDoom.PatchCache.RegisterCustom( "M_MULTI", ManagedDoom.Patch.FromWad( content.Wad, "M_MULTI" ) );
-            RegisterOnePngPatch( "M_LEADB", "doom/rekkr_leaderboards.png", playpal );
-            RegisterOnePngPatch( "M_RPBUG", "doom/rekkr_bugreport.png", playpal );
-            return;
-        }
-
-        // Build the labels from the WAD's own font so every game's custom menu
-        // entries match its native lettering. The doom-styled PNGs remain only
-        // as a fallback for WADs without a usable STCFN font, because leaving a
-        // name unregistered would leak the previous WAD's patch from the static
-        // cache.
-        if ( !RegisterGeneratedDoomFontPatch( content.Wad, "M_MULTI", "MULTIPLAYER" ) )
-        {
-            RegisterOnePngPatch( "M_MULTI", "doom/multiplayerbutton.png", playpal );
-        }
-
-        if ( !RegisterGeneratedDoomFontPatch( content.Wad, "M_RPBUG", "BUG REPORT" ) )
-        {
-            RegisterOnePngPatch( "M_RPBUG", "doom/reportbug.png", playpal );
-        }
-
-        if ( !RegisterGeneratedDoomFontPatch( content.Wad, "M_LEADB", "LEADERBOARDS" ) )
-        {
-            RegisterOnePngPatch( "M_LEADB", "doom/leaderboardtext.png", playpal );
-        }
-    }
-
-    private static void RegisterOnePngPatch( string name, string pngPath, byte[] playpal )
-    {
-        try
-        {
-            var pngBytes = ManagedDoom.SboxManagedDoomFileSystem.ReadAllBytes( pngPath );
-            var patch = ManagedDoom.PngPatchLoader.Load( name, pngBytes, playpal );
-            ManagedDoom.PatchCache.RegisterCustom( name, patch );
-        }
-        catch ( Exception ex )
-        {
-            Log.Warning( $"[ManagedDoomHost] Failed to load custom patch {name}: {ex}" );
-        }
-    }
-
-    private static bool HasRestyledMenuFont( ManagedDoom.GameContent content )
-    {
-        // Total conversions like REKKR restyle the whole menu, so text generated
-        // from their own STCFN font blends in where the Doom-styled PNGs clash.
-        return content.Wad.Names.Any( name => name.StartsWith( "rekkr", StringComparison.OrdinalIgnoreCase ) );
+        // Use only the bundled Freedoom font; no separately sourced Doom/REKKR art.
+        RegisterGeneratedDoomFontPatch( content.Wad, "M_MULTI", "MULTIPLAYER" );
+        RegisterGeneratedDoomFontPatch( content.Wad, "M_RPBUG", "BUG REPORT" );
+        RegisterGeneratedDoomFontPatch( content.Wad, "M_LEADB", "LEADERBOARDS" );
     }
 
     private static bool RegisterGeneratedDoomFontPatch( ManagedDoom.Wad wad, string patchName, string text )
@@ -967,6 +918,10 @@
         PostPunctuationKeys();
         PostShiftedSymbolKeys();
 
+        if (_input is not null && _input.UpdateAutomapKey(out var automapDown))
+        {
+            _doom.PostEvent(new ManagedDoom.DoomEvent(automapDown ? ManagedDoom.EventType.KeyDown : ManagedDoom.EventType.KeyUp, ManagedDoom.DoomKey.Tab));
+        }
         PostKey( "TAB", ManagedDoom.DoomKey.Escape );
         PostKey( "ENTER", ManagedDoom.DoomKey.Enter );
         PostKey( "RETURN", ManagedDoom.DoomKey.Enter );
@@ -1906,6 +1861,7 @@
 
         if ( !coopMatchInProgress )
         {
+            _coopProgress.Reset();
             _coopPeerMissingSinceUtc = DateTime.MinValue;
             return;
         }
@@ -1939,6 +1895,12 @@
         if ( peerPresent )
         {
             _coopPeerMissingSinceUtc = DateTime.MinValue;
+            if (_coopProgress.HasTimedOut(DateTime.UtcNow, session.CoopLaunchSerial, _nextSharedSimulationPvpTic,
+                session.CoopResyncActive, session.CoopResyncSerial, session.CountReceivedCoopResyncChunks()))
+            {
+                session.StopCoopWithReasonRpc("PLAYER STOPPED RESPONDING");
+                EndCoopMatchLocally("CO-OP MATCH ENDED: PLAYER STOPPED RESPONDING.", "CO-OP MATCH ENDED: PLAYER STOPPED RESPONDING.");
+            }
             return;
         }
 
@@ -1972,6 +1934,7 @@
     {
         _coopPeerMissingSinceUtc = DateTime.MinValue;
         _coopResyncStartedUtc = DateTime.MinValue;
+        _coopProgress.Reset();
         _outgoingCoopResyncChunks.Clear();
         _showCoopRestartNoticeWhenLoaded = false;
         _ignoreStartedMultiplayerMatch = true;
@@ -2181,6 +2144,7 @@
         Log.Warning( $"[MP-COOP] Resync failed; restarting level {mapName} for both peers ({_coopDesyncLevelRestarts}/{MaxCoopDesyncLevelRestartsPerMatch} restarts used)." );
 
         _coopResyncStartedUtc = DateTime.MinValue;
+        _coopProgress.Reset();
         _outgoingCoopResyncChunks.Clear();
         _tickAccumulator = 0;
 
@@ -2278,6 +2242,11 @@
     private void TryEnterMultiplayerPvpMatch()
     {
         var session = _multiplayerSession ?? SboxManagedDoomMultiplayerSessionComponent.Current;
+        // A launch serial identifies a round even when its map is unchanged.
+        if ( _multiplayerModeController.ShouldRestartPvp(session) )
+        {
+            ResetMultiplayerGameplayOverrides();
+        }
         if ( !_multiplayerModeController.TryCreatePvpLaunchPlan( _doom, _input, session, Networking.IsHost, out var launchPlan ) )
         {
             return;
@@ -2721,6 +2690,7 @@
     // 2 proved too tight and stalls the sim on every late packet.
     private const int SharedSimulationPvpCommandLeadTics = 4;
     private bool _coopMenuSelectionArmed;
+    private readonly SboxManagedDoomProgressWatchdog _coopProgress = new();
     private DateTime _coopPeerMissingSinceUtc = DateTime.MinValue;
     private const int MaxCoopResyncAttemptsPerMatch = 3;
     private const int MaxCoopDesyncLevelRestartsPerMatch = 1;

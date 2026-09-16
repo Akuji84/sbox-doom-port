@@ -1,0 +1,30 @@
+s&Doom — bundled content and licenses
+
+This package includes Freedoom Phase 1, Freedoom Phase 2 and FreeDM,
+unmodified release 0.13.0, by the contributors to the Freedoom project.
+Copyright 2001-2024 Contributors to the Freedoom project.
+
+Their BSD-3-Clause license permits commercial redistribution and modification
+subject to its conditions. See freedoom-COPYING.txt and freedm-COPYING.txt for
+the complete copyright notice, conditions and disclaimer. Contributor and music
+credits accompany each release in the corresponding CREDITS files.
+Upstream: https://github.com/freedoom/freedoom/releases/tag/v0.13.0
+
+The Freedoom project and its contributors do not endorse this port.
+No endorsement by id Software, Bethesda, or other original game owners is implied.
+These game data licenses are separate from the program's source-code license.
+
+This program includes Managed Doom, copyright 1993-1996 id Software, Inc.
+and 2019-2020 Nobuaki Tanaka, under GNU GPL version 2 or later.
+You may redistribute and modify this program under GNU GPL version 2 or later.
+It is provided WITHOUT ANY WARRANTY, including MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See GPL-2.0.txt for the complete license.
+MeltySynth and its upstream notices are in THIRD_PARTY_NOTICES.txt.
+
+Project source: https://github.com/Akuji84/sbox-doom-port
+
+Source release: sdoom-source-2026-09-16
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-source-2026-09-16
+Source ZIP:
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-source-2026-09-16.zip
+Original integrated game/host code: GNU GPL version 2 or later.

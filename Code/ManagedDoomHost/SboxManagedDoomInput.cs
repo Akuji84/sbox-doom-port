@@ -10,6 +10,23 @@ public sealed class SboxManagedDoomInput : ManagedDoom.UserInput.IUserInput
     private readonly bool[] weaponKeys;
     private int turnHeld;
     private bool mouseGrabbed;
+    private double pendingMouseX;
+    private bool automapDown;
+
+    // Sample exactly once per host frame, including frames with no Doom tick.
+    public void CaptureFrameInput(bool enabled)
+    {
+        if (!enabled || !mouseGrabbed) { pendingMouseX = 0; return; }
+        pendingMouseX += Math.Clamp(Input.MouseDelta.x, -MaxMouseDeltaSpike, MaxMouseDeltaSpike) * 0.5 * MouseSensitivity;
+    }
+
+    public bool UpdateAutomapKey(out bool down)
+    {
+        down = IsPressed(config.key_automap);
+        var changed = down != automapDown;
+        automapDown = down;
+        return changed;
+    }
 
     public SboxManagedDoomInput( ManagedDoom.Config config )
     {
@@ -127,19 +144,9 @@ public sealed class SboxManagedDoomInput : ManagedDoom.UserInput.IUserInput
             }
         }
 
-        var mouseDelta = mouseGrabbed ? Input.MouseDelta : Vector2.Zero;
-        var mouseScale = 0.5f * MouseSensitivity;
-        if ( MathF.Abs( mouseDelta.x ) > MaxMouseDeltaSpike )
-        {
-            mouseDelta.x = MathF.Sign( mouseDelta.x ) * MaxMouseDeltaSpike;
-        }
-
-        if ( MathF.Abs( mouseDelta.y ) > MaxMouseDeltaSpike )
-        {
-            mouseDelta.y = MathF.Sign( mouseDelta.y ) * MaxMouseDeltaSpike;
-        }
-
-        var mx = (int)MathF.Round( mouseScale * mouseDelta.x );
+        // Consume once; retain sub-unit movement instead of rounding it away per frame.
+        var mx = (int)Math.Clamp(Math.Truncate(pendingMouseX), -4095, 4095);
+        pendingMouseX -= mx;
         if ( strafe )
         {
             side += mx * 2;
@@ -158,6 +165,9 @@ public sealed class SboxManagedDoomInput : ManagedDoom.UserInput.IUserInput
 
     public void Reset()
     {
+        pendingMouseX = 0;
+        turnHeld = 0;
+        automapDown = false;
     }
 
     public void GrabMouse()
@@ -168,6 +178,7 @@ public sealed class SboxManagedDoomInput : ManagedDoom.UserInput.IUserInput
     public void ReleaseMouse()
     {
         mouseGrabbed = false;
+        pendingMouseX = 0;
     }
 
     public int MaxMouseSensitivity => 9;

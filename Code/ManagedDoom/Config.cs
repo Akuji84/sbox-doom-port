@@ -1,4 +1,10 @@
-﻿//
+// s&Doom modification notice (added 2026-09-16).
+// This file has been modified from Managed Doom for the s&Doom port.
+// Recorded project revision dates: 2026-03-28, 2026-05-08, 2026-08-24.
+// Additional fixes: 2026-09-09 (see SOURCE_CHANGES.md).
+// Original copyright and GPL terms below remain unchanged.
+
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -23,6 +29,11 @@ namespace ManagedDoom
 {
     public sealed class Config
     {
+        // Transient shell output controls; never persist these into base volumes.
+        public float ShellMasterVolume { get; set; } = 1.0f;
+        public bool ShellMusicEnabled { get; set; } = true;
+        public bool ShellSfxEnabled { get; set; } = true;
+        public KeyBinding key_automap = new KeyBinding(new[] { DoomKey.M });
         public KeyBinding key_forward;
         public KeyBinding key_backward;
         public KeyBinding key_strafeleft;
@@ -172,6 +183,7 @@ namespace ManagedDoom
 
                 var dic = ParseConfigText(SboxManagedDoomFileSystem.ReadAllTextFromData(path));
 
+                key_automap = GetKeyBinding(dic, nameof(key_automap), key_automap);
                 key_forward = GetKeyBinding(dic, nameof(key_forward), key_forward);
                 key_backward = GetKeyBinding(dic, nameof(key_backward), key_backward);
                 key_strafeleft = GetKeyBinding(dic, nameof(key_strafeleft), key_strafeleft);
@@ -221,6 +233,7 @@ namespace ManagedDoom
             try
             {
                 var sb = new StringBuilder();
+                Append(sb, nameof(key_automap), key_automap.ToString());
                 Append(sb, nameof(key_forward), key_forward.ToString());
                 Append(sb, nameof(key_backward), key_backward.ToString());
                 Append(sb, nameof(key_strafeleft), key_strafeleft.ToString());

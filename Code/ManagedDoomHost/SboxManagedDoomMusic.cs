@@ -79,7 +79,7 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
 
         currentHandle = currentStream.Play();
         currentHandle.ListenLocal = true;
-        currentHandle.Volume = config.audio_musicvolume / (float)MaxVolume;
+        currentHandle.Volume = config.audio_musicvolume / (float)MaxVolume * config.ShellMasterVolume * (config.ShellMusicEnabled ? 1.0f : 0.0f);
     }
 
     public void Update()
@@ -112,7 +112,7 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
 
             currentHandle = currentStream.Play();
             currentHandle.ListenLocal = true;
-            currentHandle.Volume = config.audio_musicvolume / (float)MaxVolume;
+            currentHandle.Volume = config.audio_musicvolume / (float)MaxVolume * config.ShellMasterVolume * (config.ShellMusicEnabled ? 1.0f : 0.0f);
         }
     }
 
@@ -126,7 +126,7 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
             config.audio_musicvolume = Math.Clamp( value, 0, MaxVolume );
             if ( currentHandle.IsValid() )
             {
-                currentHandle.Volume = config.audio_musicvolume / (float)MaxVolume;
+                currentHandle.Volume = config.audio_musicvolume / (float)MaxVolume * config.ShellMasterVolume * (config.ShellMusicEnabled ? 1.0f : 0.0f);
             }
         }
     }

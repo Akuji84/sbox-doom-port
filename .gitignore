@@ -8,6 +8,7 @@
 .claude/*
 *.csproj
 !Code/doom_port.csproj
+!tests/Regression/Regression.csproj
 obj
 bin
 Properties/*
@@ -40,3 +41,16 @@ __pycache__/
 # Server deploy/admin tooling - never publish
 scripts/
 server/
+
+# Private research, outreach and operations reports; not source dependencies
+licensing-research/
+WAD_PERMISSION_OUTREACH_*.md
+WAD_LICENSING_REVIEW_*.md
+PROJECT_REVIEW_*.md
+REQUESTED_FIXES_*.md
+GPL_AUDIT_*.md
+ASSET_RELEASE_CHECKLIST.md
+.env
+.env.*
+*.pem
+*.key

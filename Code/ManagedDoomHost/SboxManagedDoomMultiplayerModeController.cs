@@ -79,6 +79,12 @@ namespace ManagedDoom
             ActiveMode = SboxManagedDoomMultiplayerModeKind.None;
         }
 
+        public bool ShouldRestartPvp(SboxManagedDoomMultiplayerSessionComponent session)
+        {
+            return session?.PvpActive == true && session.PvpLaunchSerial > HandledPvpLaunchSerial
+                && (PvpMatchLoaded || PvpLaunchPending);
+        }
+
         public void SelectPvpMode()
         {
             ActiveMode = SboxManagedDoomMultiplayerModeKind.Pvp;
