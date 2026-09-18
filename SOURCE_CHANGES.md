@@ -16,3 +16,9 @@ source licensing explicit and SDK build paths configurable. Preserve MIT and
 other upstream component notices.
 
 See LICENSING.md for source and component licenses.
+
+September 18, 2026: add Freedom Scoops campaign identification, five-map
+progression and endings, shell launch entries and artwork, and upstream content
+notices. Secret exits stay within the finished campaign; missing co-op starts
+use existing multiplayer spawn locations. Add campaign rendering, save/load,
+four-player simulation and WAD-switching regression coverage.

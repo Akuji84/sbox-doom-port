@@ -120,4 +120,88 @@ Assert(!watchdog.HasTimedOut(now.AddSeconds(17),1,11,true,1,0)
     && watchdog.HasTimedOut(now.AddSeconds(70),1,11,true,1,2), "recovery progress grants grace but cannot stall forever");
 watchdog.Reset();
 Assert(!watchdog.HasTimedOut(now.AddMinutes(5),2,0,false,0,0), "new match starts with a fresh timeout");
+byte[] RunFreedoomAfterWadSwitch()
+{
+    SboxManagedDoomFileSystem.SetHostWadPaths(wadPath);
+    var args = new CommandLineArgs(new[] { "-iwad", wadPath });
+    using var originalContent = new GameContent(args);
+    var originalGame = new DoomGame(originalContent, new GameOptions(args, originalContent));
+    originalGame.InitNew(GameSkill.Medium, 1, 1);
+    var input = Enumerable.Range(0, 4).Select(_ => new TicCmd()).ToArray();
+    for (var tic = 0; tic < 140; tic++) originalGame.Update(input);
+    return SaveAndLoad.SaveToMemory(originalGame, "original campaign");
+}
+var freedoomBaseline = RunFreedoomAfterWadSwitch();
+foreach (var name in new[] { "fsfc1", "fssc1" })
+{
+    var path = Path.Combine(root, "Assets/doom/" + name + ".wad");
+    SboxManagedDoomFileSystem.SetHostWadPaths(path);
+    var launchArgs = new CommandLineArgs(new[] { "-iwad", path });
+    using var campaign = new GameContent(launchArgs);
+    Assert(campaign.Wad.IsFreedomScoops && campaign.Wad.HasFiveMapCampaign
+        && campaign.Wad.GameMode == GameMode.Shareware, name + " uses its five-map campaign profile");
+    var cfg = new Config();
+    var renderer = new ManagedDoom.Video.Renderer(cfg, campaign);
+    var instance = new Doom(launchArgs, cfg, campaign, null, null, null, null);
+    var pixels = new byte[renderer.Width * renderer.Height * 4];
+    for (var map = 1; map <= 5; map++)
+    {
+        instance.NewGame(GameSkill.Medium, 1, map);
+        for(var tic=0;tic<100;tic++) instance.Update();
+        Assert(instance.Game.World.Options.Map == map, name + " started requested map " + map);
+        renderer.Render(instance, pixels, Fixed.Zero);
+        var state = SaveAndLoad.SaveToMemory(instance.Game, "campaign");
+        SaveAndLoad.LoadFromMemory(instance.Game, state);
+        Assert(state.SequenceEqual(SaveAndLoad.SaveToMemory(instance.Game,"campaign")),
+            name + " E1M" + map + " loads, renders and restores complete save state");
+    }
+    instance.Game.InitNew(GameSkill.Medium, 4, 9);
+    Assert(instance.Options.Episode==1 && instance.Options.Map==5, name + " excludes placeholder map slots");
+    foreach (var secret in new[] { false, true })
+    {
+        for (var map = 1; map <= 5; map++)
+        {
+            instance.Game.InitNew(GameSkill.Medium, 1, map);
+            instance.Game.Update(commands);
+            if (secret) instance.Game.World.SecretExitLevel();
+            else instance.Game.World.ExitLevel();
+            instance.Game.Update(commands);
+            instance.Game.Update(commands);
+            Assert(map == 5 ? instance.Game.State == GameState.Finale
+                : instance.Game.State == GameState.Intermission && instance.Options.IntermissionInfo.NextLevel == map,
+                name + " E1M" + map + (secret ? " secret" : " normal") + " exit stays in the finished campaign");
+            renderer.Render(instance, pixels, Fixed.Zero);
+        }
+    }
+    foreach (var deathmatch in new[] { 0, 1 })
+    for (var networkMap = 1; networkMap <= 5; networkMap++)
+    {
+        var peerOptions = new GameOptions(launchArgs, campaign) { NetGame = true, Deathmatch = deathmatch };
+        foreach (var player in peerOptions.Players) player.InGame = true;
+        var peer = new DoomGame(campaign, peerOptions);
+        peer.InitNew(GameSkill.Medium, 1, networkMap);
+        Assert(peerOptions.Players.All(player => player.Mobj != null),
+            name + " E1M" + networkMap + " spawns all four " + (deathmatch == 0 ? "co-op" : "PvP") + " players");
+        var initial = SaveAndLoad.SaveToMemory(peer, "network");
+        void Simulate()
+        {
+            for (var tic = 0; tic < 140; tic++)
+            {
+                commands[0].ForwardMove = (sbyte)(tic % 20 < 10 ? 25 : -25);
+                commands[1].AngleTurn = (short)(tic % 2 == 0 ? 256 : -256);
+                commands[0].Buttons = commands[1].Buttons = (byte)(tic % 3 == 0 ? TicCmdButtons.Attack : 0);
+                peer.Update(commands);
+            }
+        }
+        Simulate();
+        var expected = SaveAndLoad.SaveToMemory(peer, "network");
+        SaveAndLoad.LoadFromMemory(peer, initial);
+        Simulate();
+        Assert(expected.SequenceEqual(SaveAndLoad.SaveToMemory(peer, "network")),
+            name + " E1M" + networkMap + (deathmatch == 0 ? " co-op" : " PvP") + " four-player simulation replays deterministically after restore");
+        foreach (var command in commands) command.Clear();
+    }
+    Assert(freedoomBaseline.SequenceEqual(RunFreedoomAfterWadSwitch()),
+        "switching from " + name + " back to Freedoom restores original simulation behavior");
+}
 Console.WriteLine("All regression checks passed.");

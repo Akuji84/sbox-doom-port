@@ -1,3 +1,4 @@
+// Additional modification: 2026-09-18, Freedom Scoops five-map campaign support.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28, 2026-03-29, 2026-05-23, 2026-09-03.
@@ -366,10 +367,9 @@ namespace ManagedDoom
 				}
 			}
 
-			if (content.Wad.IsChexQuest && options.Map == 5)
+			if (content.Wad.HasFiveMapCampaign && options.Map == 5)
 			{
-				// chex.exe ends the episode after E1M5; the later map slots in
-				// chex.wad are leftover Doom maps players were never meant to see.
+				// These campaigns end after E1M5; later slots are not playable campaign levels.
 				gameAction = GameAction.Victory;
 				return;
 			}
@@ -413,7 +413,13 @@ namespace ManagedDoom
 			imInfo.LastLevel = options.Map - 1;
 
 			// IntermissionInfo.Next is 0 biased, unlike GameOptions.Map.
-			if (options.GameMode == GameMode.Commercial)
+			if (content.Wad.IsFreedomScoops)
+			{
+				// This release has no finished secret map. Keep secret exits within
+				// its campaign instead of loading the E1M9 placeholder.
+				imInfo.NextLevel = options.Map;
+			}
+			else if (options.GameMode == GameMode.Commercial)
 			{
 				if (world.SecretExit)
 				{
@@ -550,6 +556,12 @@ namespace ManagedDoom
 			else
 			{
 				options.Map = Math.Clamp(map, 1, 9);
+			}
+
+			if (content.Wad.HasFiveMapCampaign)
+			{
+				options.Episode = 1;
+				options.Map = Math.Clamp(options.Map, 1, 5);
 			}
 
 			options.Random.Clear();

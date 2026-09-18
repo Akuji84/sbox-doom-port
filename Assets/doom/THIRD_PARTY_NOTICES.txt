@@ -11,6 +11,13 @@ They are accessible from the launcher's **Licenses & credits** button.
 Upstream: https://github.com/freedoom/freedoom/releases/tag/v0.13.0
 No endorsement by the Freedoom project or its contributors is implied.
 
+Freedom Scoops First Crunch and Second Crunch are bundled from the unmodified
+2025-10-26 development build, copyright 2023-2025 Contributors to the Freedom
+Scoops project, under BSD-3-Clause. The full copyright, conditions and disclaimer
+are in freedomscoops-COPYING.txt. Credits, music credits and inherited Freedoom
+credits are in the accompanying freedomscoops-* files. No endorsement is implied.
+Upstream: https://github.com/FreedomScoops/FreedomScoops/releases/tag/dev
+
 ### Program code
 
 This project includes code derived from or based on:

@@ -1,3 +1,4 @@
+// Additional modification: 2026-09-18, Freedom Scoops missing multiplayer starts.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
@@ -22,6 +23,7 @@
 
 
 using System;
+using System.Linq;
 
 namespace ManagedDoom
 {
@@ -116,6 +118,11 @@ namespace ManagedDoom
             totalSecrets = 0;
 
             LoadThings();
+
+            if (resorces.Wad.IsFreedomScoops && options.NetGame)
+            {
+                CompleteFreedomScoopsPlayerStarts();
+            }
 
             // If deathmatch, randomly spawn the active players.
             if (options.Deathmatch != 0)
@@ -215,6 +222,31 @@ namespace ManagedDoom
                     doneFirstTic = true;
                     return UpdateResult.NeedWipe;
                 }
+            }
+        }
+
+        private void CompleteFreedomScoopsPlayerStarts()
+        {
+            // First Crunch E1M1 omits co-op starts. Use its authored multiplayer
+            // spots, nearest to player one first, without changing the WAD data.
+            var origin = thingAllocation.PlayerStarts[0];
+            if (origin == null) throw new InvalidOperationException("Campaign map has no player-one start.");
+            var candidates = map.Things.Where(t => t.Type == 11).OrderBy(t =>
+            {
+                var dx = (long)t.X.ToIntFloor() - origin.X.ToIntFloor();
+                var dy = (long)t.Y.ToIntFloor() - origin.Y.ToIntFloor();
+                return dx * dx + dy * dy;
+            }).ToArray();
+            var next = 0;
+            for (var player = 1; player < Player.MaxPlayerCount; player++)
+            {
+                if (thingAllocation.PlayerStarts[player] != null) continue;
+                while (next < candidates.Length && thingAllocation.PlayerStarts.Any(start =>
+                    start != null && start.X == candidates[next].X && start.Y == candidates[next].Y)) next++;
+                if (next == candidates.Length)
+                    throw new InvalidOperationException("Campaign map has insufficient multiplayer starts.");
+                var spot = candidates[next++];
+                thingAllocation.SpawnMapThing(new MapThing(spot.X, spot.Y, spot.Angle, player + 1, spot.Flags));
             }
         }
 

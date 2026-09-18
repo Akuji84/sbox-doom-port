@@ -182,7 +182,9 @@
     {
         new( "Freedoom Phase 1", DefaultWadPath ),
         new( "Freedoom Phase 2", "doom/freedoom2.wad" ),
-        new( "FreeDM", "doom/freedm.wad" )
+        new( "FreeDM", "doom/freedm.wad" ),
+        new( "Freedom Scoops: First Crunch", "doom/fsfc1.wad" ),
+        new( "Freedom Scoops: Second Crunch", "doom/fssc1.wad" )
     };
     private string _selectedWadPath = DefaultWadPath;
     private string _shellSurfaceUrl = string.Empty;
@@ -225,12 +227,12 @@
         {
             if ( !_availableWads.Any( option => string.Equals( option.Path, wadPath, StringComparison.OrdinalIgnoreCase ) ) )
             {
-                throw new InvalidOperationException( "This release includes only Freedoom Phase 1, Freedoom Phase 2 and FreeDM. Please update the launcher or join a host using the same release." );
+                throw new InvalidOperationException( "This WAD is not bundled with your game build. Please update the game or join a host using the same release." );
             }
             Log.Info( $"[ManagedDoomHost] Bootstrap requested. wad={wadPath} pendingRequest={_pendingShellLaunchRequestId}" );
             _launchSurfaceState = LaunchSurfaceState.LaunchingDoom;
             _error = null;
-            // The allowlist above limits this release to the three bundled IWADs.
+            // The allowlist above limits this release to the bundled IWADs.
             var wadPaths = wadPath.Split( ';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries );
             var argList = new List<string> { "-iwad", wadPaths[0] };
             if ( wadPaths.Length > 1 )

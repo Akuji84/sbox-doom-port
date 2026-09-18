@@ -14,7 +14,7 @@ The project brings classic Doom gameplay into s&box with a retro desktop-style i
 
 ## The collection
 
-This source release includes **Freedoom Phase 1**, **Freedoom Phase 2** and **FreeDM**. The collection is intended to expand as additional WADs are integrated and their redistribution permissions are confirmed. Each WAD retains its own identity, credits and license.
+The collection includes **Freedoom Phase 1**, **Freedoom Phase 2**, **FreeDM**, and **Freedom Scoops: First Crunch and Second Crunch**. The two Freedom Scoops campaigns use the October 26, 2025 development build, with five playable maps each. Each WAD retains its own identity, credits and license.
 
 ## Project layout
 
@@ -61,7 +61,7 @@ See:
 - [LICENSE](./LICENSE)
 - [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)
 
-The bundled Freedoom and FreeDM 0.13.0 data uses BSD-3-Clause. Its notices and contributor/music credits are
+The bundled Freedoom/FreeDM 0.13.0 and Freedom Scoops data use BSD-3-Clause. Their notices and contributor/music credits are
 in `Assets/doom` and the launcher's **Licenses & credits** window.
 
 Before publishing, run `python tools/verify_release_assets.py` and follow

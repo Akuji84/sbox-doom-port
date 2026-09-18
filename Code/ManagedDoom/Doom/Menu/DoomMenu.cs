@@ -1,3 +1,4 @@
+// Additional modification: 2026-09-18, Freedom Scoops five-map campaign support.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28, 2026-03-29, 2026-04-30, 2026-08-24, 2026-09-03.
@@ -310,9 +311,9 @@ namespace ManagedDoom
                 "M_DOOM", 94, 2,
                 0,
                 new SimpleMenuItem("M_NGAME", 65, 59, 97, 64, null,
-                    // Chex Quest has exactly one real episode, so new game
+                    // Five-map campaigns have one real episode, so new game
                     // goes straight to skill select like commercial does.
-                    doom.Content.Wad.IsChexQuest ? skillMenu : episodeMenu),
+                    doom.Content.Wad.HasFiveMapCampaign ? skillMenu : episodeMenu),
                 new SimpleMenuItem("M_OPTION", 65, 75, 97, 80, null, optionMenu),
                 new SimpleMenuItem("M_LEADB", 65, 91, 97, 96, null, leaderboard),
                 new SimpleMenuItem("M_LOADG", 65, 107, 97, 112, null, load),
@@ -436,7 +437,7 @@ namespace ManagedDoom
             selectedEpisode = 1;
             var skipEpisodeSelect =
                 doom.Options.GameMode == GameMode.Commercial ||
-                doom.Content.Wad.IsChexQuest;
+                doom.Content.Wad.HasFiveMapCampaign;
             SetCurrent(skipEpisodeSelect ? skillMenu : episodeMenu);
             Open();
             StartSound(Sfx.SWTCHN);

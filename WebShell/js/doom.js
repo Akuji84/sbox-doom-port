@@ -26,6 +26,8 @@
     }
 
     function getDoomProgramIcon(program) {
+        if (program.wadPath === "doom/fsfc1.wad") return "./assets/icons/freedomscoops_first.svg";
+        if (program.wadPath === "doom/fssc1.wad") return "./assets/icons/freedomscoops_second.svg";
         if (program.wadPath === 'doom/doom.wad') {
             return './assets/icons/doom_program.png';
         }

@@ -16,8 +16,12 @@ Exceptions and separate works:
 - `Code/MeltySynth`: MIT; see `THIRD_PARTY_NOTICES.md`.
 - Freedoom Phase 1, Phase 2 and FreeDM 0.13.0 data: BSD-3-Clause;
   see the COPYING and CREDITS files in `Assets/doom`.
+- Freedom Scoops First Crunch and Second Crunch, 2025-10-26 development build:
+  BSD-3-Clause; see `Assets/doom/freedomscoops-COPYING.txt` and accompanying credits.
 - `WebShell`: derived interface code retains `WebShell/UPSTREAM-LICENSE.txt`;
   original s&Doom modifications are additionally available under GPL-2.0-or-later.
   This is the s&Doom shell adaptation, not an unmodified Windows 98 GE release.
+- `WebShell/assets/icons/freedomscoops_first.svg` and `freedomscoops_second.svg`:
+  original s&Doom artwork, GPL-2.0-or-later.
 - Other assets, trademarks, SDK assemblies and native engine components are
   not relicensed by this declaration. GeneralUser-GS.sf2 has separate terms.

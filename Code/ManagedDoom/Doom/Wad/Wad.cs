@@ -1,3 +1,4 @@
+// Additional modification: 2026-09-18, Freedom Scoops five-map campaign support.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28, 2026-07-03, 2026-08-24, 2026-09-03.
@@ -37,6 +38,8 @@ namespace ManagedDoom
         private GameMode gameMode;
         private MissionPack missionPack;
         private bool isChexQuest;
+        public bool IsFreedomScoops { get; private set; }
+        public bool HasFiveMapCampaign => isChexQuest || IsFreedomScoops;
         private readonly List<string> contentHashes = new();
         public string ContentIdentity { get; private set; }
 
@@ -57,6 +60,7 @@ namespace ManagedDoom
                     System.Text.Encoding.UTF8.GetBytes(string.Join("|", names) + ":" + string.Join("|", contentHashes)))).ToLowerInvariant();
 
                 isChexQuest = names.Contains("chex");
+                IsFreedomScoops = names.Contains("fsfc1") || names.Contains("fssc1");
                 gameMode = GetGameMode();
                 missionPack = GetMissionPack(names);
                 gameVersion = GetGameVersion();
@@ -188,6 +192,8 @@ namespace ManagedDoom
                     case "doom2":
                     case "freedoom2":
                     case "freedm":
+                    case "fsfc1":
+                    case "fssc1":
                     case "chex":
                         return GameVersion.Version109;
                     case "doom":
@@ -219,8 +225,10 @@ namespace ManagedDoom
                     case "freedoom2":
                     case "freedm":
                         return GameMode.Commercial;
+                    case "fsfc1":
+                    case "fssc1":
                     case "chex":
-                        // chex.wad carries all Ultimate Doom map slots (so the
+                        // These WADs carry all Ultimate Doom map slots (so the
                         // lump probe would say Retail), but only E1M1-E1M5 are
                         // Chex content; Shareware keeps the game to episode 1
                         // like chex.exe did.
