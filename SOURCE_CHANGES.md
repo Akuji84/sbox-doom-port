@@ -22,3 +22,9 @@ progression and endings, shell launch entries and artwork, and upstream content
 notices. Secret exits stay within the finished campaign; missing co-op starts
 use existing multiplayer spawn locations. Add campaign rendering, save/load,
 four-player simulation and WAD-switching regression coverage.
+
+September 18, 2026: introduce immutable Doom/Heretic game profiles and route
+definition initialization through the Doom profile. Reject unimplemented Heretic
+runtime loading before changing Doom definitions. Add pre-profile simulation and
+rendering baselines and profile-isolation checks. See ENGINE_PROFILES.md for the
+extension boundaries and upstream source references.

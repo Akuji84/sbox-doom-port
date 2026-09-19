@@ -1,6 +1,7 @@
 ﻿//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
+// s&Doom modification: 2026-09-18, profile-controlled initialization and failure cleanup.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,18 +34,24 @@ namespace ManagedDoom
         {
         }
 
-        public GameContent(CommandLineArgs args)
+        public GameContent(CommandLineArgs args, GameProfile profile = null)
         {
-            wad = new Wad(ConfigUtilities.GetWadPaths(args));
-
-            DeHackEd.Initialize(args, wad);
-
-            palette = new Palette(wad);
-            colorMap = new ColorMap(wad);
-            textures = new TextureLookup(wad);
-            flats = new FlatLookup(wad);
-            sprites = new SpriteLookup(wad);
-            animation = new TextureAnimation(textures, flats);
+            wad = new Wad(profile, ConfigUtilities.GetWadPaths(args));
+            try
+            {
+                Profile.InitializeDefinitions(args, wad);
+                palette = new Palette(wad);
+                colorMap = new ColorMap(wad);
+                textures = new TextureLookup(wad);
+                flats = new FlatLookup(wad);
+                sprites = new SpriteLookup(wad);
+                animation = new TextureAnimation(textures, flats);
+            }
+            catch
+            {
+                Dispose();
+                throw;
+            }
         }
 
         public static GameContent CreateDummy(params string[] wadPaths)
@@ -52,14 +59,23 @@ namespace ManagedDoom
             var gc = new GameContent();
 
             gc.wad = new Wad(wadPaths);
-            gc.palette = new Palette(gc.wad);
-            gc.colorMap = new ColorMap(gc.wad);
-            gc.textures = new DummyTextureLookup(gc.wad);
-            gc.flats = new DummyFlatLookup(gc.wad);
-            gc.sprites = new DummySpriteLookup(gc.wad);
-            gc.animation = new TextureAnimation(gc.textures, gc.flats);
+            try
+            {
+                gc.Profile.EnsureRuntimeSupported();
+                gc.palette = new Palette(gc.wad);
+                gc.colorMap = new ColorMap(gc.wad);
+                gc.textures = new DummyTextureLookup(gc.wad);
+                gc.flats = new DummyFlatLookup(gc.wad);
+                gc.sprites = new DummySpriteLookup(gc.wad);
+                gc.animation = new TextureAnimation(gc.textures, gc.flats);
 
-            return gc;
+                return gc;
+            }
+            catch
+            {
+                gc.Dispose();
+                throw;
+            }
         }
 
         public void Dispose()
@@ -72,6 +88,7 @@ namespace ManagedDoom
         }
 
         public Wad Wad => wad;
+        public GameProfile Profile => wad.Profile;
         public Palette Palette => palette;
         public ColorMap ColorMap => colorMap;
         public ITextureLookup Textures => textures;

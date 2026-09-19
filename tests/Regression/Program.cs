@@ -204,4 +204,6 @@ foreach (var name in new[] { "fsfc1", "fssc1" })
     Assert(freedoomBaseline.SequenceEqual(RunFreedoomAfterWadSwitch()),
         "switching from " + name + " back to Freedoom restores original simulation behavior");
 }
+CompatibilitySnapshots.Verify(root, args.Contains("--record-compatibility"));
+GameProfileChecks.Verify();
 Console.WriteLine("All regression checks passed.");
