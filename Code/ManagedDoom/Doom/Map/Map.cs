@@ -1,4 +1,5 @@
-﻿// s&Doom modification notice (added 2026-09-16).
+// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
+// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
 // Original copyright and GPL terms below remain unchanged.
@@ -65,7 +66,7 @@ namespace ManagedDoom
                 var options = world.Options;
 
                 string name;
-                if (wad.GameMode == GameMode.Commercial)
+                if (wad.Profile.Family == GameFamily.Doom && wad.GameMode == GameMode.Commercial)
                 {
                     name = "MAP" + options.Map.ToString("00");
                 }
@@ -81,6 +82,8 @@ namespace ManagedDoom
                     throw new Exception("Map '" + name + "' was not found!");
                 }
 
+                if (wad.Profile.Family == GameFamily.Heretic) HereticAssets.ValidateMap(wad, name);
+
                 vertices = Vertex.FromWad(wad, map + 4);
                 sectors = Sector.FromWad(wad, map + 8, flats);
                 sides = SideDef.FromWad(wad, map + 3, textures, sectors);
@@ -94,7 +97,11 @@ namespace ManagedDoom
 
                 GroupLines();
 
-                skyTexture = GetSkyTextureByMapName(name);
+                skyTexture = wad.Profile.Family == GameFamily.Heretic
+                    ? textures["SKY" + (options.Episode == 3 || options.Episode == 5 ? 3 : options.Episode == 2 ? 2 : 1)]
+                    : GetSkyTextureByMapName(name);
+
+                if (wad.Profile.Family == GameFamily.Heretic) { title = name; return; }
 
                 if (options.GameMode == GameMode.Commercial)
                 {

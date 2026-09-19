@@ -21,6 +21,10 @@ are in freedomscoops-COPYING.txt. Credits, music credits and inherited Freedoom
 credits are in the accompanying freedomscoops-* files. No endorsement is implied.
 Upstream: https://github.com/FreedomScoops/FreedomScoops/releases/tag/dev
 
+Blasphemer 0.1.8 is included for the Heretic geometry preview. Its BSD-3-Clause
+license and credits are in blasphemer-COPYING.txt and blasphemer-CREDITS.txt.
+Upstream: https://github.com/Blasphemer/blasphemer/releases/tag/v0.1.8
+
 This program includes Managed Doom, copyright 1993-1996 id Software, Inc.
 and 2019-2020 Nobuaki Tanaka, under GNU GPL version 2 or later.
 You may redistribute and modify this program under GNU GPL version 2 or later.
@@ -30,8 +34,8 @@ MeltySynth and its upstream notices are in THIRD_PARTY_NOTICES.txt.
 
 Project source: https://github.com/Akuji84/sbox-doom-port
 
-Source release: sdoom-source-2026-09-18-freedomscoops
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-source-2026-09-18-freedomscoops
+Source release: sdoom-heretic-preview-2026-09-18
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-preview-2026-09-18
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-source-2026-09-18-freedomscoops.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-preview-2026-09-18.zip
 Original integrated game/host code: GNU GPL version 2 or later.

@@ -28,3 +28,11 @@ definition initialization through the Doom profile. Reject unimplemented Heretic
 runtime loading before changing Doom definitions. Add pre-profile simulation and
 rendering baselines and profile-isolation checks. See ENGINE_PROFILES.md for the
 extension boundaries and upstream source references.
+
+### 2026-09-18 — Heretic asset and map preview
+
+Added an explicit asset-only Heretic loader, family-specific sprite/animation
+catalog, classic map validation, a geometry-only World and a standalone s&box
+preview scene. Shared renderer and animation code remain used by Doom; fixed
+Doom compatibility hashes are retained. Adapted asset tables identify their
+GPL-2.0-or-later Chocolate Doom source and retain original copyright notices.

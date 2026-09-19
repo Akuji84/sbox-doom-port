@@ -54,6 +54,30 @@ namespace ManagedDoom
             }
         }
 
+        // Asset-only path: never initializes Doom definitions or enables Heretic gameplay.
+        public static GameContent CreateHereticPreview(params string[] wadPaths)
+        {
+            var gc = new GameContent();
+            try
+            {
+                gc.wad = new Wad(GameProfile.Heretic, wadPaths);
+                HereticAssets.Validate(gc.wad);
+                gc.palette = new Palette(gc.wad);
+                gc.palette.ResetColors(1.0);
+                gc.colorMap = new ColorMap(gc.wad);
+                gc.textures = new TextureLookup(gc.wad);
+                gc.flats = new FlatLookup(gc.wad);
+                gc.sprites = new SpriteLookup(gc.wad, HereticAssets.SpriteNames);
+                gc.animation = new TextureAnimation(gc.textures, gc.flats, HereticAssets.Animations);
+                return gc;
+            }
+            catch (Exception ex)
+            {
+                gc.Dispose();
+                throw new InvalidOperationException("Heretic preview asset load failed: " + ex.Message, ex);
+            }
+        }
+
         public static GameContent CreateDummy(params string[] wadPaths)
         {
             var gc = new GameContent();

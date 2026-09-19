@@ -206,4 +206,5 @@ foreach (var name in new[] { "fsfc1", "fssc1" })
 }
 CompatibilitySnapshots.Verify(root, args.Contains("--record-compatibility"));
 GameProfileChecks.Verify();
+HereticPreviewChecks.Verify(root);
 Console.WriteLine("All regression checks passed.");

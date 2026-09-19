@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
@@ -277,24 +278,7 @@ namespace ManagedDoom
                 }
             }
 
-            // Animate flats and textures globally.
-            var animations = world.Map.Animation.Animations;
-            for (var k = 0; k < animations.Length; k++)
-            {
-                var anim = animations[k];
-                for (var i = anim.BasePic; i < anim.BasePic + anim.NumPics; i++)
-                {
-                    var pic = anim.BasePic + ((world.LevelTime / anim.Speed + i) % anim.NumPics);
-                    if (anim.IsTexture)
-                    {
-                        textureTranslation[i] = pic;
-                    }
-                    else
-                    {
-                        flatTranslation[i] = pic;
-                    }
-                }
-            }
+            UpdateAnimations(world.LevelTime);
 
             // Animate line specials.
             foreach (var line in scrollLines)
@@ -331,6 +315,29 @@ namespace ManagedDoom
                     }
                 }
             }
+        }
+
+        internal void UpdateAnimations(int tic)
+        {
+            // Animate flats and textures globally.
+            var animations = world.Map.Animation.Animations;
+            for (var k = 0; k < animations.Length; k++)
+            {
+                var anim = animations[k];
+                for (var i = anim.BasePic; i < anim.BasePic + anim.NumPics; i++)
+                {
+                    var pic = anim.BasePic + ((tic / anim.Speed + i) % anim.NumPics);
+                    if (anim.IsTexture)
+                    {
+                        textureTranslation[i] = pic;
+                    }
+                    else
+                    {
+                        flatTranslation[i] = pic;
+                    }
+                }
+            }
+
         }
 
         public int[] TextureTranslation => textureTranslation;

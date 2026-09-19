@@ -6,7 +6,7 @@ immutable `GameProfile` owned by `Wad` and exposed by `GameContent` and `DoomGam
 `GameMode`, `GameVersion` and `MissionPack` continue to describe Doom variants;
 they are not substitutes for the Doom/Heretic family distinction.
 
-All five bundled WADs select the Doom profile. Its definition initializer runs
+The five playable Doom-family WADs select the Doom profile. Its definition initializer runs
 the existing DeHackEd initialization unchanged. Heretic has a separate profile,
 but gameplay is not implemented yet: normal content loading, dummy content
 loading and runtime creation reject it before Doom gameplay can start. A failed
@@ -15,8 +15,8 @@ Heretic content load does not reset or patch the active Doom definitions.
 Recognized Heretic base filenames are `heretic`, `heretic1`, `blasphem`,
 `blasphemer` and `blasphdm`. An explicit profile may be supplied to `Wad` or
 `GameContent` for renamed content. Add-on filenames do not choose the game family.
-Filename recognition is routing, not content validation: the future Heretic
-loader must validate its required lumps. Unknown names retain existing Doom
+Filename recognition is routing, not content validation: the Heretic preview
+loader validates its required lumps. Unknown names retain existing Doom
 behavior unless a profile is explicitly supplied. A known Heretic base cannot
 be forced onto the Doom profile.
 
@@ -59,8 +59,33 @@ game data. No HereticXNA code or proprietary Heretic assets are used here.
 ## Compatibility checks
 
 `tests/Regression/doom-compatibility.json` records simulation/save and rendered
-frame hashes for every bundled WAD, captured at `55929a4` before game profiles
+frame hashes for each playable Doom-family WAD, captured at `55929a4` before game profiles
 were introduced. The regression runner compares against those fixed baselines,
 alongside its existing campaign, save, input and multiplayer checks. Synthetic
 empty WAD fixtures exercise profile rejection before asset loading without
 requiring any Heretic game assets.
+
+## Chunk 2: Heretic assets and geometry preview
+
+Open `Assets/scenes/heretic-preview.scene` from this branch in the s&box editor
+and press Play. The `SboxHereticPreview` component displays Blasphemer E1M1 using
+the shared software renderer. Set Episode and Map before Play; adjust Yaw to
+inspect other directions. The normal game scene and web launcher are unchanged.
+
+`GameContent.CreateHereticPreview` validates the palette, lighting and required
+asset markers, loads the Heretic sprite catalog and eight animation cycles,
+and leaves Doom definitions untouched. `HereticMapPreview` creates an isolated
+geometry-only world and returns row-major RGBA frames. Binary map lump order
+and record lengths are checked before map construction; Hexen/UDMF maps are
+rejected. This is not a general untrusted-WAD sanitizer.
+
+The preview animates textures and flats at 35 tics per second. It deliberately
+omits actors, special-line behavior, combat, movement, audio, inventory, saves
+and multiplayer; the on-screen report lists omitted things and specials.
+Normal gameplay constructors still reject Heretic. Sprite assets are decoded
+and checked, but are not yet connected to Heretic actor definitions.
+
+Blasphemer 0.1.8 is pinned by SHA-256 in `tools/verify_release_assets.py`, with
+its release-tag BSD license and credits included in the in-game notices.
+Regression checks render all 48 map slots in four directions, exercise preview
+validation and animation, and retain the existing Doom compatibility baselines.

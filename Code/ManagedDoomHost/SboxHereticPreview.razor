@@ -1,0 +1,77 @@
+@using System
+@using ManagedDoom
+@using Sandbox.UI
+@inherits PanelComponent
+
+<root style="position: absolute; width: 100%; height: 100%; background-color: black; flex-direction: column; align-items: center; justify-content: center;">
+    @if ( _texture is not null )
+    {
+        <Image Texture="@_texture" style="width: 80%; height: 80%; image-rendering: pixelated;" />
+    }
+    <div style="color: white; font-size: 18px; padding: 12px;">@_message</div>
+    <SboxManagedDoomLicenses />
+</root>
+
+@code {
+    [Property] public string WadPath { get; set; } = "doom/blasphem.wad";
+    [Property] public int Episode { get; set; } = 1;
+    [Property] public int Map { get; set; } = 1;
+    [Property] public float Yaw { get; set; }
+    private GameContent _content;
+    private HereticMapPreview _preview;
+    private global::Sandbox.Texture _texture;
+    private readonly byte[] _pixels = new byte[HereticMapPreview.Width * HereticMapPreview.Height * 4];
+    private string _message = "Loading Heretic geometry preview...";
+    private float _elapsed;
+    private int _lastTic = -1;
+    private float _lastYaw = float.NaN;
+
+    protected override void OnStart()
+    {
+        try
+        {
+            _content = GameContent.CreateHereticPreview(WadPath);
+            _preview = new HereticMapPreview(_content, Episode, Map);
+            _texture = global::Sandbox.Texture.Create(HereticMapPreview.Width, HereticMapPreview.Height, ImageFormat.RGBA8888)
+                .WithDynamicUsage().Finish();
+            _message = _preview.Report;
+        }
+        catch (Exception ex)
+        {
+            _content?.Dispose();
+            _content = null;
+            _preview = null;
+            _message = "Heretic preview: " + ex.Message;
+        }
+        StateHasChanged();
+    }
+
+    protected override void OnUpdate()
+    {
+        if (_preview is null) return;
+        _elapsed += Time.Delta;
+        var tic = (int)(_elapsed * 35);
+        if (tic == _lastTic && Yaw == _lastYaw) return;
+        try
+        {
+            _preview.Render(_pixels, tic, Yaw);
+            _texture.Update(_pixels, 0, 0, HereticMapPreview.Width, HereticMapPreview.Height);
+            _lastTic = tic;
+            _lastYaw = Yaw;
+        }
+        catch (Exception ex)
+        {
+            _preview = null;
+            _message = "Heretic preview: " + ex.Message;
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnDestroy()
+    {
+        _preview = null;
+        _texture?.Dispose();
+        _content?.Dispose();
+        base.OnDestroy();
+    }
+}

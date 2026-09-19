@@ -1,4 +1,5 @@
-﻿//
+// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
+//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -36,11 +37,13 @@ namespace ManagedDoom.Video
         private int drawScale;
 
         private int windowSize;
+        private readonly bool geometryPreview;
 
         private Fixed frameFrac;
 
         public ThreeDRenderer(GameContent content, DrawScreen screen, int windowSize)
         {
+            geometryPreview = content.Profile.Family == GameFamily.Heretic;
             colorMap = content.ColorMap;
             textures = content.Textures;
             flats = content.Flats;
@@ -63,13 +66,14 @@ namespace ManagedDoom.Video
             InitWeaponRendering();
             InitFuzzEffect();
             InitColorTranslation();
-            InitWindowBorder(content.Wad);
+            if (content.Profile.Family == GameFamily.Doom) InitWindowBorder(content.Wad);
 
             SetWindowSize(windowSize);
         }
 
         private void SetWindowSize(int size)
         {
+            if (geometryPreview && size < 8) throw new ArgumentException("Heretic preview requires a full-screen viewport.");
             var scale = screenWidth / 320;
             if (size < 7)
             {
@@ -295,7 +299,8 @@ namespace ManagedDoom.Video
 
         private void InitSkyRendering()
         {
-            skyTextureAlt = Fixed.FromInt(100);
+            // Heretic uses a 200-unit sky origin (Chocolate Doom src/heretic/r_plane.c).
+            skyTextureAlt = Fixed.FromInt(geometryPreview ? 200 : 100);
         }
 
         private void ResetSkyRendering()
@@ -2964,8 +2969,8 @@ namespace ManagedDoom.Video
 
             set
             {
+                SetWindowSize(value);
                 windowSize = value;
-                SetWindowSize(windowSize);
             }
         }
 

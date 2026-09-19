@@ -1,4 +1,5 @@
-﻿// s&Doom modification notice (added 2026-09-16).
+// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
+// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
 // Original copyright and GPL terms below remain unchanged.
@@ -21,6 +22,7 @@
 
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace ManagedDoom
@@ -29,27 +31,35 @@ namespace ManagedDoom
     {
         private SpriteDef[] spriteDefs;
 
-        public SpriteLookup(Wad wad)
+        public SpriteLookup(Wad wad) : this(wad, DoomInfo.SpriteNames.Select(n => n.ToString()).ToArray()) { }
+
+        public SpriteLookup(Wad wad, IReadOnlyList<string> spriteNames)
         {
             try
             {
                 var temp = new Dictionary<string, List<SpriteInfo>>();
-                for (var i = 0; i < (int)Sprite.Count; i++)
+                for (var i = 0; i < spriteNames.Count; i++)
                 {
-                    temp.TryAdd(DoomInfo.SpriteNames[i], new List<SpriteInfo>());
+                    temp.TryAdd(spriteNames[i], new List<SpriteInfo>());
                 }
 
                 var cache = new Dictionary<int, Patch>();
 
                 foreach (var lump in EnumerateSprites(wad))
                 {
-                    var name = wad.LumpInfos[lump].Name.Substring(0, 4);
+                    var lumpName = wad.LumpInfos[lump].Name;
+                    if (lumpName.Length < 4) continue;
+                    var name = lumpName.Substring(0, 4);
 
                     if (!temp.ContainsKey(name))
                     {
                         continue;
                     }
 
+                    if ((lumpName.Length != 6 && lumpName.Length != 8) ||
+                        lumpName[4] < 'A' || lumpName[4] > 'A' + 31 || lumpName[5] < '0' || lumpName[5] > '8' ||
+                        (lumpName.Length == 8 && (lumpName[6] < 'A' || lumpName[6] > 'A' + 31 || lumpName[7] < '0' || lumpName[7] > '8')))
+                        throw new InvalidOperationException("Malformed sprite frame/rotation: " + lumpName);
                     var list = temp[name];
 
                     {
@@ -114,15 +124,15 @@ namespace ManagedDoom
                     }
                 }
 
-                spriteDefs = new SpriteDef[(int)Sprite.Count];
+                spriteDefs = new SpriteDef[spriteNames.Count];
                 for (var i = 0; i < spriteDefs.Length; i++)
                 {
-                    var list = temp[DoomInfo.SpriteNames[i]];
+                    var list = temp[spriteNames[i]];
 
                     var frames = new SpriteFrame[list.Count];
                     for (var j = 0; j < frames.Length; j++)
                     {
-                        list[j].CheckCompletion();
+                        list[j].CheckCompletion(spriteNames[i] + (char)('A' + j));
 
                         var frame = new SpriteFrame(list[j].HasRotation(), list[j].Patches, list[j].Flip);
                         frames[j] = frame;
@@ -202,13 +212,13 @@ namespace ManagedDoom
                 Flip = new bool[8];
             }
 
-            public void CheckCompletion()
+            public void CheckCompletion(string name)
             {
                 for (var i = 0; i < Patches.Length; i++)
                 {
                     if (Patches[i] == null)
                     {
-                        throw new Exception("Missing sprite!");
+                        throw new InvalidOperationException("Missing sprite rotation: " + name + (i + 1));
                     }
                 }
             }

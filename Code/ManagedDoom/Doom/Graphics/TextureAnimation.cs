@@ -1,4 +1,5 @@
-﻿// s&Doom modification notice (added 2026-09-16).
+// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
+// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
 // Original copyright and GPL terms below remain unchanged.
@@ -30,12 +31,15 @@ namespace ManagedDoom
         private TextureAnimationInfo[] animations;
 
         public TextureAnimation(ITextureLookup textures, IFlatLookup flats)
+            : this(textures, flats, DoomInfo.TextureAnimation) { }
+
+        public TextureAnimation(ITextureLookup textures, IFlatLookup flats, IEnumerable<AnimationDef> definitions)
         {
             try
             {
                 var list = new List<TextureAnimationInfo>();
 
-                foreach (var animDef in DoomInfo.TextureAnimation)
+                foreach (var animDef in definitions)
                 {
                     int picNum;
                     int basePic;
