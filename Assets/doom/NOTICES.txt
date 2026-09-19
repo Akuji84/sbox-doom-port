@@ -30,8 +30,8 @@ MeltySynth and its upstream notices are in THIRD_PARTY_NOTICES.txt.
 
 Project source: https://github.com/Akuji84/sbox-doom-port
 
-Source release: sdoom-source-2026-09-16
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-source-2026-09-16
+Source release: sdoom-source-2026-09-18-freedomscoops
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-source-2026-09-18-freedomscoops
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-source-2026-09-16.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-source-2026-09-18-freedomscoops.zip
 Original integrated game/host code: GNU GPL version 2 or later.

@@ -1,12 +1,12 @@
-# Source release: sdoom-source-2026-09-16
+# Source release: sdoom-source-2026-09-18-freedomscoops
 
 Source snapshot for s&Doom, including multiplayer, save/input improvements
 and the bundled WAD licenses and credits.
 
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-source-2026-09-16
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-source-2026-09-18-freedomscoops
 
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-source-2026-09-16.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-source-2026-09-18-freedomscoops.zip
 
 ## Contents and build
 
