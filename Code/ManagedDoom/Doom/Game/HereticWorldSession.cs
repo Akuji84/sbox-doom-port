@@ -167,11 +167,24 @@ namespace ManagedDoom
         }
         private void MoveVertical()
         {
-            if (Body.Z < Body.FloorZ) Camera.ViewHeight -= Body.FloorZ - Body.Z;
+            if (Body.Z < Body.FloorZ)
+            {
+                Camera.ViewHeight -= Body.FloorZ - Body.Z;
+                Camera.DeltaViewHeight = (Fixed.FromInt(41) - Camera.ViewHeight) / 8;
+            }
             Body.Z += Body.MomZ;
             if (State.Flying && Body.Z > Body.FloorZ && (tic & 2) != 0)
-                Body.Z += Trig.Sin(new Angle(unchecked((uint)((long)tic * 0x100000000L / 80))));
-            if (Body.Z <= Body.FloorZ) { Body.Z = Body.FloorZ; if (Body.MomZ < Fixed.Zero) Body.MomZ = Fixed.Zero; }
+                Body.Z += Trig.Sin(new Angle((uint)(((409L * tic >> 2) & 8191) << 19)));
+            if (Body.Z <= Body.FloorZ)
+            {
+                Body.Z = Body.FloorZ;
+                if (!State.Flying && Body.MomZ < Fixed.FromInt(-8))
+                {
+                    Camera.DeltaViewHeight = Body.MomZ >> 3;
+                    State.Centering = true;
+                }
+                if (Body.MomZ < Fixed.Zero) Body.MomZ = Fixed.Zero;
+            }
             else if (!State.Flying) Body.MomZ -= Body.MomZ == Fixed.Zero ? Fixed.FromInt(2) : Fixed.One;
             if (Body.Z + Body.Height > Body.CeilingZ)
             { Body.Z = Body.CeilingZ - Body.Height; if (Body.MomZ > Fixed.Zero) Body.MomZ = Fixed.Zero; }
@@ -181,13 +194,17 @@ namespace ManagedDoom
             Camera.ViewHeight += Camera.DeltaViewHeight;
             if (Camera.ViewHeight > Fixed.FromInt(41)) { Camera.ViewHeight = Fixed.FromInt(41); Camera.DeltaViewHeight = Fixed.Zero; }
             if (Camera.ViewHeight < Fixed.FromInt(41) / 2) { Camera.ViewHeight = Fixed.FromInt(41) / 2; if (Camera.DeltaViewHeight <= Fixed.Zero) Camera.DeltaViewHeight = Fixed.Epsilon; }
-            if (Camera.ViewHeight < Fixed.FromInt(41)) Camera.DeltaViewHeight += Fixed.One / 4;
+            if (Camera.DeltaViewHeight != Fixed.Zero)
+            {
+                Camera.DeltaViewHeight += Fixed.One / 4;
+                if (Camera.DeltaViewHeight == Fixed.Zero) Camera.DeltaViewHeight = Fixed.Epsilon;
+            }
             var bob = (Body.MomX * Body.MomX + Body.MomY * Body.MomY) / 4;
             if (bob > Fixed.FromInt(16)) bob = Fixed.FromInt(16);
             if (State.Flying && Body.Z > Body.FloorZ) bob = Fixed.One / 2;
-            Camera.ViewZ = Body.Z + Camera.ViewHeight + bob / 2 * Trig.Sin(new Angle(unchecked((uint)((long)tic * 0x100000000L / 20))));
+            Camera.ViewZ = Body.Z + Camera.ViewHeight + bob / 2 * Trig.Sin(new Angle((uint)((409L * tic & 8191) << 19)));
             var flat = world.Map.Flats[Body.Subsector.Sector.FloorFlat].Name;
-            if (Body.Z <= Body.FloorZ && (flat.StartsWith("FLTWAWA") || flat.StartsWith("FLTLAVA") || flat.StartsWith("FLTSLUD"))) Camera.ViewZ -= Fixed.FromInt(10);
+            if (Body.Z <= Body.FloorZ && (flat == "FLTWAWA1" || flat == "FLTFLWW1" || flat == "FLTLAVA1" || flat == "FLATHUH1" || flat == "FLTSLUD1")) Camera.ViewZ -= Fixed.FromInt(10);
             Camera.ViewZ = new Fixed(Math.Clamp(Camera.ViewZ.Data, (Body.FloorZ + Fixed.FromInt(4)).Data, (Body.CeilingZ - Fixed.FromInt(4)).Data));
         }
         private void EnvironmentForces(bool onGround)

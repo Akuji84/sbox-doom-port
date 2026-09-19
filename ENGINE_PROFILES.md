@@ -93,7 +93,7 @@ validation and animation, and retain the existing Doom compatibility baselines.
 ## Chunk 3: single-player navigation checkpoint
 
 The standalone preview scene now defaults to navigation mode. `SboxHereticPreview`
-provides WASD movement, left/right arrows for turning, up/down arrows for looking,
+provides WASD movement (Shift to run), left/right arrows for turning, up/down arrows for looking,
 E to use, Home to center the view, and End to land. Enable the editor's **Test
 Flight** property to supply flight power; R/F then ascend/descend. Actual artifact
 acquisition belongs to the inventory chunk. Disable **Navigation** to retain the
@@ -120,3 +120,12 @@ integrated with the actors in the combat chunk. `DoomGame` still rejects Heretic
 The regression suite tests individual movement/environment/interaction mechanics,
 runs repeatable navigation and extreme look-angle renders in all 48 Blasphemer
 map slots, and checks Doom's original state/image baselines again afterward.
+
+Navigation follow-up: the preview samples input once per frame and retains short
+use/center/land actions until the 35 Hz simulation consumes them. Separate use
+presses retain a release edge; multiple taps before a tick are coalesced. Recovery
+from a stalled frame is capped at 250 ms. Ground liquid clipping includes flowing
+water and super lava. Step and hard-landing camera recovery and bobbing follow
+the pinned Heretic reference. Automated checks cover frame rates from 30 to 240
+FPS, action retention, terrain clipping and camera recovery. In-editor interaction
+still needs a manual playtest.

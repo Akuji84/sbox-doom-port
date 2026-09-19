@@ -45,3 +45,11 @@ Shared collision and sector movers now expose the small entry points needed by
 Heretic. Doom paths retain their defaults. The standalone preview panel supports
 keyboard navigation; the public game launcher still excludes unfinished Heretic
 runtime support. Adapted GPL code retains the pinned Chocolate Doom notices.
+
+### 2026-09-18 - Heretic navigation follow-up
+
+Retain brief preview input actions across simulation ticks, add Shift running,
+and bound stalled-frame catch-up. Correct camera recovery on steps and hard
+landings, fixed-angle bobbing, and the full five-entry Heretic liquid terrain
+classification, following the previously pinned GPL Heretic reference. Add
+frame scheduling, terrain and camera recovery regression checks.

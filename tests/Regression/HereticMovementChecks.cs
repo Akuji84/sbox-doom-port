@@ -53,6 +53,8 @@ static class HereticMovementChecks
         Check(!collision.World.ThingMovement.TryMove(collision.Body, oldX, oldY), "25-unit step should block.");
         floor.FloorHeight = originalFloor + Fixed.FromInt(24);
         Check(collision.World.ThingMovement.TryMove(collision.Body, oldX, oldY), "24-unit step should fit.");
+        CheckCameraAndTerrain(content);
+        HereticFrameChecks.Verify();
         CheckDoorsAndPlatforms(content);
         CheckTeleportAndKeys(content);
         // Fixed command streams must be reproducible and safe in every bundled map slot.
@@ -80,6 +82,35 @@ static class HereticMovementChecks
             a.State.LookDirection = 90; preview.Render(pixels, 0);
         }
         Console.WriteLine("PASS Heretic navigation: movement, look limits, flight, landing, ice, wind, damage, secrets, keys, doors, lifts, switches, teleport and deterministic/rendered navigation in 48 maps");
+    }
+    private static void CheckCameraAndTerrain(GameContent content)
+    {
+        var s = new HereticWorldSession(content);
+        s.Body.Subsector.Sector.Special = 0;
+        s.Body.FloorZ += Fixed.FromInt(24);
+        s.Body.Subsector.Sector.FloorHeight = s.Body.FloorZ;
+        s.Tick(default);
+        Check(s.Camera.ViewHeight < Fixed.FromInt(41) && s.Camera.DeltaViewHeight > Fixed.Zero, "Step camera must ease upward.");
+        for (var i = 0; i < 40; i++) s.Tick(default);
+        Check(s.Camera.ViewHeight == Fixed.FromInt(41) && s.Camera.DeltaViewHeight == Fixed.Zero, "Step camera did not settle.");
+        s.State.LookDirection = 45;
+        s.Body.Z = s.Body.FloorZ + Fixed.FromInt(1);
+        s.Body.MomZ = Fixed.FromInt(-12);
+        s.Tick(default);
+        Check(s.Camera.ViewHeight < Fixed.FromInt(41) && s.State.Centering, "Hard landing lacks camera response.");
+        for (var i = 0; i < 50; i++) s.Tick(default);
+        Check(s.Camera.ViewHeight == Fixed.FromInt(41) && s.State.LookDirection == 0, "Landing camera did not recover/center.");
+        foreach (var name in new[] { "FLTWAWA1", "FLTFLWW1", "FLTLAVA1", "FLATHUH1", "FLTSLUD1" })
+        {
+            s = new HereticWorldSession(content);
+            s.Body.Subsector.Sector.Special = 0;
+            s.Body.Subsector.Sector.FloorFlat = s.World.Map.Flats.GetNumber(name);
+            s.Tick(default);
+            Check(s.Camera.ViewZ == s.Body.Z + Fixed.FromInt(31), name + " missing ground foot clipping.");
+            Check(s.State.Health == 100, "Texture alone caused damage.");
+            s.GrantFlight(50); s.Tick(new HereticCommand { Fly = 5 });
+            Check(Fixed.Abs(s.Camera.ViewZ - s.Body.Z - s.Camera.ViewHeight) <= Fixed.One / 4, name + " clips airborne camera.");
+        }
     }
     private static void CheckDoorsAndPlatforms(GameContent content)
     {

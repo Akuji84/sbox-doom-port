@@ -19,7 +19,7 @@
     [Property] public bool Navigation { get; set; } = true;
     [Property] public bool TestFlight { get; set; }
     private HereticWorldSession _session;
-    private float _tickRemainder;
+    private readonly HereticFrameStepper _stepper = new();
     [Property] public float Yaw { get; set; }
     private GameContent _content;
     private HereticMapPreview _preview;
@@ -64,21 +64,18 @@
             var tic = (int)(_elapsed * 35);
             if (_session is not null)
             {
-                _tickRemainder += Math.Min(Time.Delta, 0.25f);
-                while (_tickRemainder >= 1f / 35f)
-                {
-                    if (TestFlight) _session.GrantFlight(2);
-                    _session.Tick(new HereticCommand {
-                        Forward = (sbyte)((Input.Keyboard.Down("W") ? 1 : 0) * 25 - (Input.Keyboard.Down("S") ? 1 : 0) * 25),
-                        Side = (sbyte)((Input.Keyboard.Down("D") ? 1 : 0) * 24 - (Input.Keyboard.Down("A") ? 1 : 0) * 24),
-                        Turn = (short)((Input.Keyboard.Down("LEFT") ? 640 : 0) - (Input.Keyboard.Down("RIGHT") ? 640 : 0)),
-                        Look = (sbyte)((Input.Keyboard.Down("UP") ? 1 : 0) - (Input.Keyboard.Down("DOWN") ? 1 : 0)),
-                        Fly = (sbyte)((Input.Keyboard.Down("R") ? 1 : 0) - (Input.Keyboard.Down("F") ? 1 : 0)),
-                        Use = Input.Keyboard.Down("E"), CenterLook = Input.Keyboard.Down("HOME"), Land = Input.Keyboard.Down("END")
-                    });
-                    _tickRemainder -= 1f / 35f;
-                }
-                _message = "Navigation test: WASD move; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
+                var running = Input.Keyboard.Down("SHIFT") || Input.Keyboard.Down("LSHIFT");
+                var command = new HereticCommand {
+                    Forward = (sbyte)(((Input.Keyboard.Down("W") ? 1 : 0) - (Input.Keyboard.Down("S") ? 1 : 0)) * (running ? 50 : 25)),
+                    Side = (sbyte)(((Input.Keyboard.Down("D") ? 1 : 0) - (Input.Keyboard.Down("A") ? 1 : 0)) * (running ? 40 : 24)),
+                    Turn = (short)((Input.Keyboard.Down("LEFT") ? 640 : 0) - (Input.Keyboard.Down("RIGHT") ? 640 : 0)),
+                    Look = (sbyte)((Input.Keyboard.Down("UP") ? 1 : 0) - (Input.Keyboard.Down("DOWN") ? 1 : 0)),
+                    Fly = (sbyte)((Input.Keyboard.Down("R") ? 1 : 0) - (Input.Keyboard.Down("F") ? 1 : 0)),
+                    Use = Input.Keyboard.Down("E"), CenterLook = Input.Keyboard.Down("HOME"), Land = Input.Keyboard.Down("END")
+                };
+                _stepper.Advance(Time.Delta, command, StepNavigation);
+                tic = _stepper.TickCount;
+                _message = "Navigation test: WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; keys " + _session.State.Keys + ". " + _session.State.Message +
                     " Combat, other actors, audio, inventory, campaign, saves and multiplayer are not active.";
                 StateHasChanged();
@@ -95,6 +92,12 @@
             _message = "Heretic preview: " + ex.Message;
             StateHasChanged();
         }
+    }
+
+    private void StepNavigation(HereticCommand command)
+    {
+        if (TestFlight) _session.GrantFlight(2);
+        _session.Tick(command);
     }
 
     protected override void OnDestroy()
