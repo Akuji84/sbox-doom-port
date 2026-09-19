@@ -28,7 +28,10 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         private readonly World world;
-        private readonly List<(Mobj body, HereticKeys key, HereticActorState animation)> keys = new();
+        private readonly List<HereticMapActor> actors = new();
+        public IReadOnlyList<HereticMapActor> Actors { get; }
+        public int UnsupportedMapThings { get; private set; }
+        public int UnknownMapThings { get; private set; }
         private readonly List<(LineDef line, int position, int texture, int until)> buttons = new();
         private bool useDown;
         private int tic;
@@ -38,8 +41,10 @@ namespace ManagedDoom
         public World World => world;
         public bool ExitRequested { get; private set; }
         public bool SecretExitRequested { get; private set; }
-        public HereticWorldSession(GameContent content, int episode = 1, int map = 1)
+        public HereticWorldSession(GameContent content, int episode = 1, int map = 1, GameSkill skill = GameSkill.Medium)
         {
+            if ((uint)skill > (uint)GameSkill.Nightmare) throw new ArgumentOutOfRangeException(nameof(skill));
+            Actors = actors.AsReadOnly();
             world = World.CreateGeometryPreview(content, episode, map);
             world.EnableHereticGeometryInteractions();
             world.HereticSession = this;
@@ -56,18 +61,12 @@ namespace ManagedDoom
             Body.Z = Body.FloorZ;
             Camera.ViewHeight = Fixed.FromInt(41);
             Camera.ViewZ = Body.Z + Camera.ViewHeight;
-            foreach (var thing in world.Map.Things.Where(t => t.Type == 73 || t.Type == 79 || t.Type == 80))
+            foreach (var thing in world.Map.Things)
             {
-                var key = thing.Type == 73 ? HereticKeys.Green : thing.Type == 79 ? HereticKeys.Blue : HereticKeys.Yellow;
-                var type = thing.Type == 73 ? HereticActorType.MT_AKYY : thing.Type == 79 ? HereticActorType.MT_BKYY : HereticActorType.MT_CKEY;
-                var definition = HereticDefinitions.Actors[(int)type];
-                var animation = new HereticActorState(definition.SpawnState);
-                var actor = new Mobj(world) { X = thing.X, Y = thing.Y, Radius = definition.Radius,
-                    Height = definition.Height, Flags = MobjFlags.NoBlockMap,
-                    Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame };
-                world.ThingMovement.SetThingPosition(actor);
-                actor.Z = actor.Subsector.Sector.FloorHeight;
-                keys.Add((actor, key, animation));
+                var decision = HereticMapSpawns.Decide(thing, skill);
+                if (decision.Disposition == HereticSpawnDisposition.Unsupported) UnsupportedMapThings++;
+                if (decision.Disposition == HereticSpawnDisposition.Unknown) UnknownMapThings++;
+                if (decision.Disposition == HereticSpawnDisposition.Spawn) SpawnMapActor(thing, decision.Type);
             }
             foreach (var sector in world.Map.Sectors)
             {
@@ -113,12 +112,7 @@ namespace ManagedDoom
             if (command.Use && !useDown) Use();
             useDown = command.Use;
             PickupKeys();
-            foreach (var key in keys)
-            {
-                key.animation.Tick();
-                key.body.Sprite = (Sprite)key.animation.Definition.Sprite;
-                key.body.Frame = key.animation.Definition.Frame;
-            }
+            foreach (var actor in actors) actor.Tick();
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
             UpdateView();
@@ -236,13 +230,39 @@ namespace ManagedDoom
         internal void DamageEnvironment(int amount) { State.Health = Math.Max(0, State.Health - amount); Body.Health = State.Health; }
         private void PickupKeys()
         {
-            for (var i = keys.Count - 1; i >= 0; i--)
+            for (var i = actors.Count - 1; i >= 0; i--)
             {
-                var key = keys[i]; var dz = key.body.Z - Body.Z;
-                if (Math.Abs((key.body.X - Body.X).Data) >= 36 * Fixed.FracUnit || Math.Abs((key.body.Y - Body.Y).Data) >= 36 * Fixed.FracUnit || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
-                State.Keys |= key.key; State.Message = key.key + " key";
-                world.ThingMovement.UnsetThingPosition(key.body); keys.RemoveAt(i);
+                var actor = actors[i];
+                if (actor.Key == HereticKeys.None) continue;
+                var body = actor.Body; var dz = body.Z - Body.Z;
+                if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
+                State.Keys |= actor.Key; State.Message = actor.Key + " key";
+                world.ThingMovement.UnsetThingPosition(body);
+                actor.Animation.SetState(HereticStateId.S_NULL);
+                actors.RemoveAt(i);
             }
+        }
+        private void SpawnMapActor(MapThing thing, HereticActorType type)
+        {
+            var def = HereticDefinitions.Actors[(int)type];
+            var tics = HereticDefinitions.States[(int)def.SpawnState].Tics;
+            var animation = new HereticActorState(def.SpawnState, initialTics: tics > 0 ? 1 + world.Random.Next() % tics : null);
+            // Explicit shared spatial flags; behavior flags remain family-owned.
+            var flags = (MobjFlags)0;
+            if ((def.Flags & HereticActorFlags.MF_SOLID) != 0) flags |= MobjFlags.Solid;
+            if ((def.Flags & HereticActorFlags.MF_NOGRAVITY) != 0) flags |= MobjFlags.NoGravity;
+            if ((def.Flags & HereticActorFlags.MF_SPAWNCEILING) != 0) flags |= MobjFlags.SpawnCeiling;
+            if ((def.Flags & HereticActorFlags.MF_NOSECTOR) != 0) flags |= MobjFlags.NoSector;
+            if ((def.Flags & HereticActorFlags.MF_NOBLOCKMAP) != 0 || HereticMapSpawns.KeyFor(type) != HereticKeys.None) flags |= MobjFlags.NoBlockMap;
+            if ((thing.Flags & ThingFlags.Ambush) != 0) flags |= MobjFlags.Ambush;
+            var body = new Mobj(world) { X = thing.X, Y = thing.Y, Angle = thing.Angle, Radius = def.Radius,
+                Height = def.Height, Health = def.SpawnHealth, Flags = flags, Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame };
+            world.ThingMovement.SetThingPosition(body);
+            body.FloorZ = body.Subsector.Sector.FloorHeight;
+            body.CeilingZ = body.Subsector.Sector.CeilingHeight;
+            body.Z = (flags & MobjFlags.SpawnCeiling) != 0 ? body.CeilingZ - body.Height : body.FloorZ;
+            body.UpdateFrameInterpolationInfo();
+            actors.Add(new HereticMapActor(type, body, animation));
         }
         private void Use()
         {

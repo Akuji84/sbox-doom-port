@@ -173,3 +173,33 @@ Remaining combat work is grouped into these checkpoints:
 
 The normal Heretic gameplay gate remains closed until the required systems are
 implemented. This checkpoint does not claim a completed combat engine.
+
+## Chunk 4b, first checkpoint: map actors and scenery
+
+The navigation scene now loads supported map scenery alongside the three key
+colors. It uses each Heretic definition's dimensions, sprite frames and spatial
+flags, places hanging actors at ceiling minus height, and seeds animation timing
+from the session's deterministic random stream. The editor's **Skill** property
+selects the map difficulty before starting the scene.
+
+Map classification applies the reference skill masks and single-player exclusion
+flag. The classification API also covers network, deathmatch key exclusion and
+no-monsters rules for later runtime integration; this does not enable network
+play. Player starts, boss spots and ambient markers remain distinct from actors.
+Unknown thing types and known but unsupported behaviors have separate counters
+in the preview. Enemies, pickups other than keys, generators and scenery whose
+animation requires an unimplemented action remain absent. A complete animation
+loop is checked before spawning; a harmless first frame is not sufficient.
+
+Supported solid scenery now participates in the shared blockmap collision path.
+Sector movers keep Heretic bodies out of Doom's corpse/damage actions. This is
+still the existing horizontal collision model: Heretic's over/under movement,
+standing on actors, targeting, damage and actor deaths remain part of the next
+4b checkpoint. No enemy combat or weapon attacks are enabled here.
+
+Tests cover all skill masks, multiplayer/deathmatch/no-monsters classification,
+unsupported actions later in animation loops, deterministic spawns and animation,
+floor/ceiling placement, rendering in all 48 Blasphemer maps, and an actual solid
+scenery movement rejection. The fixture covers 4,469 map actors, including 2,688
+solid and 1,467 ceiling-hung actors. Existing Doom baselines still pass afterward.
+In-editor playtesting remains outstanding.

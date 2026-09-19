@@ -16,6 +16,7 @@
     [Property] public string WadPath { get; set; } = "doom/blasphem.wad";
     [Property] public int Episode { get; set; } = 1;
     [Property] public int Map { get; set; } = 1;
+    [Property] public GameSkill Skill { get; set; } = GameSkill.Medium;
     [Property] public bool Navigation { get; set; } = true;
     [Property] public bool TestFlight { get; set; }
     private HereticWorldSession _session;
@@ -37,7 +38,7 @@
             _content = GameContent.CreateHereticPreview(WadPath);
             if (Navigation)
             {
-                _session = new HereticWorldSession(_content, Episode, Map);
+                _session = new HereticWorldSession(_content, Episode, Map, Skill);
                 _preview = new HereticMapPreview(_content, _session);
             }
             else _preview = new HereticMapPreview(_content, Episode, Map);
@@ -77,7 +78,7 @@
                 tic = _stepper.TickCount;
                 _message = "Navigation test: WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; keys " + _session.State.Keys + ". " + _session.State.Message +
-                    " Combat, other actors, audio, inventory, campaign, saves and multiplayer are not active.";
+                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". Combat, enemies, audio, inventory, campaign, saves and multiplayer are not active.";
                 StateHasChanged();
             }
             if (tic == _lastTic && Yaw == _lastYaw) return;

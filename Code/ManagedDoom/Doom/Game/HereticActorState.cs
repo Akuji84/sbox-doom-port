@@ -36,11 +36,16 @@ namespace ManagedDoom
         public bool Removed { get; private set; }
         public HereticStateDefinition Definition => HereticDefinitions.States[(int)State];
 
-        public HereticActorState(HereticStateId spawnState, IHereticActorActions actions = null)
+        public HereticActorState(HereticStateId spawnState, IHereticActorActions actions = null, int? initialTics = null)
         {
             this.actions = actions;
             // P_SpawnMobj assigns the initial frame without running its action.
             SetState(spawnState, false);
+            if (initialTics.HasValue)
+            {
+                if (Removed || initialTics.Value < 1 || initialTics.Value > Tics) throw new ArgumentOutOfRangeException(nameof(initialTics));
+                Tics = initialTics.Value;
+            }
         }
 
         public void SetState(HereticStateId state, bool runAction = true)

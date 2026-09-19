@@ -104,10 +104,15 @@ namespace ManagedDoom
 				return true;
 			}
 
-            if (world.HereticSession != null && thing == world.HereticSession.Body)
+            if (world.HereticSession != null)
             {
-                noFit = true;
-                if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageEnvironment(10);
+                if (thing == world.HereticSession.Body)
+                {
+                    noFit = true;
+                    if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageEnvironment(10);
+                }
+                // This checkpoint only spawns non-shootable scenery besides the player.
+                // Do not send Heretic bodies through Doom corpse/damage state actions.
                 return true;
             }
 

@@ -32,7 +32,7 @@ namespace ManagedDoom
             camera = player ?? new Player(0) { Mobj = body, ViewZ = body.Z + Fixed.FromInt(41) };
             screen = new DrawScreen(content.Wad, Width, Height);
             renderer = new ThreeDRenderer(content, screen, 8);
-            Report = player != null ? world.Map.Title + ": Heretic navigation checkpoint. Combat, other actors, audio, inventory, saves and multiplayer are not active." : world.Map.Title + ": geometry preview. " + world.Map.Things.Length + " things omitted; " +
+            Report = player != null ? world.Map.Title + ": Heretic navigation and scenery checkpoint. Combat, enemies, audio, inventory, saves and multiplayer are not active." : world.Map.Title + ": geometry preview. " + world.Map.Things.Length + " things omitted; " +
                 world.Map.Lines.Count(l => l.Special != 0) + " line specials and " +
                 world.Map.Sectors.Count(s => s.Special != 0) +
                 " sector specials inactive. Combat, movement, sounds, inventory, saves and multiplayer are not implemented.";

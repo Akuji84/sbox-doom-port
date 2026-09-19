@@ -1,12 +1,12 @@
-# Source release: sdoom-heretic-actor-foundation-2026-09-18
+# Source release: sdoom-heretic-map-actors-2026-09-18
 
 Source snapshot for s&Doom, including multiplayer, save/input improvements
-the Heretic asset/geometry, navigation and actor-definition checkpoints, and bundled WAD licenses and credits.
+the Heretic asset/geometry, navigation, actor-definition and map-scenery checkpoints, and bundled WAD licenses and credits.
 
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-actor-foundation-2026-09-18
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-map-actors-2026-09-18
 
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-actor-foundation-2026-09-18.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-map-actors-2026-09-18.zip
 
 ## Contents and build
 

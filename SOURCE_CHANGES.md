@@ -61,3 +61,11 @@ GPL reference, retaining its copyright and license header. Add a reproducible
 hash-checked importer and a Heretic actor state runner. Use it for key animation
 in the navigation scene. Add definition/asset coverage, action dispatch, timing,
 removal and in-world key checks. Attacks and enemy AI remain unimplemented.
+
+### 2026-09-18 - Heretic map actor checkpoint
+
+Add map thing classification/filtering based on the pinned GPL p_mobj.c reference,
+family-owned map actor instances, deterministic animation phases, floor/ceiling
+placement and explicit unsupported/unknown reporting. Spawn action-free scenery
+and keys in the navigation scene. Keep Heretic sector-height clipping out of Doom
+corpse/damage actions. Add spawn/filter/collision/render checks across all 48 maps.
