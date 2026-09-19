@@ -53,3 +53,11 @@ and bound stalled-frame catch-up. Correct camera recovery on steps and hard
 landings, fixed-angle bobbing, and the full five-entry Heretic liquid terrain
 classification, following the previously pinned GPL Heretic reference. Add
 frame scheduling, terrain and camera recovery regression checks.
+
+### 2026-09-18 - Heretic actor definition checkpoint
+
+Import family-owned immutable actor/state/weapon definitions from the pinned
+GPL reference, retaining its copyright and license header. Add a reproducible
+hash-checked importer and a Heretic actor state runner. Use it for key animation
+in the navigation scene. Add definition/asset coverage, action dispatch, timing,
+removal and in-world key checks. Attacks and enemy AI remain unimplemented.

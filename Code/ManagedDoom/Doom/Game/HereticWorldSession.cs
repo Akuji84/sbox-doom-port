@@ -28,7 +28,7 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         private readonly World world;
-        private readonly List<(Mobj body, HereticKeys key)> keys = new();
+        private readonly List<(Mobj body, HereticKeys key, HereticActorState animation)> keys = new();
         private readonly List<(LineDef line, int position, int texture, int until)> buttons = new();
         private bool useDown;
         private int tic;
@@ -59,13 +59,15 @@ namespace ManagedDoom
             foreach (var thing in world.Map.Things.Where(t => t.Type == 73 || t.Type == 79 || t.Type == 80))
             {
                 var key = thing.Type == 73 ? HereticKeys.Green : thing.Type == 79 ? HereticKeys.Blue : HereticKeys.Yellow;
-                var name = thing.Type == 73 ? "AKYY" : thing.Type == 79 ? "BKYY" : "CKYY";
-                var actor = new Mobj(world) { X = thing.X, Y = thing.Y, Radius = Fixed.FromInt(20),
-                    Height = Fixed.FromInt(16), Flags = MobjFlags.NoBlockMap,
-                    Sprite = (Sprite)Array.IndexOf(HereticAssets.SpriteNames, name), Frame = 0 };
+                var type = thing.Type == 73 ? HereticActorType.MT_AKYY : thing.Type == 79 ? HereticActorType.MT_BKYY : HereticActorType.MT_CKEY;
+                var definition = HereticDefinitions.Actors[(int)type];
+                var animation = new HereticActorState(definition.SpawnState);
+                var actor = new Mobj(world) { X = thing.X, Y = thing.Y, Radius = definition.Radius,
+                    Height = definition.Height, Flags = MobjFlags.NoBlockMap,
+                    Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame };
                 world.ThingMovement.SetThingPosition(actor);
                 actor.Z = actor.Subsector.Sector.FloorHeight;
-                keys.Add((actor, key));
+                keys.Add((actor, key, animation));
             }
             foreach (var sector in world.Map.Sectors)
             {
@@ -111,6 +113,12 @@ namespace ManagedDoom
             if (command.Use && !useDown) Use();
             useDown = command.Use;
             PickupKeys();
+            foreach (var key in keys)
+            {
+                key.animation.Tick();
+                key.body.Sprite = (Sprite)key.animation.Definition.Sprite;
+                key.body.Frame = key.animation.Definition.Frame;
+            }
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
             UpdateView();

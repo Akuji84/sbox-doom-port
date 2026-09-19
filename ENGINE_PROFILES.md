@@ -129,3 +129,47 @@ water and super lava. Step and hard-landing camera recovery and bobbing follow
 the pinned Heretic reference. Automated checks cover frame rates from 30 to 240
 FPS, action retention, terrain clipping and camera recovery. In-editor interaction
 still needs a manual playtest.
+
+## Chunk 4a: actor and weapon definitions
+
+The first combat checkpoint imports all 1,208 states, 161 actor definitions and
+nine normal/nine Tome-powered weapon definitions into immutable Heretic-owned
+collections. Separate enums cover actors, states, sounds, actions, weapons, ammo
+and both flag words. No entries are inserted into DoomInfo or its DeHackEd tables.
+These are definitions, not implemented attacks or enemy AI.
+
+`HereticActorState` follows actor scheduling in the pinned `p_mobj.c`: spawn
+frames do not call actions; transitions call explicitly supported Heretic actions;
+permanent states remain; S_NULL removes the actor; and action-driven redirection
+is preserved. Unsupported actions throw instead of silently doing nothing.
+Weapon overlays require their own `p_pspr.c` transition logic and must not use
+this actor runner. The navigation scene now uses this runner for all three key
+animations, including fullbright frames. No other map actors are activated yet.
+
+`tools/import_heretic_definitions.py` reproduces the checked-in definitions from
+Chocolate Doom commit `895f581c5d91497bdda0516612da803fe5843e28`. It verifies
+SHA-256 hashes of six reference files, normalizing CRLF to LF, before parsing.
+The generated C# includes upstream copyright and GPL notices. Normal builds use
+the checked-in C# and do not require the reference checkout or Python.
+
+```powershell
+python tools/import_heretic_definitions.py C:/path/to/chocolate-doom --check
+```
+
+Omit `--check` to regenerate after checking out that exact reference commit.
+The regression suite checks table references, every referenced Blasphemer sprite
+frame, representative actor stats, both weapon ammo tables, state timing/removal,
+unsupported action rejection, action redirection, and animated map keys. Doom
+compatibility snapshots are checked again after the Heretic tests.
+
+Remaining combat work is grouped into these checkpoints:
+
+1. **4b — combat interaction:** family-owned actor instances, spawning/filtering,
+   actor collision and targeting, damage/death and shared-renderer integration.
+2. **4c — player weapons:** weapon overlays/input/ammo, normal and powered attacks,
+   projectiles and impact effects, with per-weapon regression scenarios.
+3. **4d — enemies and bosses:** AI/state actions, species attacks, transformations
+   and boss triggers, with encounter and deterministic replay coverage.
+
+The normal Heretic gameplay gate remains closed until the required systems are
+implemented. This checkpoint does not claim a completed combat engine.
