@@ -415,7 +415,7 @@ namespace ManagedDoom
         case 98:               // Lower Floor (TURBO)
             world.SectorAction.DoFloor(line, FloorMoveType.TurboLower);
             break;
-    
+
             }
         }
     }
