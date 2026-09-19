@@ -16,6 +16,10 @@
     [Property] public string WadPath { get; set; } = "doom/blasphem.wad";
     [Property] public int Episode { get; set; } = 1;
     [Property] public int Map { get; set; } = 1;
+    [Property] public bool Navigation { get; set; } = true;
+    [Property] public bool TestFlight { get; set; }
+    private HereticWorldSession _session;
+    private float _tickRemainder;
     [Property] public float Yaw { get; set; }
     private GameContent _content;
     private HereticMapPreview _preview;
@@ -31,7 +35,12 @@
         try
         {
             _content = GameContent.CreateHereticPreview(WadPath);
-            _preview = new HereticMapPreview(_content, Episode, Map);
+            if (Navigation)
+            {
+                _session = new HereticWorldSession(_content, Episode, Map);
+                _preview = new HereticMapPreview(_content, _session);
+            }
+            else _preview = new HereticMapPreview(_content, Episode, Map);
             _texture = global::Sandbox.Texture.Create(HereticMapPreview.Width, HereticMapPreview.Height, ImageFormat.RGBA8888)
                 .WithDynamicUsage().Finish();
             _message = _preview.Report;
@@ -49,11 +58,32 @@
     protected override void OnUpdate()
     {
         if (_preview is null) return;
-        _elapsed += Time.Delta;
-        var tic = (int)(_elapsed * 35);
-        if (tic == _lastTic && Yaw == _lastYaw) return;
         try
         {
+            _elapsed += Time.Delta;
+            var tic = (int)(_elapsed * 35);
+            if (_session is not null)
+            {
+                _tickRemainder += Math.Min(Time.Delta, 0.25f);
+                while (_tickRemainder >= 1f / 35f)
+                {
+                    if (TestFlight) _session.GrantFlight(2);
+                    _session.Tick(new HereticCommand {
+                        Forward = (sbyte)((Input.Keyboard.Down("W") ? 1 : 0) * 25 - (Input.Keyboard.Down("S") ? 1 : 0) * 25),
+                        Side = (sbyte)((Input.Keyboard.Down("D") ? 1 : 0) * 24 - (Input.Keyboard.Down("A") ? 1 : 0) * 24),
+                        Turn = (short)((Input.Keyboard.Down("LEFT") ? 640 : 0) - (Input.Keyboard.Down("RIGHT") ? 640 : 0)),
+                        Look = (sbyte)((Input.Keyboard.Down("UP") ? 1 : 0) - (Input.Keyboard.Down("DOWN") ? 1 : 0)),
+                        Fly = (sbyte)((Input.Keyboard.Down("R") ? 1 : 0) - (Input.Keyboard.Down("F") ? 1 : 0)),
+                        Use = Input.Keyboard.Down("E"), CenterLook = Input.Keyboard.Down("HOME"), Land = Input.Keyboard.Down("END")
+                    });
+                    _tickRemainder -= 1f / 35f;
+                }
+                _message = "Navigation test: WASD move; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
+                    "Health " + _session.State.Health + "; keys " + _session.State.Keys + ". " + _session.State.Message +
+                    " Combat, other actors, audio, inventory, campaign, saves and multiplayer are not active.";
+                StateHasChanged();
+            }
+            if (tic == _lastTic && Yaw == _lastYaw) return;
             _preview.Render(_pixels, tic, Yaw);
             _texture.Update(_pixels, 0, 0, HereticMapPreview.Width, HereticMapPreview.Height);
             _lastTic = tic;

@@ -207,4 +207,6 @@ foreach (var name in new[] { "fsfc1", "fssc1" })
 CompatibilitySnapshots.Verify(root, args.Contains("--record-compatibility"));
 GameProfileChecks.Verify();
 HereticPreviewChecks.Verify(root);
+HereticMovementChecks.Verify(root);
+CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

@@ -17,18 +17,22 @@ namespace ManagedDoom
         public const int Height = 200;
         public string Report { get; }
         public HereticMapPreview(GameContent content, int episode = 1, int map = 1)
+            : this(content, World.CreateGeometryPreview(content, episode, map), null) { }
+        public HereticMapPreview(GameContent content, HereticWorldSession session)
+            : this(content, session.World, session.Camera) { }
+        private HereticMapPreview(GameContent content, World previewWorld, Player player)
         {
             this.content = content;
-            world = World.CreateGeometryPreview(content, episode, map);
+            world = previewWorld;
             var start = world.Map.Things.FirstOrDefault(t => t.Type == 1);
             if (start == null) throw new InvalidOperationException("Heretic preview requires a player-one start.");
             var body = new Mobj(world) { X = start.X, Y = start.Y, Angle = start.Angle };
             body.Subsector = Geometry.PointInSubsector(body.X, body.Y, world.Map);
             body.Z = body.Subsector.Sector.FloorHeight;
-            camera = new Player(0) { Mobj = body, ViewZ = body.Z + Fixed.FromInt(41) };
+            camera = player ?? new Player(0) { Mobj = body, ViewZ = body.Z + Fixed.FromInt(41) };
             screen = new DrawScreen(content.Wad, Width, Height);
             renderer = new ThreeDRenderer(content, screen, 8);
-            Report = world.Map.Title + ": geometry preview. " + world.Map.Things.Length + " things omitted; " +
+            Report = player != null ? world.Map.Title + ": Heretic navigation checkpoint. Combat, other actors, audio, inventory, saves and multiplayer are not active." : world.Map.Title + ": geometry preview. " + world.Map.Things.Length + " things omitted; " +
                 world.Map.Lines.Count(l => l.Special != 0) + " line specials and " +
                 world.Map.Sectors.Count(s => s.Special != 0) +
                 " sector specials inactive. Combat, movement, sounds, inventory, saves and multiplayer are not implemented.";
@@ -37,10 +41,10 @@ namespace ManagedDoom
         {
             if (rgba == null || rgba.Length != Width * Height * 4)
                 throw new ArgumentException("Preview requires a 320x200 RGBA buffer.");
-            world.SetPreviewTime(tic);
+            if (world.HereticSession == null) world.SetPreviewTime(tic);
             var original = camera.Mobj.Angle;
             camera.Mobj.Angle = original + Angle.FromDegree(yawDegrees);
-            try { renderer.Render(camera, Fixed.One); }
+            try { renderer.Render(camera, Fixed.One, world.HereticSession?.State.LookDirection ?? 0); }
             finally { camera.Mobj.Angle = original; }
             var palette = content.Palette[0];
             for (var y = 0; y < Height; y++)

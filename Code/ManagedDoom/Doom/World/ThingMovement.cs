@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-18, isolated Heretic movement dispatch.
 ﻿// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28, 2026-04-30.
@@ -507,6 +508,12 @@ namespace ManagedDoom
                 }
 
                 floatOk = true;
+                if (world.HereticSession?.State.Flying == true && thing == world.HereticSession.Body)
+                {
+                    if (thing.Z + thing.Height > currentCeilingZ) { thing.MomZ = Fixed.FromInt(-8); return false; }
+                    if (thing.Z < currentFloorZ && currentFloorZ - currentDropoffZ > Fixed.FromInt(24))
+                    { thing.MomZ = Fixed.FromInt(8); return false; }
+                }
 
                 if ((thing.Flags & MobjFlags.Teleport) == 0 &&
                     currentCeilingZ - thing.Z < thing.Height)
@@ -556,7 +563,8 @@ namespace ManagedDoom
                     {
                         if (line.Special != 0)
                         {
-                            world.MapInteraction.CrossSpecialLine(line, oldSide, thing);
+                            if (world.HereticSession != null) world.HereticSession.CrossLine(line, oldSide, thing);
+                            else world.MapInteraction.CrossSpecialLine(line, oldSide, thing);
                         }
                     }
                 }
@@ -968,7 +976,7 @@ namespace ManagedDoom
         /// Find the first line hit, move flush to it, and slide along it.
         /// This is a kludgy mess.
         /// </summary>
-        private void SlideMove(Mobj thing)
+        internal void SlideMove(Mobj thing)
         {
             var pt = world.PathTraversal;
 

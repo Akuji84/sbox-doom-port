@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-18, Heretic switch textures (p_switch.c).
 ﻿// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
@@ -21,6 +22,7 @@
 
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -43,7 +45,7 @@ namespace ManagedDoom
             try
             {
                 InitLookup(wad);
-                InitSwitchList();
+                InitSwitchList(wad);
             }
             catch
             {
@@ -80,10 +82,13 @@ namespace ManagedDoom
             }
         }
 
-        private void InitSwitchList()
+        private void InitSwitchList(Wad wad)
         {
             var list = new List<int>();
-            foreach (var tuple in DoomInfo.SwitchNames)
+            var names = wad.Profile.Family == GameFamily.Heretic
+                ? new[] { ("SW1OFF", "SW1ON"), ("SW2OFF", "SW2ON") }
+                : DoomInfo.SwitchNames.Select(pair => ((string)pair.Item1, (string)pair.Item2)).ToArray();
+            foreach (var tuple in names)
             {
                 var texNum1 = GetNumber(tuple.Item1);
                 var texNum2 = GetNumber(tuple.Item2);

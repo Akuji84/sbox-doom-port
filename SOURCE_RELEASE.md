@@ -1,12 +1,12 @@
-# Source release: sdoom-heretic-preview-2026-09-18
+# Source release: sdoom-heretic-navigation-2026-09-18
 
 Source snapshot for s&Doom, including multiplayer, save/input improvements
-the Heretic asset/geometry preview, and bundled WAD licenses and credits.
+the Heretic asset/geometry and navigation checkpoint, and bundled WAD licenses and credits.
 
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-preview-2026-09-18
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-navigation-2026-09-18
 
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-preview-2026-09-18.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-navigation-2026-09-18.zip
 
 ## Contents and build
 

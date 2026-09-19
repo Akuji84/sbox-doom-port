@@ -31,6 +31,12 @@ commit 895f581c5d91497bdda0516612da803fe5843e28, `src/heretic/info.c` and
 1993-2008 Raven Software and 2005-2014 Simon Howard. Original notices remain
 in `HereticAssets.cs`.
 
+Heretic navigation and interaction code also adapts that revision's `p_user.c`,
+`p_mobj.c`, `p_map.c`, `p_inter.c`, `p_spec.c`, `p_switch.c`, `p_floor.c` and
+`p_telept.c`, under the same GPL-2.0-or-later terms and copyright notices. Adapted
+files identify the source revision and modification date. Doom's sector and
+collision infrastructure remains derived from Managed Doom.
+
 
 This project includes code derived from or based on:
 

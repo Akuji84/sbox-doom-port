@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-18, Heretic geometry damage and stair speed.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
@@ -102,6 +103,13 @@ namespace ManagedDoom
 				// Keep checking.
 				return true;
 			}
+
+            if (world.HereticSession != null && thing == world.HereticSession.Body)
+            {
+                noFit = true;
+                if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageEnvironment(10);
+                return true;
+            }
 
 			// Crunch bodies to giblets.
 			if (thing.Health <= 0)
@@ -382,7 +390,7 @@ namespace ManagedDoom
 			return floor;
 		}
 
-		private Fixed FindLowestCeilingSurrounding(Sector sector)
+		internal Fixed FindLowestCeilingSurrounding(Sector sector)
 		{
 			var height = Fixed.MaxValue;
 
@@ -1052,7 +1060,7 @@ namespace ManagedDoom
 						floor.Sector = sector;
 						floor.Speed = floorSpeed * 4;
 						floor.FloorDestHeight = FindHighestFloorSurrounding(sector);
-						if (floor.FloorDestHeight != sector.FloorHeight)
+						if (world.HereticSession != null || floor.FloorDestHeight != sector.FloorHeight)
 						{
 							floor.FloorDestHeight += Fixed.FromInt(8);
 						}
@@ -1183,7 +1191,7 @@ namespace ManagedDoom
 		}
 
 
-		public bool BuildStairs(LineDef line, StairType type)
+		public bool BuildStairs(LineDef line, StairType type, bool heretic = false)
 		{
 			var sectors = world.Map.Sectors;
 			var sectorNumber = -1;
@@ -1213,11 +1221,11 @@ namespace ManagedDoom
 				switch (type)
 				{
 					case StairType.Build8:
-						speed = floorSpeed / 4;
+						speed = heretic ? floorSpeed : floorSpeed / 4;
 						stairSize = Fixed.FromInt(8);
 						break;
 					case StairType.Turbo16:
-						speed = floorSpeed * 4;
+						speed = heretic ? floorSpeed : floorSpeed * 4;
 						stairSize = Fixed.FromInt(16);
 						break;
 					default:

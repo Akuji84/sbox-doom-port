@@ -262,7 +262,7 @@ namespace ManagedDoom.Video
         {
             for (int i = 0; i < windowHeight; i++)
             {
-                var dy = Fixed.FromInt(i - windowHeight / 2) + Fixed.One / 2;
+                var dy = Fixed.FromInt(i - centerY) + Fixed.One / 2;
                 dy = Fixed.Abs(dy);
                 planeYSlope[i] = Fixed.FromInt(windowWidth / 2) / dy;
             }
@@ -714,9 +714,16 @@ namespace ManagedDoom.Video
 
 
 
-        public void Render(Player player, Fixed frameFrac)
+        public void Render(Player player, Fixed frameFrac, int lookDirection = 0)
         {
             this.frameFrac = frameFrac;
+            var horizon = windowHeight / 2 + (geometryPreview ? Math.Clamp(lookDirection, -110, 90) * windowHeight / 200 : 0);
+            if (centerY != horizon)
+            {
+                centerY = horizon;
+                centerYFrac = Fixed.FromInt(centerY);
+                ResetPlaneRendering();
+            }
 
             world = player.Mobj.World;
 

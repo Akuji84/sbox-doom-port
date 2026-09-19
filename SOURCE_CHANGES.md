@@ -36,3 +36,12 @@ catalog, classic map validation, a geometry-only World and a standalone s&box
 preview scene. Shared renderer and animation code remain used by Doom; fixed
 Doom compatibility hashes are retained. Adapted asset tables identify their
 GPL-2.0-or-later Chocolate Doom source and retain original copyright notices.
+
+### 2026-09-18 — Heretic navigation checkpoint
+
+Added isolated Heretic player state and fixed-tic navigation, view shifting,
+flight, environmental movement/damage, key pickups and line activation tables.
+Shared collision and sector movers now expose the small entry points needed by
+Heretic. Doom paths retain their defaults. The standalone preview panel supports
+keyboard navigation; the public game launcher still excludes unfinished Heretic
+runtime support. Adapted GPL code retains the pinned Chocolate Doom notices.

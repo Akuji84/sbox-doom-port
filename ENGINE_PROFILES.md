@@ -89,3 +89,34 @@ Blasphemer 0.1.8 is pinned by SHA-256 in `tools/verify_release_assets.py`, with
 its release-tag BSD license and credits included in the in-game notices.
 Regression checks render all 48 map slots in four directions, exercise preview
 validation and animation, and retain the existing Doom compatibility baselines.
+
+## Chunk 3: single-player navigation checkpoint
+
+The standalone preview scene now defaults to navigation mode. `SboxHereticPreview`
+provides WASD movement, left/right arrows for turning, up/down arrows for looking,
+E to use, Home to center the view, and End to land. Enable the editor's **Test
+Flight** property to supply flight power; R/F then ascend/descend. Actual artifact
+acquisition belongs to the inventory chunk. Disable **Navigation** to retain the
+Chunk 2 stationary geometry preview.
+
+`HereticWorldSession` owns its player state and command type. It uses shared
+fixed-point collision, blockmaps, BSP rendering, sector movers and lighting;
+Heretic movement, keys and activation tables are separate. The renderer supports
+Heretic's shifted horizon without changing Doom's default projection. The
+session advances at 35 tics/second and never runs Doom actor or weapon states.
+
+Implemented here: solid-wall sliding, 24-unit step limit, gravity, look centering,
+flight/landing, ice, wind, currents, hazardous floors, secret sectors, three key
+pickups, keyed/manual/tagged doors, switches, stairs, platforms and teleporters.
+Heretic line dispatch comes from the pinned Chocolate Doom `p_switch.c` and
+`p_spec.c`, including the differing 100/105/106/107 actions. Exit actions report
+an exit request; campaign transitions are deferred to Chunk 6.
+
+The test scene still omits enemies and other actor definitions, combat, sound,
+artifact inventory, saves and networking. It is a mechanics checkpoint, not a
+complete playable campaign. Actor-to-actor collision and transformations must be
+integrated with the actors in the combat chunk. `DoomGame` still rejects Heretic.
+
+The regression suite tests individual movement/environment/interaction mechanics,
+runs repeatable navigation and extreme look-angle renders in all 48 Blasphemer
+map slots, and checks Doom's original state/image baselines again afterward.
