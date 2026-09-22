@@ -709,3 +709,17 @@ Tests cover five-ammo selection/cost/fallback, owner/target, ordinary lethal dam
 bounce seeking and sound, dead-target clearing and water/lava/sludge removal.
 Tome pickup/duration, powered Hellstaff, campaign/save/multiplayer support and
 in-editor playtesting remain unfinished.
+
+### 2026-09-22: Hellstaff seeker foundation
+
+Added the native Heretic homing calculation from the pinned GPL source: shortest
+turn direction with the reference wraparound arithmetic, threshold/maximum turn,
+fixed-point horizontal speed and vertical interception only when actor heights do
+not overlap. Dead targets are cleared without altering flight momentum. The
+Hellstaff wrapper preserves Heretic's ANG1_X constants rather than rounded degrees.
+
+Regression fixtures cover both turn directions, threshold and cap behavior,
+wraparound, overlapping heights, elevated/lowered targets, minimum travel time,
+and dead/missing targets. This is a tested prerequisite; powered Hellstaff firing
+remains disabled until rain creation, ownership limits, lifetime and impacts are
+implemented. Existing weapon behavior is unchanged.
