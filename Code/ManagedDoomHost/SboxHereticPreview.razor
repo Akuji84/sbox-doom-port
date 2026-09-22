@@ -91,7 +91,7 @@
                 tic = _stepper.TickCount;
                 _message = "Navigation test: WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; armor " + _session.State.ArmorPoints + "; keys " + _session.State.Keys + ". " + _session.State.Message +
-                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: 1 selects staff, 2 Gold Wand, 4 Dragon Claw (pickup or Test Blaster); 8 Gauntlets (Test Gauntlets); Space attacks; claw ammo " + _session.GoldWand?.BlasterAmmo + "; wand ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Local encounter sounds enabled; collectible drops are not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
+                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: 1 selects staff, 2 Gold Wand, 4 Dragon Claw (pickup or Test Blaster); 8 Gauntlets (pickup or Test Gauntlets); Space attacks; claw ammo " + _session.GoldWand?.BlasterAmmo + "; wand ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Local encounter sounds enabled; collectible drops are not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
                 StateHasChanged();
             }
             if (tic == _lastTic && Yaw == _lastYaw) return;

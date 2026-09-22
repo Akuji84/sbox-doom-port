@@ -189,3 +189,8 @@ rendering/priority/death regressions.
 Adapt unpowered A_GauntletAttack and weapon activation sounds from pinned GPL
 p_pspr.c, puff motion from p_mobj.c and forward movement from p_user.c. Add an
 explicit preview grant, sounds, fallback and native melee regressions.
+
+### 2026-09-22 - Gauntlets map pickup
+
+Adapt pinned GPL single-player P_GiveWeapon and WeaponValue behavior for Gauntlets.
+Add filtered map collection, weapon ranking, sound and regression coverage.

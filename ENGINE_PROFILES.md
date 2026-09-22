@@ -518,6 +518,18 @@ flicker. A successful hit steers toward the target and requests the reference
 single-tick forward command; release clears weapon lighting.
 
 Gauntlets participate in empty-ammo fallback after available ranged weapons.
-Powered life-steal, map pickup, and full projectile-based weapons remain pending.
+Powered life-steal and full projectile-based weapons remain pending.
 Tests exercise ownership gating, cadence, actual melee damage, impact creation,
 forward-command consumption and light reset. In-editor testing remains outstanding.
+
+### 2026-09-22: Gauntlets map pickup
+
+Test Combat now spawns filtered Gauntlets map pickups (thing 2005). Collection
+grants ownership, removes the pickup, plays WPNUP and supplies pickup feedback.
+Gauntlets consume and grant no ammo. Duplicate pickups remain available. The
+reference weapon ranking switches automatically from staff, while leaving Gold
+Wand and Dragon Claw selected. Press 8 to select owned Gauntlets manually.
+
+Tests cover native collection, sound, duplicate rejection, ammo preservation and
+staff-versus-ranged selection. Cooperative weapon-stay and powered mode remain
+gated; in-editor playtesting remains outstanding.

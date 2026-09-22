@@ -87,6 +87,28 @@ static class HereticAmmoChecks
         healing.DamageEnvironment(100);
         Check(!healing.GiveHealth(10) && healing.Body.Health == 0, "Healing resurrected a dead player.");
         Console.WriteLine("PASS Heretic healing: map collection, full-health retention, capped synchronized health and no resurrection");
+        var gloves = new HereticWorldSession(content);
+        var glovesThing = gloves.World.Map.Things.First(t => t.Type == 10 && ((int)t.Flags & 2) != 0 && ((int)t.Flags & 16) == 0);
+        glovesThing.Type = 2005;
+        Check(gloves.StartClinkTest() != null, "Gauntlet pickup encounter failed.");
+        var glovePickup = gloves.Actors.First(a => a.Type == HereticActorType.MT_MISC13);
+        gloves.World.ThingMovement.UnsetThingPosition(gloves.Body);
+        gloves.Body.X = glovePickup.Body.X; gloves.Body.Y = glovePickup.Body.Y; gloves.Body.Z = glovePickup.Body.Z;
+        gloves.World.ThingMovement.SetThingPosition(gloves.Body);
+        gloves.Body.FloorZ = glovePickup.Body.FloorZ; gloves.Body.CeilingZ = glovePickup.Body.CeilingZ;
+        var gloveSound = false;
+        gloves.SoundRequested += (id, source) => { if (id == HereticSoundId.sfx_wpnup) gloveSound = true; };
+        gloves.Tick(default);
+        Check(gloves.GoldWand.HasGauntlets && glovePickup.Animation.Removed && gloveSound &&
+            gloves.GoldWand.PendingWeapon == null && gloves.GoldWand.Ammo == 50,
+            "Gauntlet map pickup changed ammo or displaced a higher-ranked weapon.");
+        Check(!gloves.GoldWand.GiveGauntlets(), "Duplicate gauntlets accepted.");
+        var staffSession = new HereticWorldSession(content); var staffWeapon = new HereticGoldWand(staffSession);
+        staffWeapon.SelectWeapon(HereticWeapon.wp_staff);
+        for (var i = 0; i < 60; i++) staffWeapon.Tick(false);
+        Check(staffWeapon.GiveGauntlets() && staffWeapon.PendingWeapon == HereticWeapon.wp_gauntlets,
+            "New gauntlets failed to replace staff.");
+        Console.WriteLine("PASS Gauntlet pickup: native collection, sound, duplicate rejection, no ammo grant and weapon ranking");
         Console.WriteLine("PASS Dragon Claw pickup: map touch, ownership, ammo, selection, sound and duplicate/full-ammo behavior");
         Console.WriteLine("PASS Heretic ammo: opt-in map spawns, idempotence, touch/removal, full-cap retention, difficulty bonus and ownership isolation");
     }

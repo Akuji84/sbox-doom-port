@@ -66,6 +66,14 @@ namespace ManagedDoom
             if (ReadyWeapon != HereticWeapon.wp_blaster) PendingWeapon = HereticWeapon.wp_blaster;
             return true;
         }
+        // Adapted 2026-09-22: single-player P_GiveWeapon/WeaponValue for gauntlets.
+        internal bool GiveGauntlets()
+        {
+            if (session.State.Health <= 0 || HasGauntlets) return false;
+            HasGauntlets = true;
+            if (ReadyWeapon == HereticWeapon.wp_staff) PendingWeapon = HereticWeapon.wp_gauntlets;
+            return true;
+        }
         public int StaffSwings { get; private set; }
         private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
