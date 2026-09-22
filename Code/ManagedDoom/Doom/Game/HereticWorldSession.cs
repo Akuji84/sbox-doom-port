@@ -136,6 +136,7 @@ namespace ManagedDoom
             UpdateView();
             if (State.InvulnerabilityTics > 0) State.InvulnerabilityTics--;
             if (State.TorchTics > 0) State.TorchTics--;
+            if (State.InvisibilityTics > 0 && --State.InvisibilityTics == 0) Body.Flags &= ~MobjFlags.Shadow;
             UpdateArtifactColorMap(true);
             if (State.FlightTics > 0 && --State.FlightTics == 0)
             {
@@ -296,7 +297,8 @@ namespace ManagedDoom
             State.Health = Math.Max(0, State.Health - amount);
             Body.Health = State.Health;
             if (State.Health != 0) return;
-            Camera.ExtraLight = 0; State.InvulnerabilityTics = State.TorchTics = 0; UpdateArtifactColorMap();
+            Camera.ExtraLight = 0; State.InvisibilityTics = State.InvulnerabilityTics = State.TorchTics = 0;
+            Body.Flags &= ~MobjFlags.Shadow; UpdateArtifactColorMap();
             State.Flying = false; State.FlightTics = 0; State.FlyHeight = 0;
             State.Message = "You died.";
             Body.Flags &= ~(MobjFlags.Shootable | MobjFlags.Solid | MobjFlags.Float | MobjFlags.SkullFly | MobjFlags.NoGravity);
@@ -378,8 +380,8 @@ namespace ManagedDoom
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
                 else if (SupportedArtifactPickup(actor.Type))
                 {
-                    if (!GiveArtifact(actor.Type == HereticActorType.MT_MISC5 ? HereticArtifact.TimeBomb : actor.Type == HereticActorType.MT_ARTITELEPORT ? HereticArtifact.ChaosDevice : actor.Type == HereticActorType.MT_MISC4 ? HereticArtifact.Torch : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? HereticArtifact.RingOfInvincibility : actor.Type == HereticActorType.MT_ARTIFLY ? HereticArtifact.WingsOfWrath : actor.Type == HereticActorType.MT_MISC3 ? HereticArtifact.QuartzFlask : HereticArtifact.MysticUrn)) continue;
-                    State.Message = actor.Type == HereticActorType.MT_MISC5 ? "Time Bomb of the Ancients" : actor.Type == HereticActorType.MT_ARTITELEPORT ? "Chaos Device" : actor.Type == HereticActorType.MT_MISC4 ? "Torch" : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? "Ring of Invincibility" : actor.Type == HereticActorType.MT_ARTIFLY ? "Wings of Wrath" : actor.Type == HereticActorType.MT_MISC3 ? "Quartz Flask" : "Mystic Urn";
+                    if (!GiveArtifact(actor.Type == HereticActorType.MT_ARTIINVISIBILITY ? HereticArtifact.Shadowsphere : actor.Type == HereticActorType.MT_MISC5 ? HereticArtifact.TimeBomb : actor.Type == HereticActorType.MT_ARTITELEPORT ? HereticArtifact.ChaosDevice : actor.Type == HereticActorType.MT_MISC4 ? HereticArtifact.Torch : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? HereticArtifact.RingOfInvincibility : actor.Type == HereticActorType.MT_ARTIFLY ? HereticArtifact.WingsOfWrath : actor.Type == HereticActorType.MT_MISC3 ? HereticArtifact.QuartzFlask : HereticArtifact.MysticUrn)) continue;
+                    State.Message = actor.Type == HereticActorType.MT_ARTIINVISIBILITY ? "Shadowsphere" : actor.Type == HereticActorType.MT_MISC5 ? "Time Bomb of the Ancients" : actor.Type == HereticActorType.MT_ARTITELEPORT ? "Chaos Device" : actor.Type == HereticActorType.MT_MISC4 ? "Torch" : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? "Ring of Invincibility" : actor.Type == HereticActorType.MT_ARTIFLY ? "Wings of Wrath" : actor.Type == HereticActorType.MT_MISC3 ? "Quartz Flask" : "Mystic Urn";
                     State.PickupFlash = Math.Min(int.MaxValue - 6, State.PickupFlash) + 6;
                     body.Flags &= ~MobjFlags.Special;
                     actor.Animation.SetState(HereticStateId.S_DEADARTI1);

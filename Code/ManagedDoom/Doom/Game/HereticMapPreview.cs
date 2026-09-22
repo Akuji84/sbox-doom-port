@@ -14,6 +14,7 @@ namespace ManagedDoom
         private readonly Player camera;
         private readonly DrawScreen screen;
         private readonly ThreeDRenderer renderer;
+        private readonly byte[] tintTable;
         public const int Width = 320;
         public const int Height = 200;
         public string Report { get; }
@@ -25,6 +26,8 @@ namespace ManagedDoom
         {
             this.content = content;
             world = previewWorld;
+            tintTable = content.Wad.ReadLump(content.Wad.GetLumpNumber("TINTTAB"));
+            if (tintTable.Length != 65536) throw new InvalidOperationException("Heretic TINTTAB must contain 65536 bytes.");
             var start = world.Map.Things.FirstOrDefault(t => t.Type == 1);
             if (start == null) throw new InvalidOperationException("Heretic preview requires a player-one start.");
             var body = new Mobj(world) { X = start.X, Y = start.Y, Angle = start.Angle };
@@ -52,9 +55,11 @@ namespace ManagedDoom
             {
                 var state = wand.Definition;
                 var frame = content.Sprites[(Sprite)state.Sprite].Frames[state.Frame & 0x7fff];
-                var map = renderer.GetWeaponColorMap(camera.Mobj.Subsector.Sector.LightLevel, (state.Frame & 0x8000) != 0);
-                if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map);
-                else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map);
+                var invisible = world.HereticSession.State.InvisibilityTics;
+                var tint = invisible > 128 || (invisible & 8) != 0 ? tintTable : null;
+                var map = renderer.GetWeaponColorMap(camera.Mobj.Subsector.Sector.LightLevel, (state.Frame & 0x8000) != 0, tint != null);
+                if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
+                else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
             }
             var palette = content.Palette[world.HereticSession?.State.PaletteIndex ?? 0];
             for (var y = 0; y < Height; y++)

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in Heretic ghost weapon tint and lighting.
 // s&Doom modification: 2026-09-22, optional palette mapping for lit Heretic weapon overlays.
 ﻿//
 // Copyright (C) 1993-1996 Id Software, Inc.
@@ -47,7 +48,7 @@ namespace ManagedDoom.Video
             }
         }
 
-        public void DrawPatch(Patch patch, int x, int y, int scale, byte[] colorMap = null)
+        public void DrawPatch(Patch patch, int x, int y, int scale, byte[] colorMap = null, byte[] tintTable = null)
         {
             var drawX = x - scale * patch.LeftOffset;
             var drawY = y - scale * patch.TopOffset;
@@ -72,12 +73,12 @@ namespace ManagedDoom.Video
 
             for (; i < drawWidth; i++)
             {
-                DrawColumn(patch.Columns[frac.ToIntFloor()], drawX + i, drawY, scale, colorMap);
+                DrawColumn(patch.Columns[frac.ToIntFloor()], drawX + i, drawY, scale, colorMap, tintTable);
                 frac += step;
             }
         }
 
-        public void DrawPatchFlip(Patch patch, int x, int y, int scale, byte[] colorMap = null)
+        public void DrawPatchFlip(Patch patch, int x, int y, int scale, byte[] colorMap = null, byte[] tintTable = null)
         {
             var drawX = x - scale * patch.LeftOffset;
             var drawY = y - scale * patch.TopOffset;
@@ -103,12 +104,12 @@ namespace ManagedDoom.Video
             for (; i < drawWidth; i++)
             {
                 var col = patch.Width - frac.ToIntFloor() - 1;
-                DrawColumn(patch.Columns[col], drawX + i, drawY, scale, colorMap);
+                DrawColumn(patch.Columns[col], drawX + i, drawY, scale, colorMap, tintTable);
                 frac += step;
             }
         }
 
-        private void DrawColumn(Column[] source, int x, int y, int scale, byte[] colorMap = null)
+        private void DrawColumn(Column[] source, int x, int y, int scale, byte[] colorMap = null, byte[] tintTable = null)
         {
             var step = Fixed.One / scale;
 
@@ -142,7 +143,8 @@ namespace ManagedDoom.Video
                 for (; i < drawLength; i++)
                 {
                     var pixel = column.Data[sourceIndex + frac.ToIntFloor()];
-                    data[p] = colorMap == null ? pixel : colorMap[pixel];
+                    var mapped = colorMap == null ? pixel : colorMap[pixel];
+                    data[p] = tintTable == null ? mapped : tintTable[(data[p] << 8) + mapped];
                     p++;
                     frac += step;
                 }

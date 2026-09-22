@@ -23,7 +23,7 @@ using System;
 namespace ManagedDoom
 {
     [Flags] public enum HereticKeys { None = 0, Yellow = 1, Green = 2, Blue = 4 }
-    public enum HereticArtifact { QuartzFlask, MysticUrn, WingsOfWrath, RingOfInvincibility, Torch, ChaosDevice, TimeBomb }
+    public enum HereticArtifact { QuartzFlask, MysticUrn, WingsOfWrath, RingOfInvincibility, Torch, ChaosDevice, TimeBomb, Shadowsphere }
     public struct HereticCommand
     {
         public sbyte Forward, Side, Look, Fly;
@@ -34,6 +34,8 @@ namespace ManagedDoom
     }
     public sealed class HereticPlayerState
     {
+        public int Shadowspheres { get; internal set; }
+        public int InvisibilityTics { get; internal set; }
         public int TimeBombs { get; internal set; }
         public int ChaosDevices { get; internal set; }
         public int Torches { get; internal set; }

@@ -874,3 +874,18 @@ fuse timing, audio, player/enemy damage and cleanup after death. All five produc
 Doom WAD simulation/render baselines still pass. This remains preview-only;
 general monster support, campaign saves/networking and editor playtesting are
 not completed by this checkpoint.
+
+### 2026-09-22: Shadowsphere inventory and ghost power
+
+Added Shadowsphere map pickups, sixteen-item storage and J-key activation in the
+combat preview. Ghost status lasts 2100 ticks, can refresh in its final 128 ticks,
+and clears on expiration or death. It sets the shared Shadow flag used by existing
+ghost-aware projectile collision; ordinary damage is still possible. The weapon
+overlay uses Blasphemer's TINTTAB for translucency, sector lighting while ghosted,
+and the reference final blink timing. Rendering does not advance the power.
+
+Tests cover pickups/caps, activation and refresh, visible weapon translucency and
+blink, full duration, damage and death cleanup. This does not implement additional
+monster AI, enemy ranged attacks, multiplayer, saves or full campaign support.
+World ghost sprites still use the shared renderer's existing shadow treatment;
+Heretic world-sprite translucency and editor playtesting remain outstanding.

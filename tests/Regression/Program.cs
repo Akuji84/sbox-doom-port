@@ -234,5 +234,6 @@ HereticRingChecks.Verify(root);
 HereticTorchChecks.Verify(root);
 HereticChaosChecks.Verify(root);
 HereticTimeBombChecks.Verify(root);
+        HereticShadowsphereChecks.Verify(root);
 CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

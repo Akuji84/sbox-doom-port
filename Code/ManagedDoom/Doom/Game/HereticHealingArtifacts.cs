@@ -22,12 +22,14 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight/invulnerability subset.
-        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT || type == HereticActorType.MT_MISC5;
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT || type == HereticActorType.MT_MISC5 || type == HereticActorType.MT_ARTIINVISIBILITY;
         internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.TimeBomb) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.Shadowsphere) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticArtifact.TimeBomb)
+            if (type == HereticArtifact.Shadowsphere)
+            { if (State.Shadowspheres >= 16) return false; State.Shadowspheres++; }
+            else if (type == HereticArtifact.TimeBomb)
             { if (State.TimeBombs >= 16) return false; State.TimeBombs++; }
             else if (type == HereticArtifact.ChaosDevice)
             { if (State.ChaosDevices >= 16) return false; State.ChaosDevices++; }
@@ -86,7 +88,16 @@ namespace ManagedDoom
         }
         internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.TimeBomb) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.Shadowsphere) throw new ArgumentOutOfRangeException(nameof(type));
+            // Adapted 2026-09-22: P_GivePower invisibility duration and refresh threshold.
+            if (type == HereticArtifact.Shadowsphere)
+            {
+                if (State.Health <= 0 || State.Shadowspheres <= 0 || State.InvisibilityTics > 128) return false;
+                State.Shadowspheres--; State.InvisibilityTics = 60 * 35;
+                Body.Flags |= MobjFlags.Shadow;
+                State.Message = "Used Shadowsphere";
+                RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
             if (type == HereticArtifact.TimeBomb)
             {
                 if (State.Health <= 0 || State.TimeBombs <= 0) return false;

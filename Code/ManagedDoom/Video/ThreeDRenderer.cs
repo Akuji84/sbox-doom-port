@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in Heretic ghost weapon tint and lighting.
 // s&Doom modification: 2026-09-22, expose shared weapon lighting for the Heretic overlay.
 // s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
 //
@@ -2924,10 +2925,10 @@ namespace ManagedDoom.Video
 
 
 
-        internal byte[] GetWeaponColorMap(int sectorLight, bool fullBright)
+        internal byte[] GetWeaponColorMap(int sectorLight, bool fullBright, bool ghost = false)
         {
-            if (fixedColorMap != 0) return colorMap[fixedColorMap];
-            if (fullBright) return colorMap.FullBright;
+            if (!ghost && fixedColorMap != 0) return colorMap[fixedColorMap];
+            if (!ghost && fullBright) return colorMap.FullBright;
             var level = Math.Clamp((sectorLight >> lightSegShift) + extraLight, 0, lightLevelCount - 1);
             return scaleLight[level][maxScaleLight - 1];
         }
