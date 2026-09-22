@@ -477,3 +477,20 @@ it available; healing cannot revive a dead player. Navigation-only remains uncha
 Tests cover collection, cap/retention, synchronized health, death rejection and
 bob peak/wrap. Inventory healing artifacts, transformed-player health limits and
 multiplayer pickup rules remain pending. In-editor testing is still outstanding.
+
+### 2026-09-22: shield pickups and armor absorption
+
+The combat preview now spawns Silver Shield and Enchanted Shield pickups using
+the existing skill filters and reference item bobbing. They provide 100/200 armor
+and use the pinned P_GiveArmor replacement threshold. Armor is displayed in the
+preview status. Accepted pickups disappear and play ITEMUP.
+
+Normal shield absorption is damage >> 1; enchanted absorption is (damage >> 1)
+plus (damage >> 2), preserving reference rounding. Absorption is capped by remaining
+armor, and depletion clears the armor type. The current player damage path covers
+Clink melee and environmental damage; special attack modifiers, invulnerability
+and transformed-player rules remain separate unfinished work.
+
+Tests cover native pickup collection, replacement boundaries, odd-damage rounding,
+depletion, health synchronization and lethal damage. In-editor testing remains
+outstanding; multiplayer and save serialization are still gated.

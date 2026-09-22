@@ -38,6 +38,8 @@ namespace ManagedDoom
         public bool Flying { get; internal set; }
         public int FlightTics { get; internal set; }
         public int FlyHeight { get; internal set; }
+        public int ArmorType { get; internal set; }
+        public int ArmorPoints { get; internal set; }
         public int Health { get; internal set; } = 100;
         public int Secrets { get; internal set; }
         public string Message { get; internal set; } = "";

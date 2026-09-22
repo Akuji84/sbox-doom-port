@@ -105,7 +105,7 @@ namespace ManagedDoom
         internal void Tick()
         {
             Body.UpdateFrameInterpolationInfo();
-            if (Type == HereticActorType.MT_MISC0)
+            if (Type == HereticActorType.MT_MISC0 || Type == HereticActorType.MT_ITEMSHIELD1 || Type == HereticActorType.MT_ITEMSHIELD2)
             {
                 Body.FloorZ = Body.Subsector.Sector.FloorHeight;
                 Body.Z = Body.FloorZ + new Fixed(floatBobOffsets[Body.Health++ & 63]);

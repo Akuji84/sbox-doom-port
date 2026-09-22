@@ -263,6 +263,15 @@ namespace ManagedDoom
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
             if (State.Health <= 0 || amount == 0) return;
+            // Adapted 2026-09-22: pinned Heretic armor absorption (integer rounding).
+            if (State.ArmorType != 0)
+            {
+                var saved = State.ArmorType == 1 ? amount >> 1 : (amount >> 1) + (amount >> 2);
+                saved = Math.Min(saved, State.ArmorPoints);
+                State.ArmorPoints -= saved;
+                if (State.ArmorPoints == 0) State.ArmorType = 0;
+                amount -= saved;
+            }
             State.Health = Math.Max(0, State.Health - amount);
             Body.Health = State.Health;
             if (State.Health != 0) return;
@@ -301,6 +310,15 @@ namespace ManagedDoom
             HereticActorType.MT_AMBLSRHEFTY => (true, 25),
             _ => (false, 0)
         };
+        private static int ArmorPickup(HereticActorType type) => type == HereticActorType.MT_ITEMSHIELD1 ? 1 : type == HereticActorType.MT_ITEMSHIELD2 ? 2 : 0;
+        // Adapted 2026-09-22 from pinned p_inter.c P_GiveArmor.
+        internal bool GiveArmor(int type)
+        {
+            if (type != 1 && type != 2) throw new ArgumentOutOfRangeException(nameof(type));
+            if (State.Health <= 0 || State.ArmorPoints >= type * 100) return false;
+            State.ArmorType = type; State.ArmorPoints = type * 100;
+            return true;
+        }
         private void EnableCombatAmmo()
         {
             if (combatAmmoEnabled) return;
@@ -308,7 +326,7 @@ namespace ManagedDoom
             foreach (var thing in world.Map.Things)
             {
                 var decision = HereticMapSpawns.Decide(thing, skill);
-                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC0)) continue;
+                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC0 && ArmorPickup(decision.Type) == 0)) continue;
                 SpawnMapActor(thing, decision.Type);
                 UnsupportedMapThings--;
             }
@@ -328,10 +346,16 @@ namespace ManagedDoom
             {
                 var actor = actors[i];
                 var ammo = AmmoPickup(actor.Type);
-                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC0))) continue;
+                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC0 && ArmorPickup(actor.Type) == 0))) continue;
                 var body = actor.Body; var dz = body.Z - Body.Z;
                 if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
+                else if (ArmorPickup(actor.Type) != 0)
+                {
+                    if (!GiveArmor(ArmorPickup(actor.Type))) continue;
+                    State.Message = State.ArmorType == 1 ? "Silver shield" : "Enchanted shield";
+                    RequestSound(HereticSoundId.sfx_itemup, Body);
+                }
                 else if (actor.Type == HereticActorType.MT_MISC0)
                 {
                     if (!GiveHealth(10)) continue;
@@ -358,7 +382,7 @@ namespace ManagedDoom
         private void SpawnMapActor(MapThing thing, HereticActorType type)
         {
             var def = HereticDefinitions.Actors[(int)type];
-            var bobSeed = type == HereticActorType.MT_MISC0 ? world.Random.Next() : def.SpawnHealth;
+            var bobSeed = (type == HereticActorType.MT_MISC0 || ArmorPickup(type) != 0) ? world.Random.Next() : def.SpawnHealth;
             var tics = HereticDefinitions.States[(int)def.SpawnState].Tics;
             var animation = new HereticActorState(def.SpawnState, initialTics: tics > 0 ? 1 + world.Random.Next() % tics : null);
             // Explicit shared spatial flags; behavior flags remain family-owned.

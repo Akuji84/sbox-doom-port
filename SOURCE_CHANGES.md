@@ -172,3 +172,8 @@ Claw. Add filtered spawning, ownership/ammo grants, pickup sound and regressions
 
 Adapt normal P_GiveBody and healing potion touch rules from pinned GPL p_inter.c,
 and item bob offsets/phase from p_mobj.c. Add healing and animation regressions.
+
+### 2026-09-22 - Heretic shields and damage absorption
+
+Adapt P_GiveArmor and the normal armor absorption block from pinned GPL p_inter.c.
+Add both filtered map pickups, bobbing, status display and boundary regressions.
