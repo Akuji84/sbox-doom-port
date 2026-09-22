@@ -56,7 +56,7 @@ namespace ManagedDoom
                 if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map);
                 else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map);
             }
-            var palette = content.Palette[0];
+            var palette = content.Palette[world.HereticSession?.State.PaletteIndex ?? 0];
             for (var y = 0; y < Height; y++)
             for (var x = 0; x < Width; x++)
             {

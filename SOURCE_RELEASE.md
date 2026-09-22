@@ -1,12 +1,12 @@
-# Source release: sdoom-heretic-shields-2026-09-22
+# Source release: sdoom-heretic-feedback-2026-09-22
 
 Source snapshot for s&Doom, including multiplayer, save/input improvements
 the Heretic asset/geometry, navigation, actor-definition and map-scenery checkpoints, and bundled WAD licenses and credits.
 
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-shields-2026-09-22
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-feedback-2026-09-22
 
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-shields-2026-09-22.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-feedback-2026-09-22.zip
 
 ## Contents and build
 

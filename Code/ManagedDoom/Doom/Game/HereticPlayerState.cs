@@ -38,6 +38,11 @@ namespace ManagedDoom
         public bool Flying { get; internal set; }
         public int FlightTics { get; internal set; }
         public int FlyHeight { get; internal set; }
+        public int DamageFlash { get; internal set; }
+        public int PickupFlash { get; internal set; }
+        // Adapted 2026-09-22: pinned sb_bar.c SB_PaletteFlash palette selection.
+        public int PaletteIndex => DamageFlash > 0 ? 1 + Math.Min(7, (DamageFlash + 7) >> 3)
+            : PickupFlash > 0 ? 9 + (int)Math.Min(3L, ((long)PickupFlash + 7) >> 3) : 0;
         public int ArmorType { get; internal set; }
         public int ArmorPoints { get; internal set; }
         public int Health { get; internal set; } = 100;

@@ -96,6 +96,8 @@ namespace ManagedDoom
         public void Tick(HereticCommand command)
         {
             if (ExitRequested) return;
+            if (State.DamageFlash > 0) State.DamageFlash--;
+            if (State.PickupFlash > 0) State.PickupFlash--;
             if (State.Health <= 0) { TickDead(); return; }
             Camera.UpdateFrameInterpolationInfo();
             Body.UpdateFrameInterpolationInfo();
@@ -272,6 +274,7 @@ namespace ManagedDoom
                 if (State.ArmorPoints == 0) State.ArmorType = 0;
                 amount -= saved;
             }
+            State.DamageFlash = (int)Math.Min(100, (long)State.DamageFlash + amount);
             State.Health = Math.Max(0, State.Health - amount);
             Body.Health = State.Health;
             if (State.Health != 0) return;
@@ -374,6 +377,7 @@ namespace ManagedDoom
                     State.Message = ammo.blaster ? "Dragon Claw ammo" : "Gold Wand ammo";
                     RequestSound(HereticSoundId.sfx_itemup, Body);
                 }
+                State.PickupFlash = actor.Key != HereticKeys.None ? 6 : Math.Min(int.MaxValue - 6, State.PickupFlash) + 6;
                 world.ThingMovement.UnsetThingPosition(body);
                 actor.Animation.SetState(HereticStateId.S_NULL);
                 actors.RemoveAt(i);

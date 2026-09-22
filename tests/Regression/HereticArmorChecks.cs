@@ -24,6 +24,7 @@ static class HereticArmorChecks
             if (type == 2) Check(!s.GiveArmor(1), "Weaker shield replaced full enchanted shield.");
             s.DamageEnvironment(7);
             var saved = type == 1 ? 3 : 4;
+            Check(s.State.DamageFlash == 7 - saved, "Damage flash ignored armor absorption.");
             Check(s.State.Health == 100 - 7 + saved && s.Body.Health == s.State.Health && s.State.ArmorPoints == type * 100 - saved,
                 "Heretic armor absorption/rounding differs.");
             s.State.ArmorPoints = 2;

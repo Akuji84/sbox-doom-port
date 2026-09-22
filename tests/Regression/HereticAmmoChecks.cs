@@ -81,6 +81,7 @@ static class HereticAmmoChecks
         healing.Tick(default);
         Check(healing.State.Health == 100 && healing.Body.Health == 100 && potion.Animation.Removed,
             "Potion did not heal/cap/synchronize health and disappear.");
+        Check(healing.State.PickupFlash > 0, "Accepted potion did not flash.");
         healing.DamageEnvironment(30);
         Check(healing.GiveHealth(10) && healing.State.Health == 80 && healing.Body.Health == 80, "Health grant differs.");
         healing.DamageEnvironment(100);

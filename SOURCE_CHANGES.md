@@ -177,3 +177,9 @@ and item bob offsets/phase from p_mobj.c. Add healing and animation regressions.
 
 Adapt P_GiveArmor and the normal armor absorption block from pinned GPL p_inter.c.
 Add both filtered map pickups, bobbing, status display and boundary regressions.
+
+### 2026-09-22 - Heretic damage and pickup feedback
+
+Adapt pinned GPL sb_bar.c palette selection and p_inter.c damage/pickup counters.
+Apply PLAYPAL feedback in the native preview with simulation-driven decay and
+rendering/priority/death regressions.

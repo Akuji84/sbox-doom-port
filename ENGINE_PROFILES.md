@@ -494,3 +494,16 @@ and transformed-player rules remain separate unfinished work.
 Tests cover native pickup collection, replacement boundaries, odd-damage rounding,
 depletion, health synchronization and lethal damage. In-editor testing remains
 outstanding; multiplayer and save serialization are still gated.
+
+### 2026-09-22: damage and pickup palette feedback
+
+The preview now applies Heretic's PLAYPAL damage and pickup palettes to the
+whole rendered frame, including the weapon overlay. Damage takes priority over
+pickup feedback, uses post-armor damage, and caps its counter at 100. Successful
+pickups add feedback; rejected full-cap pickups do not. Keys reset the pickup
+counter to six, while ordinary pickups add six.
+
+Palette selection follows pinned sb_bar.c. Preview counters decay once per
+simulation tick, including after death; rendering never changes them. Detailed
+attacker-facing death-camera behavior remains pending. Tests cover palette
+rendering, precedence, armor absorption, timer decay and lethal damage.
