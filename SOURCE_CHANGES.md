@@ -69,3 +69,10 @@ family-owned map actor instances, deterministic animation phases, floor/ceiling
 placement and explicit unsupported/unknown reporting. Spawn action-free scenery
 and keys in the navigation scene. Keep Heretic sector-height clipping out of Doom
 corpse/damage actions. Add spawn/filter/collision/render checks across all 48 maps.
+
+### 2026-09-22 - Heretic scenery height collision and aiming
+
+Add Heretic-only player/scenery height dispatch before Doom contact actions,
+swept vertical scenery collision, stationary actor support, and a side-effect-free
+actor/map-line aiming query. Add height, support and targeting regression cases;
+update the older collision fixture to explicitly overlap the obstacle vertically.

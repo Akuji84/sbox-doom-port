@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, scenery support and swept vertical collision.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -99,7 +100,7 @@ namespace ManagedDoom
             else
             {
                 Body.Angle += new Angle(unchecked((uint)(command.Turn << 16)));
-                if (onGround || State.Flying)
+                if (onGround || StandingOnActor || State.Flying)
                 {
                     Thrust(Body.Angle, new Fixed(Math.Clamp((int)command.Forward, -50, 50) * 2048));
                     Thrust(Body.Angle - Angle.Ang90, new Fixed(Math.Clamp((int)command.Side, -40, 40) * 2048));
@@ -158,13 +159,25 @@ namespace ManagedDoom
                 x -= dx; y -= dy;
                 if (!world.ThingMovement.TryMove(Body, Body.X + dx, Body.Y + dy)) world.ThingMovement.SlideMove(Body);
             } while (x != Fixed.Zero || y != Fixed.Zero);
-            if (!State.Flying && Body.Z > Body.FloorZ) return;
+            if (!State.Flying && Body.Z > Body.FloorZ && !StandingOnActor) return;
             if (Math.Abs(Body.MomX.Data) < 0x1000 && Math.Abs(Body.MomY.Data) < 0x1000 && command.Forward == 0 && command.Side == 0)
                 Body.MomX = Body.MomY = Fixed.Zero;
             else
             {
                 var friction = new Fixed(State.Flying && Body.Z > Body.FloorZ ? 0xeb00 : (int)Body.Subsector.Sector.Special == 15 ? 0xf900 : 0xe800);
                 Body.MomX *= friction; Body.MomY *= friction;
+            }
+        }
+        private bool OverlapsSolidActor(Mobj actor) => (actor.Flags & MobjFlags.Solid) != 0 &&
+            Fixed.Abs(Body.X - actor.X) < Body.Radius + actor.Radius &&
+            Fixed.Abs(Body.Y - actor.Y) < Body.Radius + actor.Radius;
+        public bool StandingOnActor
+        {
+            get
+            {
+                foreach (var actor in actors)
+                    if (OverlapsSolidActor(actor.Body) && Body.Z == actor.Body.Z + actor.Body.Height) return true;
+                return false;
             }
         }
         private void MoveVertical()
@@ -174,12 +187,21 @@ namespace ManagedDoom
                 Camera.ViewHeight -= Body.FloorZ - Body.Z;
                 Camera.DeltaViewHeight = (Fixed.FromInt(41) - Camera.ViewHeight) / 8;
             }
+            var support = Body.FloorZ;
+            var ceiling = Body.CeilingZ;
+            foreach (var actor in actors)
+            {
+                if (!OverlapsSolidActor(actor.Body)) continue;
+                var top = actor.Body.Z + actor.Body.Height;
+                if (Body.Z >= top && top > support) support = top;
+                if (Body.Z + Body.Height <= actor.Body.Z && actor.Body.Z < ceiling) ceiling = actor.Body.Z;
+            }
             Body.Z += Body.MomZ;
             if (State.Flying && Body.Z > Body.FloorZ && (tic & 2) != 0)
                 Body.Z += Trig.Sin(new Angle((uint)(((409L * tic >> 2) & 8191) << 19)));
-            if (Body.Z <= Body.FloorZ)
+            if (Body.Z <= support)
             {
-                Body.Z = Body.FloorZ;
+                Body.Z = support;
                 if (!State.Flying && Body.MomZ < Fixed.FromInt(-8))
                 {
                     Camera.DeltaViewHeight = Body.MomZ >> 3;
@@ -188,8 +210,8 @@ namespace ManagedDoom
                 if (Body.MomZ < Fixed.Zero) Body.MomZ = Fixed.Zero;
             }
             else if (!State.Flying) Body.MomZ -= Body.MomZ == Fixed.Zero ? Fixed.FromInt(2) : Fixed.One;
-            if (Body.Z + Body.Height > Body.CeilingZ)
-            { Body.Z = Body.CeilingZ - Body.Height; if (Body.MomZ > Fixed.Zero) Body.MomZ = Fixed.Zero; }
+            if (Body.Z + Body.Height > ceiling)
+            { Body.Z = ceiling - Body.Height; if (Body.MomZ > Fixed.Zero) Body.MomZ = Fixed.Zero; }
         }
         private void UpdateView()
         {

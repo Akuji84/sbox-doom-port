@@ -53,6 +53,7 @@ static class HereticSpawnChecks
         var movement = session.World.ThingMovement;
         movement.UnsetThingPosition(obstacle);
         obstacle.X = session.Body.X; obstacle.Y = session.Body.Y;
+        obstacle.Z = session.Body.Z;
         movement.SetThingPosition(obstacle);
         var oldX = session.Body.X; var oldY = session.Body.Y;
         Check(!movement.TryMove(session.Body, oldX, oldY), "Solid Heretic scenery does not block movement.");

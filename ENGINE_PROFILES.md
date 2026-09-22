@@ -203,3 +203,25 @@ floor/ceiling placement, rendering in all 48 Blasphemer maps, and an actual soli
 scenery movement rejection. The fixture covers 4,469 map actors, including 2,688
 solid and 1,467 ceiling-hung actors. Existing Doom baselines still pass afterward.
 In-editor playtesting remains outstanding.
+
+## Chunk 4b: scenery height collision and aiming query
+
+The navigation player now passes above and below solid scenery when its vertical
+extent is clear. Exact contact with a top surface allows horizontal movement.
+Vertical movement checks crossed scenery tops and undersides, so a fast fall or
+flight step cannot tunnel through them. A stationary scenery top supports the
+player, permits movement, and releases the player back to gravity when it no
+longer overlaps. Map floor/ceiling heights remain separate from actor support.
+This is not yet the full moving-actor stacking/pushing system.
+
+`TraceAim` queries the nearest solid/shootable actor or blocking map line along
+a bounded, height-aware ray. It checks openings between sectors and skips the
+player itself. It has no damage, sound or line-activation side effects. It is an
+obstruction-query foundation, not a weapon attack, autoaim implementation or
+floor/ceiling impact-effect system. Actor damage, death behavior, moving actor
+support and weapon integration remain outstanding in Chunk 4b and later chunks.
+
+Regression fixtures cover overlapping versus separated actor heights, fast
+landing, standing and moving on scenery, gravity after support is lost, underside
+flight collision, aiming at/over an actor and stopping at map walls. All existing
+Doom simulation/render hashes and 48-map Heretic checks remain required.

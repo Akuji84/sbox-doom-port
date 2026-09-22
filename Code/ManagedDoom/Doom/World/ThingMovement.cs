@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Heretic player/scenery height collision.
 // s&Doom modification: 2026-09-18, isolated Heretic movement dispatch.
 ﻿// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
@@ -290,6 +291,15 @@ namespace ManagedDoom
             if (thing == currentThing)
             {
                 return true;
+            }
+
+            // Heretic player/scenery contacts use height as well as the blockmap footprint.
+            // Keep this dispatch ahead of Doom's missile, pickup and damage actions.
+            if (world.HereticSession != null && currentThing == world.HereticSession.Body)
+            {
+                if (currentThing.Z >= thing.Z + thing.Height || currentThing.Z + currentThing.Height <= thing.Z)
+                    return true;
+                return (thing.Flags & MobjFlags.Solid) == 0;
             }
 
             // Check for skulls slamming into things.
