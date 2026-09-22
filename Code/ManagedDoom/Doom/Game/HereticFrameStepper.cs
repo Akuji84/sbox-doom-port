@@ -9,7 +9,7 @@ namespace ManagedDoom
     {
         private double remainder;
         private HereticWeapon? pendingWeapon;
-        private HereticHealingArtifact? pendingArtifact;
+        private HereticArtifact? pendingArtifact;
         private bool observedUse, sentUse, pendingUse, pendingCenter, pendingLand, pendingTestAttack;
         public int TickCount { get; private set; }
         public void Advance(double elapsedSeconds, HereticCommand sampled, Action<HereticCommand> tick)

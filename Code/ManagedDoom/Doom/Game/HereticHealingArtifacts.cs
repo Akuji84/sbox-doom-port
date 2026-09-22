@@ -14,20 +14,22 @@
 // GNU General Public License for more details.
 //
 
-// Adapted 2026-09-22: healing artifacts from pinned p_inter.c/p_user.c.
+// Adapted 2026-09-22: healing and flight artifacts from pinned p_inter.c/p_user.c.
 // Chocolate Doom 895f581c5d91497bdda0516612da803fe5843e28.
 using System;
 namespace ManagedDoom
 {
     public sealed partial class HereticWorldSession
     {
-        // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, healing subset only.
-        private static bool HealingArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL;
-        internal bool GiveHealingArtifact(HereticHealingArtifact type)
+        // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight subset.
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY;
+        internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticHealingArtifact.MysticUrn) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.WingsOfWrath) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticHealingArtifact.QuartzFlask)
+            if (type == HereticArtifact.WingsOfWrath)
+            { if (State.WingsOfWrath >= 16) return false; State.WingsOfWrath++; }
+            else if (type == HereticArtifact.QuartzFlask)
             { if (State.QuartzFlasks >= 16) return false; State.QuartzFlasks++; }
             else { if (State.MysticUrns >= 16) return false; State.MysticUrns++; }
             return true;
@@ -54,10 +56,19 @@ namespace ManagedDoom
             State.Health += flasks * 25 + urns * 100;
             Body.Health = State.Health;
         }
-        internal bool UseHealingArtifact(HereticHealingArtifact type)
+        internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticHealingArtifact.MysticUrn) throw new ArgumentOutOfRangeException(nameof(type));
-            var flask = type == HereticHealingArtifact.QuartzFlask;
+            if ((uint)type > (uint)HereticArtifact.WingsOfWrath) throw new ArgumentOutOfRangeException(nameof(type));
+            if (type == HereticArtifact.WingsOfWrath)
+            {
+                if (State.Health <= 0 || State.WingsOfWrath <= 0 || State.FlightTics > 128) return false;
+                State.WingsOfWrath--; State.FlightTics = 60 * 35; State.Flying = true;
+                Body.Flags |= MobjFlags.NoGravity;
+                if (Body.Z <= Body.FloorZ) State.FlyHeight = 10;
+                State.Message = "Used Wings of Wrath";
+                RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
+            var flask = type == HereticArtifact.QuartzFlask;
             if ((flask ? State.QuartzFlasks : State.MysticUrns) <= 0 || !GiveHealth(flask ? 25 : 100)) return false;
             if (flask) State.QuartzFlasks--; else State.MysticUrns--;
             State.Message = flask ? "Used Quartz Flask" : "Used Mystic Urn";

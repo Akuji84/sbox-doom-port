@@ -771,3 +771,24 @@ thresholds, insufficient supplies, damage feedback, death flags, other difficult
 and extreme damage. Existing Doom compatibility hashes remain required. Deathmatch
 and chicken-player behavior remain gated with those unfinished systems; in-editor
 playtesting is outstanding.
+
+### 2026-09-22: Wings of Wrath inventory and flight
+
+Added collectible Wings of Wrath to the preview artifact inventory, with a
+sixteen-item cap, bobbing map pickup, pickup animation, sound and stored count.
+The artifact command enum now represents both healing items and Wings. Press G
+to use Wings, R/F to rise/descend and End to land. Attempting to fly up without
+active flight also uses a stored Wings item, following the reference behavior.
+
+Successful use grants 2100 ticks (60 seconds), enables flight/no-gravity and gives
+a grounded player an initial upward impulse. It refuses replacement while more
+than 128 ticks remain, allowing a refresh during the reference blinking window.
+Landing keeps the remaining power and permits resuming flight without consuming
+another item. Expiration restores gravity and starts view centering when airborne;
+death clears flight. The preview displays stored Wings and remaining seconds.
+
+Tests cover map collection/caps, manual and fly-up use, full duration and refresh
+threshold, takeoff, landing/resume, expiration flags, death and retained one-shot
+input. Existing healing and Doom compatibility checks remain required. Other
+artifacts, full inventory HUD, campaign persistence/networking and in-editor
+playtesting remain outstanding.

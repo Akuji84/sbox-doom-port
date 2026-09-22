@@ -9,8 +9,8 @@ static class HereticAutoHealChecks
         HereticWorldSession Make(GameSkill skill, int flasks, int urns)
         {
             var s = new HereticWorldSession(content, 1, 1, skill);
-            for (var i = 0; i < flasks; i++) s.GiveHealingArtifact(HereticHealingArtifact.QuartzFlask);
-            for (var i = 0; i < urns; i++) s.GiveHealingArtifact(HereticHealingArtifact.MysticUrn);
+            for (var i = 0; i < flasks; i++) s.GiveArtifact(HereticArtifact.QuartzFlask);
+            for (var i = 0; i < urns; i++) s.GiveArtifact(HereticArtifact.MysticUrn);
             return s;
         }
         var flask = Make(GameSkill.Baby, 3, 2);
