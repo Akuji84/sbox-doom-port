@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -29,11 +30,12 @@ namespace ManagedDoom
         public bool LowGravity { get; private set; }
         public int DropTics { get; internal set; }
         internal static bool IsMaceType(HereticActorType type) => type == HereticActorType.MT_MACEFX1 ||
-            type == HereticActorType.MT_MACEFX2 || type == HereticActorType.MT_MACEFX3;
+            type == HereticActorType.MT_MACEFX2 || type == HereticActorType.MT_MACEFX3 || type == HereticActorType.MT_MACEFX4;
         private bool SupportsMace(HereticAction action) => IsMaceType(Type) &&
-            (action == HereticAction.A_MacePL1Check || action == HereticAction.A_MaceBallImpact || action == HereticAction.A_MaceBallImpact2);
+            (action == HereticAction.A_DeathBallImpact || action == HereticAction.A_MacePL1Check || action == HereticAction.A_MaceBallImpact || action == HereticAction.A_MaceBallImpact2);
         private void ExecuteMace(HereticAction action)
         {
+            if (action == HereticAction.A_DeathBallImpact) { DeathBallImpact(); return; }
             if (action == HereticAction.A_MacePL1Check)
             {
                 if (DropTics == 0) return;

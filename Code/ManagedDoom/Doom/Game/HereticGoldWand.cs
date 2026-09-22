@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
@@ -232,7 +233,13 @@ namespace ManagedDoom
             GrantTestPhoenix(ammo); TestPoweredPhoenix = true;
             if (ReadyWeapon == HereticWeapon.wp_phoenixrod && session.State.Health > 0) SetState(Weapon.Ready);
         }
-        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) || (TestPoweredBlaster && ReadyWeapon == HereticWeapon.wp_blaster) || (TestPoweredPhoenix && ReadyWeapon == HereticWeapon.wp_phoenixrod) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        public bool TestPoweredMace { get; private set; }
+        public void GrantTestPoweredMace(int ammo = 50)
+        {
+            GrantTestMace(ammo); TestPoweredMace = true;
+            if (ReadyWeapon == HereticWeapon.wp_mace && session.State.Health > 0) SetState(Weapon.Ready);
+        }
+        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) || (TestPoweredBlaster && ReadyWeapon == HereticWeapon.wp_blaster) || (TestPoweredPhoenix && ReadyWeapon == HereticWeapon.wp_phoenixrod) || (TestPoweredMace && ReadyWeapon == HereticWeapon.wp_mace) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -240,20 +247,20 @@ namespace ManagedDoom
                 (weapon == HereticWeapon.wp_goldwand && Ammo <= 0) ||
                 (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo < WeaponAmmoCost(HereticWeapon.wp_blaster))) ||
                 (weapon == HereticWeapon.wp_gauntlets && !HasGauntlets) ||
-                (weapon == HereticWeapon.wp_mace && (!HasMace || MaceAmmo <= 0)) ||
+                (weapon == HereticWeapon.wp_mace && (!HasMace || MaceAmmo < WeaponAmmoCost(HereticWeapon.wp_mace))) ||
                 (weapon == HereticWeapon.wp_phoenixrod && (!HasPhoenix || PhoenixAmmo <= 0)) ||
                 (weapon == HereticWeapon.wp_skullrod && (!HasSkullRod || SkullRodAmmo <= 0)) ||
                 (weapon == HereticWeapon.wp_crossbow && (!HasCrossbow || CrossbowAmmo <= 0))) return false;
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
             return true;
         }
-        private int WeaponAmmoCost(HereticWeapon weapon) => weapon == HereticWeapon.wp_blaster && TestPoweredBlaster ? 5 : HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
+        private int WeaponAmmoCost(HereticWeapon weapon) => ((weapon == HereticWeapon.wp_blaster && TestPoweredBlaster) || (weapon == HereticWeapon.wp_mace && TestPoweredMace)) ? 5 : HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
         private bool HasAmmo()
         {
-            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_mace ? MaceAmmo > 0 : ReadyWeapon == HereticWeapon.wp_phoenixrod ? PhoenixAmmo > 0 : ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo > 0 : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo >= WeaponAmmoCost(HereticWeapon.wp_blaster) : Ammo > 0)) return true;
+            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_mace ? MaceAmmo >= WeaponAmmoCost(HereticWeapon.wp_mace) : ReadyWeapon == HereticWeapon.wp_phoenixrod ? PhoenixAmmo > 0 : ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo > 0 : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo >= WeaponAmmoCost(HereticWeapon.wp_blaster) : Ammo > 0)) return true;
             // P_CheckAmmo uses strictly more than one shot for automatic selection.
             PendingWeapon = HasSkullRod && SkullRodAmmo > 1 ? HereticWeapon.wp_skullrod : HasBlaster && BlasterAmmo > WeaponAmmoCost(HereticWeapon.wp_blaster)
-                ? HereticWeapon.wp_blaster : HasCrossbow && CrossbowAmmo > 1 ? HereticWeapon.wp_crossbow : HasMace && MaceAmmo > 1 ? HereticWeapon.wp_mace : Ammo > WeaponAmmoCost(HereticWeapon.wp_goldwand)
+                ? HereticWeapon.wp_blaster : HasCrossbow && CrossbowAmmo > 1 ? HereticWeapon.wp_crossbow : HasMace && MaceAmmo > WeaponAmmoCost(HereticWeapon.wp_mace) ? HereticWeapon.wp_mace : Ammo > WeaponAmmoCost(HereticWeapon.wp_goldwand)
                 ? HereticWeapon.wp_goldwand : HasGauntlets ? HereticWeapon.wp_gauntlets : HasPhoenix && PhoenixAmmo > 1 ? HereticWeapon.wp_phoenixrod : HereticWeapon.wp_staff;
             SetState(Weapon.Down);
             return false;
@@ -348,6 +355,19 @@ namespace ManagedDoom
                             else { Refire = 0; if (PendingWeapon == null) HasAmmo(); }
                             break;
                         case HereticAction.A_FireMacePL1: FireMace(); break;
+                        case HereticAction.A_FireMacePL2:
+                            if (MaceAmmo >= 5 && session.State.Health > 0)
+                            {
+                                MaceAmmo -= 5; MaceShots++;
+                                var ball = session.SpawnPlayerProjectile(HereticActorType.MT_MACEFX4, session.Body.Angle);
+                                if (ball.Flying)
+                                {
+                                    ball.Body.MomX += session.Body.MomX; ball.Body.MomY += session.Body.MomY;
+                                    ball.Body.MomZ = Fixed.FromInt(2) + new Fixed(session.State.LookDirection << 11);
+                                }
+                                session.RequestSound(HereticSoundId.sfx_lobsht, session.Body);
+                            }
+                            break;
                         case HereticAction.A_FirePhoenixPL1: FirePhoenix(); break;
                         case HereticAction.A_InitPhoenixPL2: flameCount = 350; break;
                         case HereticAction.A_FirePhoenixPL2:

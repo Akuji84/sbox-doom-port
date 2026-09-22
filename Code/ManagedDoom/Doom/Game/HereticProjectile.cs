@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
@@ -45,7 +46,7 @@ namespace ManagedDoom
                 Target = session.Body, Angle = angle, LastLook = session.World.Random.Next() % 4,
                 MomX = new Fixed(def.Speed) * Trig.Cos(angle), MomY = new Fixed(def.Speed) * Trig.Sin(angle),
                 MomZ = new Fixed(def.Speed) * slope };
-            LowGravity = type == HereticActorType.MT_MACEFX2 || type == HereticActorType.MT_MACEFX3;
+            LowGravity = type == HereticActorType.MT_MACEFX4 || type == HereticActorType.MT_MACEFX2 || type == HereticActorType.MT_MACEFX3;
             Sync();
             session.World.ThingMovement.SetThingPosition(Body);
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
@@ -79,7 +80,9 @@ namespace ManagedDoom
                 session.DamageTestEnemy(target, ((session.World.Random.Next() & 3) + 2) * def.Damage, inflictor: Body);
                 return true;
             }
-            session.DamageTestEnemy(target, (session.World.Random.Next() % 8 + 1) * def.Damage, inflictor: Body);
+            var damage = (session.World.Random.Next() % 8 + 1) * def.Damage;
+            if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target)) damage = 10000;
+            session.DamageTestEnemy(target, damage, inflictor: Body);
             return false;
         }
         internal void Advance(bool half = false)
@@ -142,7 +145,9 @@ namespace ManagedDoom
             if (aiming.LineTarget == null) { angle += new Angle(1u << 26); slope = aiming.AimLineAttack(Body, angle, Fixed.FromInt(1024)); }
             if (aiming.LineTarget == null) { angle -= new Angle(2u << 26); slope = aiming.AimLineAttack(Body, angle, Fixed.FromInt(1024)); }
             if (aiming.LineTarget == null) { angle = original; slope = Fixed.FromInt(State.LookDirection) / 173; }
-            return SpawnAimedProjectile(type, angle, slope);
+            var bolt = SpawnAimedProjectile(type, angle, slope);
+            if (type == HereticActorType.MT_MACEFX4 && bolt.Flying) bolt.SeekerTarget = aiming.LineTarget;
+            return bolt;
         }
         internal HereticProjectile SpawnAimedProjectile(HereticActorType type, Angle angle, Fixed slope)
         {

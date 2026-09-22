@@ -1052,3 +1052,20 @@ animations and full feet clipping are not implemented by this checkpoint.
 Tests cover windup, deferred ammo cost, maximum burst, release, switching, damage,
 sound, owner exclusion, cleanup and death. Tome pickup/duration, remaining powered
 weapons, campaign/save/multiplayer support and editor playtesting remain open.
+
+### 2026-09-22: Powered Firemace preview
+
+Added Test Powered Mace (requires Test Combat; select with 7). Each shot costs five
+ammo and launches a native MT_MACEFX4 death ball. Surviving spawns inherit player
+horizontal momentum and pitch-based vertical momentum, retain the initial aim
+target and use low gravity. Solid-floor bounces redirect toward a live target or
+search sixteen directions when no target is held; dead targets are discarded.
+Liquid impacts remove the ball, while wall/actor impacts finish its death animation.
+
+Death balls apply lethal damage only through the supported ordinary-enemy path.
+Boss/iron-lich exceptions and multiplayer-player invulnerability/Chaos Device
+escape require their respective future actor handlers and are not enabled here.
+Tests cover five-ammo selection/cost/fallback, owner/target, ordinary lethal damage,
+bounce seeking and sound, dead-target clearing and water/lava/sludge removal.
+Tome pickup/duration, powered Hellstaff, campaign/save/multiplayer support and
+in-editor playtesting remain unfinished.

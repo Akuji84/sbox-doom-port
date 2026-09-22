@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
@@ -33,6 +34,7 @@ namespace ManagedDoom
             HereticSoundId.sfx_blssht => "BLSSHT",
             HereticSoundId.sfx_blshit => "BLSHIT",
             HereticSoundId.sfx_stfhit => "STFHIT",
+            HereticSoundId.sfx_pstop => "PSTOP",
             HereticSoundId.sfx_phopow => "PHOPOW",
             HereticSoundId.sfx_ripslop => "RIPSLOP",
             HereticSoundId.sfx_gntpow => "GNTPOW",
