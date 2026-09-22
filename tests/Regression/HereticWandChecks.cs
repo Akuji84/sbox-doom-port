@@ -84,6 +84,27 @@ static class HereticWandChecks
             Check(screen.Data[0] == 247, "Weapon overlay overwrote transparent background.");
         }
         Console.WriteLine("PASS Heretic weapon lighting: sector darkness, full-bright override, mapped normal/flipped patches and transparency");
+        var clawSession = new HereticWorldSession(content);
+        var claw = new HereticGoldWand(clawSession);
+        Check(!claw.SelectWeapon(HereticWeapon.wp_blaster), "Ungiven Dragon Claw selectable.");
+        claw.GrantTestBlaster(3); claw.SelectWeapon(HereticWeapon.wp_blaster);
+        for (var i = 0; i < 60; i++) claw.Tick(false);
+        Check(claw.State == HereticStateId.S_BLASTERREADY, "Dragon Claw failed to raise.");
+        var clawShots = new List<int>(); var clawDamages = new List<int>(); var clawTick = 0;
+        claw.BlasterShotFired += shot => { clawShots.Add(clawTick); clawDamages.Add(shot.Damage); };
+        for (clawTick = 0; clawTick < 90; clawTick++) claw.Tick(true);
+        Check(clawShots.Count == 3 && clawShots[1] - clawShots[0] == 6 && clawShots[2] - clawShots[1] == 6,
+            "Dragon Claw hold-attack cadence differs.");
+        Check(clawDamages.All(x => x >= 4 && x <= 32 && x % 4 == 0) && claw.BlasterAmmo == 0,
+            "Dragon Claw damage/ammo differs.");
+        Check(claw.ReadyWeapon == HereticWeapon.wp_goldwand, "Empty Dragon Claw did not fall back to wand.");
+        var impact = new HereticTraceHit(clawSession.Body, null, Fixed.FromInt(40), clawSession.Camera.ViewZ);
+        clawSession.SpawnWeaponImpact(impact, clawSession.Body.Angle, Fixed.Zero, HereticWeapon.wp_blaster);
+        Check(clawSession.ImpactEffects.Any(x => x.Type == HereticActorType.MT_BLASTERPUFF2), "Claw actor impact missing.");
+        clawSession.SpawnWeaponImpact(new HereticTraceHit(null, null, Fixed.FromInt(40), clawSession.Camera.ViewZ),
+            clawSession.Body.Angle, Fixed.Zero, HereticWeapon.wp_blaster);
+        Check(clawSession.ImpactEffects.Any(x => x.Type == HereticActorType.MT_BLASTERPUFF1), "Claw wall impact missing.");
+        Console.WriteLine("PASS normal Dragon Claw: explicit grant, raise, held cadence, damage/ammo, fallback and distinct impacts");
         var look = new HereticWorldSession(content); look.State.LookDirection = 45;
         var aimed = new HereticGoldWand(look); HereticWandShot? shotResult = null;
         aimed.ShotFired += shot => shotResult = shot;

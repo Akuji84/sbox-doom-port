@@ -145,3 +145,9 @@ modification notices and lighting/transparency regression checks.
 Add validated DMX decoding, explicit enabled Heretic sound names, session sound
 events and a bounded s&box preview playback adapter. Use bundled licensed WAD
 samples; preserve isolated Doom audio behavior. Add decoding/event regressions.
+
+### 2026-09-22 - Normal Dragon Claw checkpoint
+
+Adapt normal A_FireBlasterPL1 and distinct impact rules from pinned GPL Heretic
+p_pspr.c/p_map.c. Add explicit preview loadout, separate ammo, held-attack states,
+small/large effects and licensed sound samples; retain powered-mode gating.

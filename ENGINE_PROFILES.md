@@ -411,3 +411,17 @@ pending. In-editor listening and device-output testing remain outstanding.
 
 Tests decode all seven bundled samples, check PCM conversion and malformed input,
 and verify session events from real wand shots, staff impacts and Clink behavior.
+
+### 2026-09-22: normal Dragon Claw
+
+Enable Test Combat and Test Blaster in the preview, then press 4 to select the
+Dragon Claw. The explicit test grant supplies 50 separate rounds. Normal attacks
+use the pinned A_FireBlasterPL1 damage (4-32 in multiples of four), initial windup
+and six-tick held-fire sequence, shared aiming, blood and shoot-switch activation.
+Empty ammo falls back to the Gold Wand when available, otherwise the staff.
+Wall hits use the small puff; actor hits use the larger puff and impact sound.
+The two added sound samples are validated with the encounter audio assets.
+
+Powered Dragon Claw projectiles, normal map weapon pickups and full inventory
+remain disabled. Tests cover explicit ownership, switching, cadence, damage,
+ammo, fallback and impact selection. In-editor testing remains outstanding.

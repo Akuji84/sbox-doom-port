@@ -20,7 +20,7 @@ using System;
 namespace ManagedDoom
 {
     public readonly record struct HereticWandShot(int Damage, Angle Angle, Fixed Slope, HereticTraceHit? Hit);
-    /// <summary>Normal staff and Gold Wand controller for the opt-in encounter.</summary>
+    /// <summary>Normal staff, Gold Wand and Dragon Claw controller for the opt-in encounter.</summary>
     public sealed class HereticGoldWand
     {
         private readonly HereticWorldSession session;
@@ -29,20 +29,30 @@ namespace ManagedDoom
         private int depth;
         public HereticWeapon ReadyWeapon { get; private set; } = HereticWeapon.wp_goldwand;
         public HereticWeapon? PendingWeapon { get; private set; }
+        public bool HasBlaster { get; private set; }
+        public int BlasterAmmo { get; private set; }
+        public int BlasterShots { get; private set; }
+        public event Action<HereticWandShot> BlasterShotFired;
+        public void GrantTestBlaster(int ammo = 50)
+        {
+            if (ammo < 1 || ammo > 200) throw new ArgumentOutOfRangeException(nameof(ammo));
+            HasBlaster = true; BlasterAmmo = ammo;
+        }
         public int StaffSwings { get; private set; }
         private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
-                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand) ||
-                (weapon == HereticWeapon.wp_goldwand && Ammo <= 0)) return false;
+                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster) ||
+                (weapon == HereticWeapon.wp_goldwand && Ammo <= 0) ||
+                (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo <= 0))) return false;
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
             return true;
         }
         private bool HasAmmo()
         {
-            if (ReadyWeapon == HereticWeapon.wp_staff || Ammo > 0) return true;
-            PendingWeapon = HereticWeapon.wp_staff;
+            if (ReadyWeapon == HereticWeapon.wp_staff || (ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
+            PendingWeapon = ReadyWeapon == HereticWeapon.wp_blaster && Ammo > 0 ? HereticWeapon.wp_goldwand : HereticWeapon.wp_staff;
             SetState(Weapon.Down);
             return false;
         }
@@ -120,11 +130,12 @@ namespace ManagedDoom
                             }
                             break;
                         case HereticAction.A_ReFire:
-                            if (attack && PendingWeapon == null && HasAmmo()) { Refire++; SetState(Weapon.Attack); }
+                            if (attack && PendingWeapon == null && HasAmmo()) { Refire++; SetState(Weapon.HoldAttack); }
                             else { Refire = 0; if (PendingWeapon == null) HasAmmo(); }
                             break;
                         case HereticAction.A_StaffAttackPL1: SwingStaff(); break;
-                        case HereticAction.A_FireGoldWandPL1: Fire(); break;
+                        case HereticAction.A_FireGoldWandPL1: Fire(false); break;
+                        case HereticAction.A_FireBlasterPL1: Fire(true); break;
                         default: throw new NotSupportedException("Gold Wand action: " + state.Action);
                     }
                     if (!Visible) return;
@@ -154,10 +165,11 @@ namespace ManagedDoom
             }
             StaffSwings++;
         }
-        private void Fire()
+        private void Fire(bool blaster)
         {
-            if (Ammo <= 0 || session.State.Health <= 0) return;
-            Ammo--;
+            if ((blaster ? BlasterAmmo : Ammo) <= 0 || session.State.Health <= 0) return;
+            if (blaster) { session.RequestSound(HereticSoundId.sfx_gldhit, session.Body); BlasterAmmo--; }
+            else Ammo--;
             var body = session.Body;
             var slope = aiming.AimLineAttack(body, body.Angle, Fixed.FromInt(1024));
             if (aiming.LineTarget == null)
@@ -167,7 +179,7 @@ namespace ManagedDoom
                 if (aiming.LineTarget == null) slope = Fixed.FromInt(session.State.LookDirection) / 173;
             }
             var random = session.World.Random;
-            var damage = 7 + (random.Next() & 7);
+            var damage = blaster ? ((random.Next() & 7) + 1) * 4 : 7 + (random.Next() & 7);
             var angle = body.Angle;
             if (Refire != 0) angle += new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
             var origin = body.Z + (body.Height >> 1) + Fixed.FromInt(8);
@@ -175,9 +187,9 @@ namespace ManagedDoom
             session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
             session.SpawnWeaponBlood(hit, angle, slope);
             if (hit?.Actor != null) session.DamageTestEnemy(hit.Value.Actor, damage);
-            session.RequestSound(HereticSoundId.sfx_gldhit, body);
-            ShotsFired++;
-            ShotFired?.Invoke(new(damage, angle, slope, hit));
+            session.RequestSound(blaster ? HereticSoundId.sfx_blssht : HereticSoundId.sfx_gldhit, body);
+            if (blaster) { BlasterShots++; BlasterShotFired?.Invoke(new(damage, angle, slope, hit)); }
+            else { ShotsFired++; ShotFired?.Invoke(new(damage, angle, slope, hit)); }
         }
     }
 }

@@ -8,6 +8,8 @@ namespace ManagedDoom
         public static string LumpName(HereticSoundId sound) => sound switch
         {
             HereticSoundId.sfx_gldhit => "GLDHIT",
+            HereticSoundId.sfx_blssht => "BLSSHT",
+            HereticSoundId.sfx_blshit => "BLSHIT",
             HereticSoundId.sfx_stfhit => "STFHIT",
             HereticSoundId.sfx_clksit => "CLKSIT",
             HereticSoundId.sfx_clkatk => "CLKATK",

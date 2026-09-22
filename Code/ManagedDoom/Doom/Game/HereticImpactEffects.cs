@@ -31,9 +31,10 @@ namespace ManagedDoom
             var z = hit.Z - (hit.Distance - distance) * slope;
             if (hit.Line is { } line && line.FrontSector.CeilingFlat == world.Map.SkyFlatNumber &&
                 (z > line.FrontSector.CeilingHeight || line.BackSector?.CeilingFlat == world.Map.SkyFlatNumber)) return;
-            var type = weapon == HereticWeapon.wp_staff ? HereticActorType.MT_STAFFPUFF : HereticActorType.MT_GOLDWANDPUFF1;
+            var blasterActor = weapon == HereticWeapon.wp_blaster && hit.Actor != null;
+            var type = weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? HereticActorType.MT_STAFFPUFF : HereticActorType.MT_GOLDWANDPUFF1;
             var def = HereticDefinitions.Actors[(int)type];
-            z += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
+            if (!blasterActor) z += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
             var animation = new HereticActorState(def.SpawnState);
             var body = new Mobj(world)
             {
@@ -49,7 +50,7 @@ namespace ManagedDoom
             body.CeilingZ = body.Subsector.Sector.CeilingHeight;
             body.UpdateFrameInterpolationInfo();
             impactEffects.Add(new HereticMapActor(type, body, animation));
-            RequestSound(def.AttackSound, body);
+            RequestSound(blasterActor ? HereticSoundId.sfx_blshit : def.AttackSound, body);
         }
 
         // Adapted 2026-09-22: P_BloodSplatter and the hitscan blood chance.
