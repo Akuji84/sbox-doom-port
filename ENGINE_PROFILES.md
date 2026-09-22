@@ -954,3 +954,19 @@ slot. Marks, pan and zoom remain local preview UI state across map toggles. Test
 cover pan bounds, frame-rate independence, follow behavior, marker cycling and
 visible clearing without changes to discovery. Full HUD/artwork, campaign/save
 integration and in-editor input/visual playtesting remain outstanding.
+
+### 2026-09-22: Powered staff preview
+
+Added the native level-two staff state chain and attack behind the explicit
+Test Powered Staff editor property (requires Test Combat; select staff with 1).
+It deals 18-81 damage, can hit ghosts, applies the dedicated ten-unit horizontal
+thrust and five-unit upward thrust to gravity-affected targets, and uses the stationary
+powered puff rather than the rising normal puff. Idle crackle and powered impact
+sounds now decode from bundled assets. Other weapons retain their normal states.
+
+This is a powered-weapon implementation checkpoint, not a completed Tome of Power:
+no Tome pickup, duration/expiration or other powered weapons are enabled here.
+Tests cover selection/ready states, damage against ghosts, thrust, puff/audio,
+ammo independence, switching back to the ordinary wand and death lowering. Existing
+Doom baselines and the full regression suite remain required. In-editor playtesting,
+remaining powered attacks and campaign/save/multiplayer support remain outstanding.

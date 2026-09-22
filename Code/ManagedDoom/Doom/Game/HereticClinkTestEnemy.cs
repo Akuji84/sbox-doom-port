@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 // s&Doom modification: 2026-09-22, normal Gold Wand replaces the encounter test ray.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -140,12 +141,12 @@ namespace ManagedDoom
             }
             return null;
         }
-        public HereticDamageResult DamageTestEnemy(Mobj body, int damage, bool environment = false, Mobj inflictor = null)
+        public HereticDamageResult DamageTestEnemy(Mobj body, int damage, bool environment = false, Mobj inflictor = null, HereticDamageThrust thrust = HereticDamageThrust.Normal)
         {
             foreach (var enemy in testEnemies)
                 if (enemy.Body == body)
                 {
-                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : Body);
+                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : Body, thrust);
                     if (result == HereticDamageResult.Killed) TestKills++;
                     return result;
                 }

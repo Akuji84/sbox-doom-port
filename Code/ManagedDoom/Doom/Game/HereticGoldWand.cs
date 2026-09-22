@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -192,7 +193,14 @@ namespace ManagedDoom
             // The reference bag increases Firemace capacity but grants no mace ammo.
             return true;
         }
-        private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
+        // Adapted 2026-09-22: powered staff preview; Tome inventory is not enabled yet.
+        public bool TestPoweredStaff { get; private set; }
+        public void GrantTestPoweredStaff()
+        {
+            TestPoweredStaff = true;
+            if (ReadyWeapon == HereticWeapon.wp_staff && session.State.Health > 0) SetState(Weapon.Ready);
+        }
+        private HereticWeaponDefinition Weapon => (TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -285,6 +293,7 @@ namespace ManagedDoom
                             }
                             break;
                         case HereticAction.A_WeaponReady:
+                            if (State == HereticStateId.S_STAFFREADY2_1 && session.World.Random.Next() < 128) session.RequestSound(HereticSoundId.sfx_stfcrk, session.Body);
                             if (PendingWeapon != null) SetState(Weapon.Down);
                             else if (attack)
                             {
@@ -312,7 +321,8 @@ namespace ManagedDoom
                         case HereticAction.A_FireCrossbowPL1: FireCrossbow(); break;
                         case HereticAction.A_GauntletAttack: AttackGauntlets(); break;
                         case HereticAction.A_Light0: session.Camera.ExtraLight = 0; break;
-                        case HereticAction.A_StaffAttackPL1: SwingStaff(); break;
+                        case HereticAction.A_StaffAttackPL1: SwingStaff(false); break;
+                        case HereticAction.A_StaffAttackPL2: SwingStaff(true); break;
                         case HereticAction.A_FireGoldWandPL1: Fire(false); break;
                         case HereticAction.A_FireBlasterPL1: Fire(true); break;
                         default: throw new NotSupportedException("Gold Wand action: " + state.Action);
@@ -414,22 +424,22 @@ namespace ManagedDoom
             else body.Angle = delta > turn ? angle - new Angle(offset) : body.Angle + new Angle(turn);
             body.Flags |= MobjFlags.JustAttacked;
         }
-        private void SwingStaff()
+        private void SwingStaff(bool powered)
         {
             if (session.State.Health <= 0) return;
             var random = session.World.Random;
-            var damage = 5 + (random.Next() & 15);
+            var damage = powered ? 18 + (random.Next() & 63) : 5 + (random.Next() & 15);
             var body = session.Body;
             var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
             var range = Fixed.FromInt(64);
             var slope = aiming.AimLineAttack(body, angle, range);
-            var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8), physicalStaff: true);
-            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
+            var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8), physicalStaff: !powered);
+            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon, powered);
             session.SpawnWeaponBlood(hit, angle, slope);
             if (hit?.Actor != null)
             {
                 var target = hit.Value.Actor;
-                session.DamageTestEnemy(target, damage);
+                session.DamageTestEnemy(target, damage, thrust: powered ? HereticDamageThrust.PoweredStaff : HereticDamageThrust.Normal);
                 body.Angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
             }
             StaffSwings++;

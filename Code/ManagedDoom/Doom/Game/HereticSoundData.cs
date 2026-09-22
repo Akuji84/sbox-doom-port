@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 // Copyright (C) 2026 s&Doom contributors; SPDX-License-Identifier: GPL-2.0-or-later
 using System;
 namespace ManagedDoom
@@ -30,6 +31,8 @@ namespace ManagedDoom
             HereticSoundId.sfx_blssht => "BLSSHT",
             HereticSoundId.sfx_blshit => "BLSHIT",
             HereticSoundId.sfx_stfhit => "STFHIT",
+            HereticSoundId.sfx_stfpow => "STFPOW",
+            HereticSoundId.sfx_stfcrk => "STFCRK",
             HereticSoundId.sfx_clksit => "CLKSIT",
             HereticSoundId.sfx_clkatk => "CLKATK",
             HereticSoundId.sfx_clkdth => "CLKDTH",
