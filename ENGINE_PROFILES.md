@@ -985,3 +985,20 @@ puff/audio, ammo independence, switching and dead-player gating. The option gran
 Gauntlet ownership only for the explicit preview test. Tome pickup, power duration/
 expiration, other powered weapons, campaign/save/multiplayer integration and
 in-editor playtesting remain unfinished.
+
+### 2026-09-22: Powered Crossbow preview
+
+Added Test Powered Crossbow (requires Test Combat; select with 3), using the native
+level-two weapon states and five-bolt volley for one ammo. The three stronger bolts
+use MT_CRBOWFX2; two outer bolts use MT_CRBOWFX3. Powered bolts execute A_BoltSpark
+and spawn native spark animations with reference random offsets and low gravity.
+Effects expire and unlink through the existing effect lifecycle. Normal Crossbow
+firing remains unchanged. As with the existing preview projectiles, collision uses
+bounded substeps rather than exact legacy movement; spark spatial links are set at
+their final randomized position.
+
+Tests cover bolt counts/types, ammo depletion and fallback, owner exclusion,
+enemy damage, spark gravity/cleanup and deterministic spark replay. The full Doom
+compatibility suite remains required. This is an explicit powered-weapon preview;
+Tome pickup/duration, remaining powered weapons, campaign/save/multiplayer support
+and in-editor playtesting remain outstanding.

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -206,7 +207,13 @@ namespace ManagedDoom
             HasGauntlets = true; TestPoweredGauntlets = true;
             if (ReadyWeapon == HereticWeapon.wp_gauntlets && session.State.Health > 0) SetState(Weapon.Ready);
         }
-        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        public bool TestPoweredCrossbow { get; private set; }
+        public void GrantTestPoweredCrossbow(int ammo = 20)
+        {
+            GrantTestCrossbow(ammo); TestPoweredCrossbow = true;
+            if (ReadyWeapon == HereticWeapon.wp_crossbow && session.State.Health > 0) SetState(Weapon.Ready);
+        }
+        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -324,7 +331,8 @@ namespace ManagedDoom
                         case HereticAction.A_FireMacePL1: FireMace(); break;
                         case HereticAction.A_FirePhoenixPL1: FirePhoenix(); break;
                         case HereticAction.A_FireSkullRodPL1: FireSkullRod(); break;
-                        case HereticAction.A_FireCrossbowPL1: FireCrossbow(); break;
+                        case HereticAction.A_FireCrossbowPL1: FireCrossbow(false); break;
+                        case HereticAction.A_FireCrossbowPL2: FireCrossbow(true); break;
                         case HereticAction.A_GauntletAttack: AttackGauntlets(); break;
                         case HereticAction.A_Light0: session.Camera.ExtraLight = 0; break;
                         case HereticAction.A_StaffAttackPL1: SwingStaff(false); break;
@@ -386,14 +394,19 @@ namespace ManagedDoom
             if (bolt.Flying && session.World.Random.Next() > 128) bolt.SetFlightState(HereticStateId.S_HRODFX1_2);
         }
         // Adapted 2026-09-22 from pinned p_pspr.c A_FireCrossbowPL1.
-        private void FireCrossbow()
+        private void FireCrossbow(bool powered)
         {
             if (CrossbowAmmo <= 0 || session.State.Health <= 0) return;
             CrossbowAmmo--; CrossbowShots++;
             var angle = session.Body.Angle;
-            session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX1, angle);
-            session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX3, angle - new Angle(0x20000000u / 10));
-            session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX3, angle + new Angle(0x20000000u / 10));
+            session.SpawnCrossbowBolt(powered ? HereticActorType.MT_CRBOWFX2 : HereticActorType.MT_CRBOWFX1, angle);
+            session.SpawnCrossbowBolt(powered ? HereticActorType.MT_CRBOWFX2 : HereticActorType.MT_CRBOWFX3, angle - new Angle(0x20000000u / 10));
+            session.SpawnCrossbowBolt(powered ? HereticActorType.MT_CRBOWFX2 : HereticActorType.MT_CRBOWFX3, angle + new Angle(0x20000000u / 10));
+            if (powered)
+            {
+                session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX3, angle - new Angle(0x20000000u / 5));
+                session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX3, angle + new Angle(0x20000000u / 5));
+            }
         }
         // Adapted 2026-09-22 from pinned p_pspr.c A_GauntletAttack, normal and powered variants.
         private void AttackGauntlets()

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -119,7 +120,8 @@ namespace ManagedDoom
                 var effect = impactEffects[i];
                 var body = effect.Body;
                 body.UpdateFrameInterpolationInfo();
-                if (IsLiquidChunk(effect.Type)) MoveLiquidChunk(effect);
+                if (effect.Type == HereticActorType.MT_CRBOWFX4) MoveCrossbowSpark(body);
+                else if (IsLiquidChunk(effect.Type)) MoveLiquidChunk(effect);
                 else if (effect.Type == HereticActorType.MT_PHOENIXPUFF) MovePhoenixTrail(body);
                 else if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
                 else body.Z += body.MomZ;
