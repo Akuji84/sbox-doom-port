@@ -22,12 +22,14 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight/invulnerability subset.
-        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY;
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4;
         internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.RingOfInvincibility) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.Torch) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticArtifact.RingOfInvincibility)
+            if (type == HereticArtifact.Torch)
+            { if (State.Torches >= 16) return false; State.Torches++; }
+            else if (type == HereticArtifact.RingOfInvincibility)
             { if (State.RingsOfInvincibility >= 16) return false; State.RingsOfInvincibility++; }
             else if (type == HereticArtifact.WingsOfWrath)
             { if (State.WingsOfWrath >= 16) return false; State.WingsOfWrath++; }
@@ -58,15 +60,36 @@ namespace ManagedDoom
             State.Health += flasks * 25 + urns * 100;
             Body.Health = State.Health;
         }
-        // Adapted 2026-09-22: pinned P_PlayerThink invulnerability colormap/blink.
-        private void UpdateArtifactColorMap()
+        // P_PlayerThink torch variation uses M_Random, not the gameplay RNG.
+        private readonly DoomRandom torchRandom = new DoomRandom();
+        private int torchMap = 1, torchTarget, torchDelta;
+        private void UpdateArtifactColorMap(bool advanceTorch = false)
         {
             var ticks = State.InvulnerabilityTics;
-            Camera.FixedColorMap = ticks > 128 || (ticks & 8) != 0 ? ColorMap.Inverse : 0;
+            if (ticks > 0) { Camera.FixedColorMap = ticks > 128 || (ticks & 8) != 0 ? ColorMap.Inverse : 0; return; }
+            if (State.TorchTics == 0) { Camera.FixedColorMap = 0; return; }
+            if (State.TorchTics <= 128) { Camera.FixedColorMap = (State.TorchTics & 8) != 0 ? 0 : 1; return; }
+            if (advanceTorch && (tic & 16) == 0)
+            {
+                if (torchTarget != 0)
+                {
+                    if (torchMap + torchDelta > 7 || torchMap + torchDelta < 1 || torchTarget == torchMap) torchTarget = 0;
+                    else torchMap += torchDelta;
+                }
+                else { torchTarget = (torchRandom.Next() & 7) + 1; torchDelta = Math.Sign(torchTarget - torchMap); }
+            }
+            Camera.FixedColorMap = torchMap;
         }
         internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.RingOfInvincibility) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.Torch) throw new ArgumentOutOfRangeException(nameof(type));
+            if (type == HereticArtifact.Torch)
+            {
+                if (State.Health <= 0 || State.Torches <= 0 || State.TorchTics > 128) return false;
+                State.Torches--; State.TorchTics = 120 * 35;
+                torchMap = 1; torchTarget = torchDelta = 0; UpdateArtifactColorMap();
+                State.Message = "Used Torch"; RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
             if (type == HereticArtifact.RingOfInvincibility)
             {
                 if (State.Health <= 0 || State.RingsOfInvincibility <= 0 || State.InvulnerabilityTics > 128) return false;

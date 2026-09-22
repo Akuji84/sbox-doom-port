@@ -814,3 +814,26 @@ blink phases, armor/healing preservation, post-expiration damage, Baby threshold
 ordering, high-damage bypass and death cleanup. Existing Doom baselines remain
 required. Other artifacts, full inventory HUD, campaign/network/save support and
 in-editor visual/audio playtesting remain outstanding.
+
+### 2026-09-22: Torch inventory and lighting
+
+Added collectible Torches with sixteen-item storage, bobbing pickup, pickup
+animation/sound and use through T in the combat preview. Successful use grants
+4200 ticks (120 seconds); another Torch is rejected until the final 128 ticks.
+The preview displays stored Torches and remaining time.
+
+Torch lighting varies through colormaps 1-7 on simulation ticks and uses a
+separate session-local visual random generator, preserving gameplay RNG. The
+reference timing gate, target/delta flicker and final blinking phases are adapted
+from P_PlayerThink. The preview starts at colormap 1 and retains a bounded Torch
+map beneath Ring priority, so Ring expiration cannot leave Torch lighting stuck
+on the inverse map. This is an intentional initialization/state-isolation choice,
+not a claim of exact legacy cosmetic-random output. Rendering never advances it.
+
+An active Ring overrides Torch lighting even during the Ring's dark blink. Torch
+time continues to expire underneath it; lighting resumes when the Ring ends.
+Normal expiration and death restore ordinary lighting. Tests cover visible pixels,
+flicker, RNG isolation, render independence, Ring priority, full duration,
+refresh/blink thresholds, death and map pickup/cap behavior. Existing Doom
+baselines remain required. Other artifacts, full HUD, persistence/networking and
+in-editor playtesting remain outstanding.
