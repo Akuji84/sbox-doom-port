@@ -533,3 +533,15 @@ Wand and Dragon Claw selected. Press 8 to select owned Gauntlets manually.
 Tests cover native collection, sound, duplicate rejection, ammo preservation and
 staff-versus-ranged selection. Cooperative weapon-stay and powered mode remain
 gated; in-editor playtesting remains outstanding.
+
+### 2026-09-22: difficulty and melee-to-ranged ammo selection
+
+The current player damage path now applies Baby difficulty's integer halving
+before armor absorption and damage feedback, matching pinned P_DamageMobj order.
+Other skills retain their incoming damage. A one-point Baby hit rounds to zero.
+This does not enable automatic inventory healing or unfinished special attacks.
+
+Collecting ammo for an empty owned ranged weapon now selects it from Gauntlets
+as well as staff, following P_GiveAmmo. Ammo for an unowned weapon does not select
+or grant that weapon. Tests cover all skill levels, odd damage, armor/feedback
+order, lethal damage and Gauntlet ammo re-selection.

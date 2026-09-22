@@ -108,6 +108,19 @@ static class HereticAmmoChecks
         for (var i = 0; i < 60; i++) staffWeapon.Tick(false);
         Check(staffWeapon.GiveGauntlets() && staffWeapon.PendingWeapon == HereticWeapon.wp_gauntlets,
             "New gauntlets failed to replace staff.");
+        var rearmSession = new HereticWorldSession(content);
+        var rearm = new HereticGoldWand(rearmSession);
+        rearm.GrantTestGauntlets(); rearm.SelectWeapon(HereticWeapon.wp_gauntlets);
+        for (var i = 0; i < 60; i++) rearm.Tick(false);
+        rearm.Ammo = 0;
+        Check(rearm.GiveAmmo(false, 10, false) && rearm.PendingWeapon == HereticWeapon.wp_goldwand,
+            "Gauntlets did not reselect newly replenished empty wand.");
+        var unownedSession = new HereticWorldSession(content);
+        var unowned = new HereticGoldWand(unownedSession);
+        unowned.GrantTestGauntlets(); unowned.SelectWeapon(HereticWeapon.wp_gauntlets);
+        for (var i = 0; i < 60; i++) unowned.Tick(false);
+        Check(unowned.GiveAmmo(true, 10, false) && unowned.PendingWeapon == null && !unowned.HasBlaster,
+            "Gauntlets selected an unowned weapon after collecting ammo.");
         Console.WriteLine("PASS Gauntlet pickup: native collection, sound, duplicate rejection, no ammo grant and weapon ranking");
         Console.WriteLine("PASS Dragon Claw pickup: map touch, ownership, ammo, selection, sound and duplicate/full-ammo behavior");
         Console.WriteLine("PASS Heretic ammo: opt-in map spawns, idempotence, touch/removal, full-cap retention, difficulty bonus and ownership isolation");

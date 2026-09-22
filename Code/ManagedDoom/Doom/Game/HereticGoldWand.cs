@@ -51,7 +51,7 @@ namespace ManagedDoom
             if (bonus) amount += amount >> 1;
             var total = (int)Math.Min(maximum, (long)previous + amount);
             if (blaster) BlasterAmmo = total; else Ammo = total;
-            if (previous == 0 && ReadyWeapon == HereticWeapon.wp_staff && (!blaster || HasBlaster))
+            if (previous == 0 && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) && (!blaster || HasBlaster))
                 PendingWeapon = blaster ? HereticWeapon.wp_blaster : HereticWeapon.wp_goldwand;
             return true;
         }

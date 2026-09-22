@@ -194,3 +194,8 @@ explicit preview grant, sounds, fallback and native melee regressions.
 
 Adapt pinned GPL single-player P_GiveWeapon and WeaponValue behavior for Gauntlets.
 Add filtered map collection, weapon ranking, sound and regression coverage.
+
+### 2026-09-22 - Heretic difficulty and ammo re-selection
+
+Apply pinned p_inter.c Baby damage scaling before armor. Complete P_GiveAmmo's
+Gauntlet-to-ranged selection rule, with skill/rounding and ownership regressions.

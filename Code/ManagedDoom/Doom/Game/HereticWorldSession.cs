@@ -270,6 +270,8 @@ namespace ManagedDoom
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
             if (State.Health <= 0 || amount == 0) return;
+            // P_DamageMobj applies Baby difficulty before armor absorption.
+            if (skill == GameSkill.Baby) amount >>= 1;
             // Adapted 2026-09-22: pinned Heretic armor absorption (integer rounding).
             if (State.ArmorType != 0)
             {

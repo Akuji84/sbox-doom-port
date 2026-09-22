@@ -37,6 +37,23 @@ static class HereticArmorChecks
             s.DamageEnvironment(10000);
             Check(s.State.Health == 0 && !s.GiveArmor(2), "Lethal damage or dead armor guard failed.");
         }
+        foreach (var skill in new[] { GameSkill.Baby, GameSkill.Easy, GameSkill.Medium, GameSkill.Hard, GameSkill.Nightmare })
+        {
+            var scaled = new HereticWorldSession(content, skill: skill);
+            scaled.GiveArmor(2);
+            scaled.DamageEnvironment(7);
+            var incoming = skill == GameSkill.Baby ? 3 : 7;
+            var absorbed = (incoming >> 1) + (incoming >> 2);
+            Check(scaled.State.Health == 100 - incoming + absorbed && scaled.State.ArmorPoints == 200 - absorbed &&
+                scaled.State.DamageFlash == incoming - absorbed, "Difficulty reduction must precede armor and feedback.");
+        }
+        var baby = new HereticWorldSession(content, skill: GameSkill.Baby);
+        baby.DamageEnvironment(1);
+        Check(baby.State.Health == 100 && baby.Body.Health == 100 && baby.State.DamageFlash == 0,
+            "Baby one-point damage did not round down to zero.");
+        baby.DamageEnvironment(10000);
+        Check(baby.State.Health == 0, "Baby reduction prevented lethal damage.");
+        Console.WriteLine("PASS Heretic damage difficulty: Baby halving, other skills unchanged, pre-armor rounding and feedback");
         Console.WriteLine("PASS Heretic shields: map pickups, caps/replacement, absorption rounding, depletion, health synchronization and death");
     }
 }
