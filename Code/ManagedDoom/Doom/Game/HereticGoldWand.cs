@@ -49,10 +49,14 @@ namespace ManagedDoom
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
             return true;
         }
+        private static int WeaponAmmoCost(HereticWeapon weapon) => HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
         private bool HasAmmo()
         {
             if (ReadyWeapon == HereticWeapon.wp_staff || (ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
-            PendingWeapon = ReadyWeapon == HereticWeapon.wp_blaster && Ammo > 0 ? HereticWeapon.wp_goldwand : HereticWeapon.wp_staff;
+            // P_CheckAmmo uses strictly more than one shot for automatic selection.
+            PendingWeapon = HasBlaster && BlasterAmmo > WeaponAmmoCost(HereticWeapon.wp_blaster)
+                ? HereticWeapon.wp_blaster : Ammo > WeaponAmmoCost(HereticWeapon.wp_goldwand)
+                ? HereticWeapon.wp_goldwand : HereticWeapon.wp_staff;
             SetState(Weapon.Down);
             return false;
         }
@@ -154,7 +158,7 @@ namespace ManagedDoom
             var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
             var range = Fixed.FromInt(64);
             var slope = aiming.AimLineAttack(body, angle, range);
-            var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8));
+            var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8), physicalStaff: true);
             session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
             session.SpawnWeaponBlood(hit, angle, slope);
             if (hit?.Actor != null)

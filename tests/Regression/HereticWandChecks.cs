@@ -105,6 +105,29 @@ static class HereticWandChecks
             clawSession.Body.Angle, Fixed.Zero, HereticWeapon.wp_blaster);
         Check(clawSession.ImpactEffects.Any(x => x.Type == HereticActorType.MT_BLASTERPUFF1), "Claw wall impact missing.");
         Console.WriteLine("PASS normal Dragon Claw: explicit grant, raise, held cadence, damage/ammo, fallback and distinct impacts");
+        foreach (var reserve in new[] { 1, 2 })
+        {
+            var fallbackSession = new HereticWorldSession(content);
+            var fallback = new HereticGoldWand(fallbackSession);
+            fallback.GrantTestBlaster(reserve); fallback.Ammo = 0;
+            for (var i = 0; i < 17; i++) fallback.Tick(false);
+            fallback.Tick(true);
+            for (var i = 0; i < 40; i++) fallback.Tick(false);
+            Check(fallback.ReadyWeapon == (reserve == 2 ? HereticWeapon.wp_blaster : HereticWeapon.wp_staff),
+                "Automatic fallback violated the reference reserve threshold.");
+            if (reserve == 1) Check(fallback.SelectWeapon(HereticWeapon.wp_blaster), "Manual selection rejected the last claw round.");
+        }
+        var ghostSession = new HereticWorldSession(content);
+        var ghost = ghostSession.StartClinkTest(); Check(ghost != null, "Ghost trace fixture failed.");
+        ghost.Body.Flags |= MobjFlags.Shadow;
+        var ghostAngle = Geometry.PointToAngle(ghostSession.Body.X, ghostSession.Body.Y, ghost.Body.X, ghost.Body.Y);
+        var ghostZ = ghost.Body.Z + ghost.Body.Height / 2;
+        var ordinary = ghostSession.TraceWeapon(ghostAngle, Fixed.FromInt(2048), Fixed.Zero, ghostZ);
+        var physical = ghostSession.TraceWeapon(ghostAngle, Fixed.FromInt(2048), Fixed.Zero, ghostZ, physicalStaff: true);
+        Check(ordinary?.Actor == ghost.Body && physical?.Actor != ghost.Body, "Staff ghost immunity incorrectly affects ranged attacks.");
+        Check(ghostSession.TraceAim(ghostAngle, Fixed.FromInt(2048), Fixed.Zero, ghostZ, true)?.Actor == ghost.Body,
+            "Ghost filter leaked into general aiming.");
+        Console.WriteLine("PASS Heretic weapon edge cases: reference fallback priority/reserve, manual last-round selection and staff ghost pass-through");
         var look = new HereticWorldSession(content); look.State.LookDirection = 45;
         var aimed = new HereticGoldWand(look); HereticWandShot? shotResult = null;
         aimed.ShotFired += shot => shotResult = shot;

@@ -8,12 +8,12 @@ namespace ManagedDoom
     {
         /// <summary>Height-aware obstruction query for future attacks; applies no damage or line actions.</summary>
         public HereticTraceHit? TraceAim(Angle angle, Fixed range, Fixed slope, Fixed? originZ = null, bool shootableOnly = false)
-            => TraceAttack(angle, range, slope, originZ, shootableOnly, false);
+            => TraceAttack(angle, range, slope, originZ, shootableOnly, false, false);
 
-        internal HereticTraceHit? TraceWeapon(Angle angle, Fixed range, Fixed slope, Fixed originZ)
-            => TraceAttack(angle, range, slope, originZ, true, true);
+        internal HereticTraceHit? TraceWeapon(Angle angle, Fixed range, Fixed slope, Fixed originZ, bool physicalStaff = false)
+            => TraceAttack(angle, range, slope, originZ, true, true, physicalStaff);
 
-        private HereticTraceHit? TraceAttack(Angle angle, Fixed range, Fixed slope, Fixed? originZ, bool shootableOnly, bool activateLines)
+        private HereticTraceHit? TraceAttack(Angle angle, Fixed range, Fixed slope, Fixed? originZ, bool shootableOnly, bool activateLines, bool physicalStaff)
         {
             if (range <= Fixed.Zero || range > Fixed.FromInt(2048)) throw new ArgumentOutOfRangeException(nameof(range));
             if (slope < Fixed.FromInt(-4) || slope > Fixed.FromInt(4)) throw new ArgumentOutOfRangeException(nameof(slope));
@@ -38,6 +38,8 @@ namespace ManagedDoom
                     else
                     {
                         var actor = intercept.Thing;
+                        // Heretic physical staff attacks pass through MF_SHADOW ghosts.
+                        if (physicalStaff && (actor.Flags & MobjFlags.Shadow) != 0) return true;
                         if (actor == Body || (actor.Flags & (shootableOnly ? MobjFlags.Shootable : MobjFlags.Solid | MobjFlags.Shootable)) == 0 || z < actor.Z || z > actor.Z + actor.Height) return true;
                         hit = new(actor, null, distance, z);
                     }

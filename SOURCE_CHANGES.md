@@ -151,3 +151,8 @@ samples; preserve isolated Doom audio behavior. Add decoding/event regressions.
 Adapt normal A_FireBlasterPL1 and distinct impact rules from pinned GPL Heretic
 p_pspr.c/p_map.c. Add explicit preview loadout, separate ammo, held-attack states,
 small/large effects and licensed sound samples; retain powered-mode gating.
+
+### 2026-09-22 - Weapon fallback and ghost interaction
+
+Apply pinned GPL P_CheckAmmo priority/reserve rules to implemented weapons and
+p_map.c staff ghost pass-through. Add targeted selection and trace regressions.

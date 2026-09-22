@@ -425,3 +425,16 @@ The two added sound samples are validated with the encounter audio assets.
 Powered Dragon Claw projectiles, normal map weapon pickups and full inventory
 remain disabled. Tests cover explicit ownership, switching, cadence, damage,
 ammo, fallback and impact selection. In-editor testing remains outstanding.
+
+### 2026-09-22: weapon fallback and ghost targets
+
+Automatic empty-ammo selection now follows the pinned P_CheckAmmo order for
+implemented weapons: owned Dragon Claw, Gold Wand, then staff. The reference
+requires more than one shot in reserve for automatic selection; a final round
+can still be selected manually. This also fixes an empty wand skipping a loaded
+Dragon Claw. Unsupported weapons remain excluded from the selection table.
+
+Physical staff traces now pass through MF_SHADOW actors, while ranged weapons
+and read-only aiming still target them. This adds the interaction rule without
+enabling ghost enemy AI or new map spawns. Tests cover reserve boundaries,
+manual last-round selection and separate physical/ranged/aim trace behavior.
