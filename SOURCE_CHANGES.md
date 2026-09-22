@@ -560,3 +560,21 @@ reference grant amounts, difficulty scaling, map pickup feedback, ownership and
 death gating. Existing Doom compatibility baselines remain required. This is still
 an isolated preview checkpoint; campaign inventory persistence, multiplayer and
 in-editor playtesting remain outstanding.
+
+### 2026-09-22: Preview automap and Map Scroll
+
+Added a native player-following automap to the Heretic preview. Tab toggles it;
+Z zooms in and X zooms out, with bounded zoom independent of simulation timing.
+It uses shared map geometry and DrawScreen line clipping/rasterization. Discovered
+walls, floor/ceiling changes and locked doors use Heretic palette colors. Map Scroll
+pickups reveal previously unseen lines in gray without exposing never-see lines or
+changing their discovered flags. Duplicate scrolls remain on the map. Pickups bob,
+emit item feedback and retain the reveal power for the current session.
+
+The preview uses a flat parchment-colored background and compact directional
+player marker. Textured parchment, reference antialiasing/sword marker, panning,
+marks, full HUD, campaign persistence and multiplayer remain separate work. The
+simulation continues while the automap is open. Rendering the map does not itself
+reveal additional walls or advance gameplay RNG. Tests cover discovery/reveal,
+hidden lines, visible rendering, zoom bounds, return to 3D and pickup/duplicate
+behavior. In-editor input and visual playtesting remain outstanding.

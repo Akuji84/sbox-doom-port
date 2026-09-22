@@ -34,6 +34,7 @@ namespace ManagedDoom
     }
     public sealed class HereticPlayerState
     {
+        public bool HasMapScroll { get; internal set; }
         public int Shadowspheres { get; internal set; }
         public int InvisibilityTics { get; internal set; }
         public int TimeBombs { get; internal set; }

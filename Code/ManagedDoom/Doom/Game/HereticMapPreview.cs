@@ -18,6 +18,9 @@ namespace ManagedDoom
         public const int Width = 320;
         public const int Height = 200;
         public string Report { get; }
+        public bool AutomapVisible { get; set; }
+        private float automapZoom = 1;
+        public void ZoomAutomap(bool closer) => automapZoom = Math.Clamp(automapZoom * (closer ? 1.25f : 0.8f), 0.125f, 16f);
         public HereticMapPreview(GameContent content, int episode = 1, int map = 1)
             : this(content, World.CreateGeometryPreview(content, episode, map), null) { }
         public HereticMapPreview(GameContent content, HereticWorldSession session)
@@ -46,20 +49,25 @@ namespace ManagedDoom
             if (rgba == null || rgba.Length != Width * Height * 4)
                 throw new ArgumentException("Preview requires a 320x200 RGBA buffer.");
             if (world.HereticSession == null) world.SetPreviewTime(tic);
-            var original = camera.Mobj.Angle;
-            camera.Mobj.Angle = original + Angle.FromDegree(yawDegrees);
-            try { renderer.Render(camera, Fixed.One, world.HereticSession?.State.LookDirection ?? 0); }
-            finally { camera.Mobj.Angle = original; }
-            var wand = world.HereticSession?.GoldWand;
-            if (wand?.Visible == true)
+            if (AutomapVisible && world.HereticSession != null)
+                HereticAutomap.Render(world.HereticSession, screen, automapZoom);
+            else
             {
-                var state = wand.Definition;
-                var frame = content.Sprites[(Sprite)state.Sprite].Frames[state.Frame & 0x7fff];
-                var invisible = world.HereticSession.State.InvisibilityTics;
-                var tint = invisible > 128 || (invisible & 8) != 0 ? tintTable : null;
-                var map = renderer.GetWeaponColorMap(camera.Mobj.Subsector.Sector.LightLevel, (state.Frame & 0x8000) != 0, tint != null);
-                if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
-                else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
+                var original = camera.Mobj.Angle;
+                camera.Mobj.Angle = original + Angle.FromDegree(yawDegrees);
+                try { renderer.Render(camera, Fixed.One, world.HereticSession?.State.LookDirection ?? 0); }
+                finally { camera.Mobj.Angle = original; }
+                var wand = world.HereticSession?.GoldWand;
+                if (wand?.Visible == true)
+                {
+                    var state = wand.Definition;
+                    var frame = content.Sprites[(Sprite)state.Sprite].Frames[state.Frame & 0x7fff];
+                    var invisible = world.HereticSession.State.InvisibilityTics;
+                    var tint = invisible > 128 || (invisible & 8) != 0 ? tintTable : null;
+                    var map = renderer.GetWeaponColorMap(camera.Mobj.Subsector.Sector.LightLevel, (state.Frame & 0x8000) != 0, tint != null);
+                    if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
+                    else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
+                }
             }
             var palette = content.Palette[world.HereticSession?.State.PaletteIndex ?? 0];
             for (var y = 0; y < Height; y++)
