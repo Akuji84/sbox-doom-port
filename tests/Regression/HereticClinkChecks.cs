@@ -38,6 +38,7 @@ static class HereticClinkChecks
             shooting.Body.Angle = Geometry.PointToAngle(shooting.Body.X, shooting.Body.Y, target.Body.X, target.Body.Y);
             shooting.Tick(new HereticCommand { TestAttack = true });
         }
+        Check(shooting.ImpactEffects.Any(x => x.Type == HereticActorType.MT_GOLDWANDPUFF1), "Wand attack did not spawn an impact.");
         var dealt = HereticDefinitions.Actors[(int)HereticActorType.MT_CLINK].SpawnHealth - target.Body.Health;
         Check(dealt >= 7 && dealt <= 14 && shooting.GoldWand.Ammo == 49, "Gold Wand input did not damage linked target/use ammo.");
         var stepper = new HereticFrameStepper(); var attacks = 0;

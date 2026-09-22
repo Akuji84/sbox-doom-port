@@ -43,6 +43,7 @@ static class HereticWandChecks
         for (var i = 0; i < 7; i++) melee.GoldWand.Tick(true);
         Check(melee.GoldWand.StaffSwings == 1 && hp - enemy.Body.Health >= 5 && hp - enemy.Body.Health <= 20,
             $"Staff failed to hit linked melee target: swings={melee.GoldWand.StaffSwings}, damage={hp - enemy.Body.Health}, state={melee.GoldWand.State}.");
+        Check(melee.ImpactEffects.Any(x => x.Type == HereticActorType.MT_STAFFPUFF), "Staff attack did not spawn an impact.");
         Check(melee.GoldWand.Ammo == 50, "Staff consumed wand ammo.");
         var stepper = new HereticFrameStepper(); var selections = new List<HereticWeapon?>();
         stepper.Advance(0.001, new HereticCommand { SelectWeapon = HereticWeapon.wp_staff }, c => selections.Add(c.SelectWeapon));

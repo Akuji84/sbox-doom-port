@@ -158,6 +158,7 @@ namespace ManagedDoom
         }
         private void TickClinkTest(bool shoot)
         {
+            TickImpactEffects();
             GoldWand?.Tick(shoot);
             foreach (var enemy in testEnemies) enemy.Tick();
         }

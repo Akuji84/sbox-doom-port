@@ -322,7 +322,7 @@ movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
 empty ammo lowers the wand and raises the staff. Keys 1 and 2 select staff and wand. The normal Gold Wand state/damage rules come from the
 pinned GPL p_pspr.c and starting ammo from g_game.c.
 
-This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds, impact puffs, line-shoot
+This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds, blood effects, line-shoot
 activation, and final weapon lighting are not connected. `ShotFired` exposes the
 shot result for later effects/audio integration. The current overlay uses the
 base palette. Do not interpret this as the full Heretic weapon system or exact
@@ -341,4 +341,19 @@ linked test enemies in melee reach, and turns toward a struck target. Selection
 waits for the current attack, lowers the old weapon and raises the selected one.
 Empty wand ammo falls back to the staff. Unsupported weapons and an empty wand
 cannot be selected. Selection taps survive frames shorter than one simulation tick.
-Staff sprites use the existing weapon overlay. Sounds and impact puffs remain pending.
+Staff sprites use the existing weapon overlay. Sounds remain pending.
+
+### 2026-09-22: native weapon impact puffs
+
+Staff and Gold Wand hits now create the bundled Blasphemer impact sprites in the
+shared world renderer. Wall impacts back off four units and actor impacts ten
+units along the shot. Sky walls suppress puffs. The normal Heretic state chains,
+random vertical offset and spawn random draw are used; staff puffs rise, while
+Gold Wand puffs remain stationary. Effects do not enter the collision blockmap
+and unlink from the sector list when their animations finish, including after
+player death. Existing effects advance before newly fired weapon effects.
+
+Tests cover rendered pixels, impact placement, random use, sky suppression,
+non-blocking flags, staff rise, lifetime and removal, plus both actual weapons
+creating their respective effects. Blood splatter, impact sounds and line-shoot
+activation remain pending; this is not full reference attack/RNG compatibility.

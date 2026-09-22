@@ -214,5 +214,6 @@ HereticHeightChecks.Verify(root);
 HereticDamageChecks.Verify(root);
 HereticClinkChecks.Verify(root);
 HereticWandChecks.Verify(root);
+HereticImpactChecks.Verify(root);
 CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

@@ -114,3 +114,10 @@ Chocolate Doom Heretic p_pspr.c. Add staff/wand selection, lowering/raising,
 empty-ammo fallback and retained selection input to the opt-in encounter.
 Regression coverage includes actual melee damage, ammo conservation, switching,
 rejected unavailable weapons and selection taps between simulation ticks.
+
+### 2026-09-22 - Native weapon impact effects
+
+Adapt normal staff/Gold Wand puff placement and spawning from pinned GPL
+Heretic p_map.c and p_mobj.c. Link action-free Heretic effects to the shared
+renderer with separate lifetime management, sky suppression and no blocking
+collision. Preserve upstream notices; add impact rendering/lifetime tests.
