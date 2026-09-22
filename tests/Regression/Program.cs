@@ -238,6 +238,7 @@ HereticTimeBombChecks.Verify(root);
 HereticTranslucencyChecks.Verify(root);
 HereticBagChecks.Verify(root);
 HereticPoweredStaffChecks.Verify(root);
+HereticPoweredGauntletChecks.Verify(root);
 HereticAutomapChecks.Verify(root);
 CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

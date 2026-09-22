@@ -610,3 +610,18 @@ Tests cover selection/ready states, damage against ghosts, thrust, puff/audio,
 ammo independence, switching back to the ordinary wand and death lowering. Existing
 Doom baselines and the full regression suite remain required. In-editor playtesting,
 remaining powered attacks and campaign/save/multiplayer support remain outstanding.
+
+### 2026-09-22: Powered Gauntlets preview
+
+Added the powered Gauntlets state table and attack behind Test Powered Gauntlets
+(requires Test Combat; select with 8). The attack retains 2-16 damage, increases
+reach to 256 units, narrows random angular spread and uses the powered puff/sound.
+Successful actor hits heal half the rolled damage, capped at 100 health, matching
+the reference rather than limiting healing to the victim's remaining health.
+Body and player health stay synchronized. Normal Gauntlets remain unchanged.
+
+Tests cover extended-range hits versus normal misses, damage, healing and its cap,
+puff/audio, ammo independence, switching and dead-player gating. The option grants
+Gauntlet ownership only for the explicit preview test. Tome pickup, power duration/
+expiration, other powered weapons, campaign/save/multiplayer integration and
+in-editor playtesting remain unfinished.

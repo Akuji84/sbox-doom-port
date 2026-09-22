@@ -31,6 +31,7 @@ namespace ManagedDoom
             HereticSoundId.sfx_blssht => "BLSSHT",
             HereticSoundId.sfx_blshit => "BLSHIT",
             HereticSoundId.sfx_stfhit => "STFHIT",
+            HereticSoundId.sfx_gntpow => "GNTPOW",
             HereticSoundId.sfx_stfpow => "STFPOW",
             HereticSoundId.sfx_stfcrk => "STFCRK",
             HereticSoundId.sfx_clksit => "CLKSIT",

@@ -200,7 +200,13 @@ namespace ManagedDoom
             TestPoweredStaff = true;
             if (ReadyWeapon == HereticWeapon.wp_staff && session.State.Health > 0) SetState(Weapon.Ready);
         }
-        private HereticWeaponDefinition Weapon => (TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        public bool TestPoweredGauntlets { get; private set; }
+        public void GrantTestPoweredGauntlets()
+        {
+            HasGauntlets = true; TestPoweredGauntlets = true;
+            if (ReadyWeapon == HereticWeapon.wp_gauntlets && session.State.Health > 0) SetState(Weapon.Ready);
+        }
+        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -389,7 +395,7 @@ namespace ManagedDoom
             session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX3, angle - new Angle(0x20000000u / 10));
             session.SpawnCrossbowBolt(HereticActorType.MT_CRBOWFX3, angle + new Angle(0x20000000u / 10));
         }
-        // Adapted 2026-09-22 from pinned p_pspr.c A_GauntletAttack, unpowered only.
+        // Adapted 2026-09-22 from pinned p_pspr.c A_GauntletAttack, normal and powered variants.
         private void AttackGauntlets()
         {
             if (session.State.Health <= 0) return;
@@ -398,11 +404,11 @@ namespace ManagedDoom
             Y = Fixed.FromInt(32 + (random.Next() & 3));
             var body = session.Body;
             var damage = ((random.Next() & 7) + 1) * 2;
-            var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
-            var range = Fixed.FromInt(65);
+            var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << (TestPoweredGauntlets ? 17 : 18))));
+            var range = Fixed.FromInt(TestPoweredGauntlets ? 256 : 65);
             var slope = aiming.AimLineAttack(body, angle, range);
             var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8));
-            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
+            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon, poweredGauntlets: TestPoweredGauntlets);
             session.SpawnWeaponBlood(hit, angle, slope);
             GauntletAttacks++;
             if (hit?.Actor == null)
@@ -414,7 +420,8 @@ namespace ManagedDoom
             var target = hit.Value.Actor;
             session.DamageTestEnemy(target, damage);
             var light = random.Next(); session.Camera.ExtraLight = light < 64 ? 0 : light < 160 ? 1 : 2;
-            session.RequestSound(HereticSoundId.sfx_gnthit, body);
+            if (TestPoweredGauntlets) session.GiveHealth(damage >> 1);
+            session.RequestSound(TestPoweredGauntlets ? HereticSoundId.sfx_gntpow : HereticSoundId.sfx_gnthit, body);
             angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
             var delta = unchecked(angle.Data - body.Angle.Data);
             const uint turn = 0x40000000u / 20;

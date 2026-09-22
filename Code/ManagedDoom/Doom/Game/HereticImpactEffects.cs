@@ -25,7 +25,7 @@ namespace ManagedDoom
         private readonly List<HereticMapActor> impactEffects = new();
         public IReadOnlyList<HereticMapActor> ImpactEffects => impactEffects.AsReadOnly();
 
-        internal void SpawnWeaponImpact(HereticTraceHit? result, Angle angle, Fixed slope, HereticWeapon weapon, bool poweredStaff = false)
+        internal void SpawnWeaponImpact(HereticTraceHit? result, Angle angle, Fixed slope, HereticWeapon weapon, bool poweredStaff = false, bool poweredGauntlets = false)
         {
             if (result is not HereticTraceHit hit) return;
             var distance = hit.Distance - Fixed.FromInt(hit.Actor == null ? 4 : 10);
@@ -33,7 +33,7 @@ namespace ManagedDoom
             if (hit.Line is { } line && line.FrontSector.CeilingFlat == world.Map.SkyFlatNumber &&
                 (z > line.FrontSector.CeilingHeight || line.BackSector?.CeilingFlat == world.Map.SkyFlatNumber)) return;
             var blasterActor = weapon == HereticWeapon.wp_blaster && hit.Actor != null;
-            var type = weapon == HereticWeapon.wp_gauntlets ? HereticActorType.MT_GAUNTLETPUFF1 : weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? (poweredStaff ? HereticActorType.MT_STAFFPUFF2 : HereticActorType.MT_STAFFPUFF) : HereticActorType.MT_GOLDWANDPUFF1;
+            var type = weapon == HereticWeapon.wp_gauntlets ? (poweredGauntlets ? HereticActorType.MT_GAUNTLETPUFF2 : HereticActorType.MT_GAUNTLETPUFF1) : weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? (poweredStaff ? HereticActorType.MT_STAFFPUFF2 : HereticActorType.MT_STAFFPUFF) : HereticActorType.MT_GOLDWANDPUFF1;
             var def = HereticDefinitions.Actors[(int)type];
             if (!blasterActor) z += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
             var animation = new HereticActorState(def.SpawnState);
