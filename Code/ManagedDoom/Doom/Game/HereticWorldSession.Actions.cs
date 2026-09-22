@@ -24,6 +24,27 @@ namespace ManagedDoom
 {
     public sealed partial class HereticWorldSession
     {
+        // Adapted 2026-09-22 from pinned p_spec.c P_ShootSpecialLine.
+        // Player weapon traces only; monster projectile activation remains separate.
+        internal void ShootLine(LineDef line)
+        {
+            switch ((int)line.Special)
+            {
+                case 24:
+                    world.SectorAction.DoFloor(line, FloorMoveType.RaiseFloor);
+                    ChangeSwitch(line, false);
+                    break;
+                case 46:
+                    Door(line, VerticalDoorType.Open, 1);
+                    ChangeSwitch(line, true);
+                    break;
+                case 47:
+                    world.SectorAction.DoPlatform(line, PlatformType.RaiseToNearestAndChange, 0);
+                    ChangeSwitch(line, false);
+                    break;
+            }
+        }
+
         public bool UseLine(LineDef line, int side = 0)
         {
             if (side != 0) return false;

@@ -143,7 +143,7 @@ namespace ManagedDoom
             var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
             var range = Fixed.FromInt(64);
             var slope = aiming.AimLineAttack(body, angle, range);
-            var hit = session.TraceAim(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8), shootableOnly: true);
+            var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8));
             session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
             session.SpawnWeaponBlood(hit, angle, slope);
             if (hit?.Actor != null)
@@ -171,7 +171,7 @@ namespace ManagedDoom
             var angle = body.Angle;
             if (Refire != 0) angle += new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
             var origin = body.Z + (body.Height >> 1) + Fixed.FromInt(8);
-            var hit = session.TraceAim(angle, Fixed.FromInt(2048), slope, origin, shootableOnly: true);
+            var hit = session.TraceWeapon(angle, Fixed.FromInt(2048), slope, origin);
             session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
             session.SpawnWeaponBlood(hit, angle, slope);
             if (hit?.Actor != null) session.DamageTestEnemy(hit.Value.Actor, damage);

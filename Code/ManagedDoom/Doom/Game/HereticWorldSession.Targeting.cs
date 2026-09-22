@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, separate weapon activation from read-only aiming.
 // Copyright (C) 2026 s&Doom contributors; SPDX-License-Identifier: GPL-2.0-or-later
 using System;
 namespace ManagedDoom
@@ -7,6 +8,12 @@ namespace ManagedDoom
     {
         /// <summary>Height-aware obstruction query for future attacks; applies no damage or line actions.</summary>
         public HereticTraceHit? TraceAim(Angle angle, Fixed range, Fixed slope, Fixed? originZ = null, bool shootableOnly = false)
+            => TraceAttack(angle, range, slope, originZ, shootableOnly, false);
+
+        internal HereticTraceHit? TraceWeapon(Angle angle, Fixed range, Fixed slope, Fixed originZ)
+            => TraceAttack(angle, range, slope, originZ, true, true);
+
+        private HereticTraceHit? TraceAttack(Angle angle, Fixed range, Fixed slope, Fixed? originZ, bool shootableOnly, bool activateLines)
         {
             if (range <= Fixed.Zero || range > Fixed.FromInt(2048)) throw new ArgumentOutOfRangeException(nameof(range));
             if (slope < Fixed.FromInt(-4) || slope > Fixed.FromInt(4)) throw new ArgumentOutOfRangeException(nameof(slope));
@@ -19,6 +26,7 @@ namespace ManagedDoom
                     var z = eye + distance * slope;
                     if (intercept.Line is { } line)
                     {
+                        if (activateLines) ShootLine(line);
                         if (line.BackSector != null)
                         {
                             var bottom = new Fixed(Math.Max(line.FrontSector.FloorHeight.Data, line.BackSector.FloorHeight.Data));

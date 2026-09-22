@@ -322,8 +322,7 @@ movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
 empty ammo lowers the wand and raises the staff. Keys 1 and 2 select staff and wand. The normal Gold Wand state/damage rules come from the
 pinned GPL p_pspr.c and starting ammo from g_game.c.
 
-This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds, line-shoot
-activation, and final weapon lighting are not connected. `ShotFired` exposes the
+This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds and final weapon lighting are not connected. `ShotFired` exposes the
 shot result for later effects/audio integration. The current overlay uses the
 base palette. Do not interpret this as the full Heretic weapon system or exact
 whole-game random-stream compatibility with the reference.
@@ -355,8 +354,7 @@ player death. Existing effects advance before newly fired weapon effects.
 
 Tests cover rendered pixels, impact placement, random use, sky suppression,
 non-blocking flags, staff rise, lifetime and removal, plus both actual weapons
-creating their respective effects. Impact sounds and line-shoot
-activation remain pending; this is not full reference attack/RNG compatibility.
+creating their respective effects. Impact sounds remain pending; this is not full reference attack/RNG compatibility.
 
 ### 2026-09-22: hitscan blood splatter
 
@@ -371,3 +369,17 @@ geometry trace, not the full radius-based Heretic missile collision model; actor
 collision and terrain/sky missile behavior remain for the projectile chunk.
 Blood cannot deal damage or activate pickups/lines. Tests cover eligibility,
 spawn random order, visible rendering, low gravity, floor impact and unlinking.
+
+### 2026-09-22: impact-triggered map actions
+
+Staff and Gold Wand weapon traces now activate Heretic line specials 24 (raise
+floor), 46 (open door) and 47 (raise platform to nearest floor and change).
+Activation occurs at each traversed line before testing its opening, following
+the pinned p_map.c/p_spec.c order. Aim-only TraceAim queries remain read-only.
+One-shot switches are consumed even when no tagged mover starts; repeatable door
+switches retain their special and reset their texture after 35 ticks. Other line
+specials, including use-only exits, are ignored by weapon activation.
+
+Tests exercise all three actions, repeat reset, one-shot behavior, actual wand
+fire and read-only aiming. Monster projectile triggers remain part of the future
+projectile implementation. In-editor testing remains outstanding.

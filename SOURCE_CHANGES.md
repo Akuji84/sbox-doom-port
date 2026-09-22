@@ -127,3 +127,9 @@ collision. Preserve upstream notices; add impact rendering/lifetime tests.
 Adapt the blood chance and P_BloodSplatter spawn rules from pinned GPL Heretic
 p_map.c/p_mobj.c, plus low gravity. Keep effects in the isolated Heretic lifecycle
 with cosmetic wall clipping and terminal impact states; add regression coverage.
+
+### 2026-09-22 - Heretic impact-triggered lines
+
+Adapt the player P_ShootSpecialLine table from pinned GPL p_spec.c and the weapon
+trace dispatch order from p_map.c. Reuse isolated Heretic sector/switch handlers,
+keep aiming read-only, and add regression coverage for all three impact actions.
