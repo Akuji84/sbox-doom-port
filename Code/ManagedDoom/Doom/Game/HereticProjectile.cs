@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 namespace ManagedDoom
 {
-    public sealed class HereticProjectile : IHereticActorActions
+    public sealed partial class HereticProjectile : IHereticActorActions
     {
         private readonly HereticWorldSession session;
         public Mobj Body { get; }
@@ -29,8 +29,8 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1)
-                throw new NotSupportedException("Only normal Crossbow, Hellstaff and Phoenix Rod projectiles are enabled.");
+            if (type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+                throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
             Animation = new HereticActorState(def.SpawnState, this);
@@ -41,16 +41,18 @@ namespace ManagedDoom
                 Target = session.Body, Angle = angle, LastLook = session.World.Random.Next() % 4,
                 MomX = new Fixed(def.Speed) * Trig.Cos(angle), MomY = new Fixed(def.Speed) * Trig.Sin(angle),
                 MomZ = new Fixed(def.Speed) * slope };
+            LowGravity = type == HereticActorType.MT_MACEFX2 || type == HereticActorType.MT_MACEFX3;
             Sync();
             session.World.ThingMovement.SetThingPosition(Body);
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsMace(action)) { ExecuteMace(action); return; }
             if (action == HereticAction.A_PhoenixPuff) session.SpawnPhoenixTrail(Body);
             else { session.PhoenixRadiusAttack(Body); session.HitLiquidFloor(Body); }
         }
@@ -68,6 +70,7 @@ namespace ManagedDoom
         internal void Advance(bool half = false)
         {
             if (!Flying) return;
+            bouncedThisTick = false;
             var dx = half ? Body.MomX / 2 : Body.MomX;
             var dy = half ? Body.MomY / 2 : Body.MomY;
             var dz = half ? Body.MomZ / 2 : Body.MomZ;
@@ -80,6 +83,11 @@ namespace ManagedDoom
                 Body.Z = startZ + new Fixed((int)((long)dz.Data * i / steps));
                 if (!session.World.ThingMovement.TryMove(Body, startX + new Fixed((int)((long)dx.Data * i / steps)), startY + new Fixed((int)((long)dy.Data * i / steps))))
                 { Explode(session.World.ThingMovement.HereticMissileHitSky || (Body.Z + Body.Height > Body.Subsector.Sector.CeilingHeight && Body.Subsector.Sector.CeilingFlat == session.World.Map.SkyFlatNumber)); return; }
+                if (Body.Z <= Body.FloorZ && IsMaceType(Type) && floorBounce)
+                {
+                    Body.Z = Body.FloorZ; Body.MomZ = -Body.MomZ; bouncedThisTick = true;
+                    Animation.SetState(HereticDefinitions.Actors[(int)Type].DeathState); if (!Animation.Removed) Sync(); return;
+                }
                 if (Body.Z <= Body.FloorZ || Body.Z + Body.Height > Body.CeilingZ)
                 { Explode(Body.Z + Body.Height > Body.CeilingZ && Body.Subsector.Sector.CeilingFlat == session.World.Map.SkyFlatNumber); return; }
             }
@@ -95,6 +103,8 @@ namespace ManagedDoom
         {
             Body.UpdateFrameInterpolationInfo();
             if (Flying) Advance();
+            if (Flying && LowGravity && !bouncedThisTick)
+                Body.MomZ = Body.MomZ == Fixed.Zero ? -Fixed.One / 4 : Body.MomZ - Fixed.One / 8;
             if (!Animation.Removed) { Animation.Tick(); if (!Animation.Removed) Sync(); }
         }
     }

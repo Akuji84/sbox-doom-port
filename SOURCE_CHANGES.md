@@ -304,3 +304,24 @@ Tests cover all five terrain names, raised-edge exclusion without RNG changes,
 spawn RNG counts, sound counts, chunk landing states, rendering, cleanup and
 actual Phoenix impact integration. Existing Doom compatibility hashes remain
 required. In-editor visual/audio testing remains outstanding.
+
+### 2026-09-22: native Firemace projectile physics
+
+Added the three normal Firemace projectile definitions to the isolated projectile
+runner. Fast balls switch to seven-unit horizontal speed and low gravity after
+sixteen state ticks. Small balls bounce once; lobbed balls bounce with three-quarter
+vertical velocity and emit two owner-preserving lateral fragments while they have
+enough upward speed. Weak bounces and actor/wall impacts enter death states. All
+three types sink on liquid floors through the shared splash path.
+
+Mace floor impacts preserve vertical momentum until their state action runs,
+separately from the existing explosive missile path. Low gravity updates once per
+simulation tick. Motion continues to use the preview's bounded collision substeps,
+so it does not claim bit-identical legacy physics. Bounce and impact samples come
+from the licensed bundled WAD. Powered death balls remain unsupported.
+
+Regression tests cover drop timing, bounce restitution/limits, splitting and
+fragment ownership/angles, all three liquid types for each projectile, actual
+Clink damage, and cleanup. Existing Doom compatibility baselines remain required.
+Firemace firing, randomized lob selection, pickups and the preview weapon binding
+are the next milestone; they are not enabled by this physics checkpoint.
