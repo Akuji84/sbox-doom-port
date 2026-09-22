@@ -837,3 +837,24 @@ flicker, RNG isolation, render independence, Ring priority, full duration,
 refresh/blink thresholds, death and map pickup/cap behavior. Existing Doom
 baselines remain required. Other artifacts, full HUD, persistence/networking and
 in-editor playtesting remain outstanding.
+
+### 2026-09-22: Chaos Device and shared teleport effects
+
+Added collectible Chaos Devices with a sixteen-item cap, pickup animation/sound
+and manual use through H. In the single-player preview the device returns to the
+player-one start, restores its facing, clears momentum and applies the teleport
+reaction delay. Active flight retains height above the destination floor, clamped
+to ceiling clearance; grounded arrival resets pitch.
+
+Line teleports and Chaos Devices now share native departure/arrival fog actors,
+TELEPT sound events, interpolation reset and registered-enemy telefrag handling.
+Fog expires through its Heretic animation and is unlinked. Destination headroom
+is checked before moving or harming an occupant. Unlike the reference artifact's
+unconditional success path, missing/cramped destinations retain the item and do
+not emit effects. This is an intentional failure-handling improvement.
+
+Tests cover inventory/pickups, return position/facing/momentum, missing/cramped
+starts with unchanged RNG/inventory, flight preservation, telefrag success and
+rejection, fog/audio and cleanup. Existing Doom compatibility baselines remain
+required. Deathmatch destination selection, chicken undo, full campaign/network/
+save support and in-editor playtesting remain outstanding.

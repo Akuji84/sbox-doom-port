@@ -22,12 +22,14 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight/invulnerability subset.
-        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4;
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT;
         internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.Torch) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.ChaosDevice) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticArtifact.Torch)
+            if (type == HereticArtifact.ChaosDevice)
+            { if (State.ChaosDevices >= 16) return false; State.ChaosDevices++; }
+            else if (type == HereticArtifact.Torch)
             { if (State.Torches >= 16) return false; State.Torches++; }
             else if (type == HereticArtifact.RingOfInvincibility)
             { if (State.RingsOfInvincibility >= 16) return false; State.RingsOfInvincibility++; }
@@ -82,7 +84,14 @@ namespace ManagedDoom
         }
         internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.Torch) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.ChaosDevice) throw new ArgumentOutOfRangeException(nameof(type));
+            if (type == HereticArtifact.ChaosDevice)
+            {
+                if (State.Health <= 0 || State.ChaosDevices <= 0 || !UseChaosTeleport()) return false;
+                State.ChaosDevices--; State.Message = "Used Chaos Device";
+                RequestSound(HereticSoundId.sfx_wpnup, Body);
+                RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
             if (type == HereticArtifact.Torch)
             {
                 if (State.Health <= 0 || State.Torches <= 0 || State.TorchTics > 128) return false;

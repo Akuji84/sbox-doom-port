@@ -378,8 +378,8 @@ namespace ManagedDoom
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
                 else if (SupportedArtifactPickup(actor.Type))
                 {
-                    if (!GiveArtifact(actor.Type == HereticActorType.MT_MISC4 ? HereticArtifact.Torch : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? HereticArtifact.RingOfInvincibility : actor.Type == HereticActorType.MT_ARTIFLY ? HereticArtifact.WingsOfWrath : actor.Type == HereticActorType.MT_MISC3 ? HereticArtifact.QuartzFlask : HereticArtifact.MysticUrn)) continue;
-                    State.Message = actor.Type == HereticActorType.MT_MISC4 ? "Torch" : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? "Ring of Invincibility" : actor.Type == HereticActorType.MT_ARTIFLY ? "Wings of Wrath" : actor.Type == HereticActorType.MT_MISC3 ? "Quartz Flask" : "Mystic Urn";
+                    if (!GiveArtifact(actor.Type == HereticActorType.MT_ARTITELEPORT ? HereticArtifact.ChaosDevice : actor.Type == HereticActorType.MT_MISC4 ? HereticArtifact.Torch : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? HereticArtifact.RingOfInvincibility : actor.Type == HereticActorType.MT_ARTIFLY ? HereticArtifact.WingsOfWrath : actor.Type == HereticActorType.MT_MISC3 ? HereticArtifact.QuartzFlask : HereticArtifact.MysticUrn)) continue;
+                    State.Message = actor.Type == HereticActorType.MT_ARTITELEPORT ? "Chaos Device" : actor.Type == HereticActorType.MT_MISC4 ? "Torch" : actor.Type == HereticActorType.MT_ARTIINVULNERABILITY ? "Ring of Invincibility" : actor.Type == HereticActorType.MT_ARTIFLY ? "Wings of Wrath" : actor.Type == HereticActorType.MT_MISC3 ? "Quartz Flask" : "Mystic Urn";
                     State.PickupFlash = Math.Min(int.MaxValue - 6, State.PickupFlash) + 6;
                     body.Flags &= ~MobjFlags.Special;
                     actor.Animation.SetState(HereticStateId.S_DEADARTI1);
@@ -545,12 +545,7 @@ namespace ManagedDoom
             foreach (var start in world.Map.Things.Where(t => t.Type == 14))
             {
                 if (Geometry.PointInSubsector(start.X, start.Y, world.Map).Sector != sector) continue;
-                var aboveFloor = Body.Z - Body.FloorZ;
-                if (!world.ThingMovement.TeleportMove(Body, start.X, start.Y)) continue;
-                Body.Z = State.FlightTics > 0 && aboveFloor > Fixed.Zero ? Fixed.Min(Body.FloorZ + aboveFloor, Body.CeilingZ - Body.Height) : Body.FloorZ;
-                if (Body.Z == Body.FloorZ) { State.LookDirection = 0; State.Centering = false; }
-                Body.Angle = start.Angle; Body.MomX = Body.MomY = Body.MomZ = Fixed.Zero; Body.ReactionTime = 18;
-                UpdateView(); Body.UpdateFrameInterpolationInfo(); Camera.UpdateFrameInterpolationInfo(); return;
+                if (TryTeleportPlayer(start.X, start.Y, start.Angle)) return;
             }
         }
         private void RequestExit(bool secret) { ExitRequested = true; SecretExitRequested = secret; State.Message = "Level exit reached (campaign progression is a later chunk)."; }
