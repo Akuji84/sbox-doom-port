@@ -199,3 +199,9 @@ Add filtered map collection, weapon ranking, sound and regression coverage.
 
 Apply pinned p_inter.c Baby damage scaling before armor. Complete P_GiveAmmo's
 Gauntlet-to-ranged selection rule, with skill/rounding and ownership regressions.
+
+### 2026-09-22 - Heretic audio attenuation
+
+Adapt pinned GPL s_sound.c approximate distance/SNDCURVE lookup for native preview
+playback. Add live volume updates and regression coverage for curve validation,
+hearing bounds and wide coordinate differences.

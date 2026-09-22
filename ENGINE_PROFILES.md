@@ -545,3 +545,16 @@ Collecting ammo for an empty owned ranged weapon now selects it from Gauntlets
 as well as staff, following P_GiveAmmo. Ammo for an unowned weapon does not select
 or grant that weapon. Tests cover all skill levels, odd damage, armor/feedback
 order, lethal damage and Gauntlet ammo re-selection.
+
+### 2026-09-22: encounter audio distance attenuation
+
+Encounter playback now uses the bundled SNDCURVE and Heretic's approximate XY
+distance, with a 1600-map-unit hearing cutoff. The preview normalizes curve gain
+for its floating-point SoundVolume control. Existing voices update their gain
+as listener/source positions or volume change, and non-finite volume is muted.
+The sound-curve constructor validates length and keeps its own copy.
+
+This adds attenuation, not the complete reference mixer: stereo panning, channel
+priorities, pitch randomization, music and device listening tests remain pending.
+Tests cover curve loading, distance lookup, local sounds, cutoff and overflow-safe
+coordinate differences. Existing Doom audio and simulation are unchanged.
