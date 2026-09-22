@@ -105,7 +105,7 @@ namespace ManagedDoom
         internal void Tick()
         {
             if ((Body.Flags & MobjFlags.Dropped) == 0) Body.UpdateFrameInterpolationInfo();
-            if (Type == HereticActorType.MT_MISC0 || Type == HereticActorType.MT_ITEMSHIELD1 || Type == HereticActorType.MT_ITEMSHIELD2 || Type == HereticActorType.MT_MISC3 || Type == HereticActorType.MT_ARTISUPERHEAL || Type == HereticActorType.MT_ARTIFLY)
+            if (Type == HereticActorType.MT_MISC0 || Type == HereticActorType.MT_ITEMSHIELD1 || Type == HereticActorType.MT_ITEMSHIELD2 || Type == HereticActorType.MT_MISC3 || Type == HereticActorType.MT_ARTISUPERHEAL || Type == HereticActorType.MT_ARTIFLY || Type == HereticActorType.MT_ARTIINVULNERABILITY)
             {
                 Body.FloorZ = Body.Subsector.Sector.FloorHeight;
                 Body.Z = Body.FloorZ + new Fixed(floatBobOffsets[Body.Health++ & 63]);

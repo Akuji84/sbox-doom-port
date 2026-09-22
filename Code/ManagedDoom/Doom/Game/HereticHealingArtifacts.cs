@@ -14,20 +14,22 @@
 // GNU General Public License for more details.
 //
 
-// Adapted 2026-09-22: healing and flight artifacts from pinned p_inter.c/p_user.c.
+// Adapted 2026-09-22: healing, flight and invulnerability artifacts from pinned p_inter.c/p_user.c.
 // Chocolate Doom 895f581c5d91497bdda0516612da803fe5843e28.
 using System;
 namespace ManagedDoom
 {
     public sealed partial class HereticWorldSession
     {
-        // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight subset.
-        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY;
+        // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight/invulnerability subset.
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY;
         internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.WingsOfWrath) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.RingOfInvincibility) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticArtifact.WingsOfWrath)
+            if (type == HereticArtifact.RingOfInvincibility)
+            { if (State.RingsOfInvincibility >= 16) return false; State.RingsOfInvincibility++; }
+            else if (type == HereticArtifact.WingsOfWrath)
             { if (State.WingsOfWrath >= 16) return false; State.WingsOfWrath++; }
             else if (type == HereticArtifact.QuartzFlask)
             { if (State.QuartzFlasks >= 16) return false; State.QuartzFlasks++; }
@@ -56,9 +58,22 @@ namespace ManagedDoom
             State.Health += flasks * 25 + urns * 100;
             Body.Health = State.Health;
         }
+        // Adapted 2026-09-22: pinned P_PlayerThink invulnerability colormap/blink.
+        private void UpdateArtifactColorMap()
+        {
+            var ticks = State.InvulnerabilityTics;
+            Camera.FixedColorMap = ticks > 128 || (ticks & 8) != 0 ? ColorMap.Inverse : 0;
+        }
         internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.WingsOfWrath) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.RingOfInvincibility) throw new ArgumentOutOfRangeException(nameof(type));
+            if (type == HereticArtifact.RingOfInvincibility)
+            {
+                if (State.Health <= 0 || State.RingsOfInvincibility <= 0 || State.InvulnerabilityTics > 128) return false;
+                State.RingsOfInvincibility--; State.InvulnerabilityTics = 30 * 35;
+                UpdateArtifactColorMap(); State.Message = "Used Ring of Invincibility";
+                RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
             if (type == HereticArtifact.WingsOfWrath)
             {
                 if (State.Health <= 0 || State.WingsOfWrath <= 0 || State.FlightTics > 128) return false;

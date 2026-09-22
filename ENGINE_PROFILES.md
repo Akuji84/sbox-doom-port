@@ -792,3 +792,25 @@ threshold, takeoff, landing/resume, expiration flags, death and retained one-sho
 input. Existing healing and Doom compatibility checks remain required. Other
 artifacts, full inventory HUD, campaign persistence/networking and in-editor
 playtesting remain outstanding.
+
+### 2026-09-22: Ring of Invincibility
+
+The native preview adds Ring map pickups, storage capped at sixteen, pickup
+animation/sound and manual use with I. Successful use consumes one Ring and grants
+1050 ticks (30 seconds) of invulnerability. Refresh is rejected above 128 remaining
+ticks. The shared renderer uses the inverse colormap while protected and the
+reference eight-tick blink bit near expiration; blinking off does not remove
+protection. The preview reports stored Rings and remaining seconds.
+
+Incoming damage below 1000 after difficulty halving is blocked before armor and
+automatic healing, preserving health, armor, inventory and damage feedback. Larger
+hits bypass protection. Normal expiration restores the colormap; the preview also
+clears the power/view on death. This damage gate covers existing environment,
+Clink melee and Phoenix self-splash paths; it does not prevent their independently
+applied momentum effects.
+
+Tests cover pickup/cap behavior, full duration, refresh, rendered inverse pixels,
+blink phases, armor/healing preservation, post-expiration damage, Baby threshold
+ordering, high-damage bypass and death cleanup. Existing Doom baselines remain
+required. Other artifacts, full inventory HUD, campaign/network/save support and
+in-editor visual/audio playtesting remain outstanding.
