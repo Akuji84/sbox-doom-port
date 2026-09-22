@@ -27,6 +27,32 @@ namespace ManagedDoom
             if (data == null || data.Length < 1600) throw new ArgumentException("Heretic SNDCURVE needs 1600 entries.");
             curve = new byte[1600]; Array.Copy(data, curve, curve.Length);
         }
+        // Panning angle from pinned s_sound.c; PCM gains use an equal-power stereo mix.
+        public static int Separation(Mobj source, Mobj listener)
+        {
+            if (listener == null) throw new ArgumentNullException(nameof(listener));
+            if (source == null || source == listener || (source.X == listener.X && source.Y == listener.Y)) return 128;
+            var angle = Geometry.PointToAngle(listener.X, listener.Y, source.X, source.Y);
+            var relative = unchecked(angle.Data - listener.Angle.Data) >> 24;
+            var separation = (int)relative * 2 - 128;
+            if (separation < 64) separation = -separation;
+            if (separation > 192) separation = 512 - separation;
+            return Math.Clamp(separation, 0, 256);
+        }
+        public static short[] Stereo(short[] mono, int separation)
+        {
+            if (mono == null) throw new ArgumentNullException(nameof(mono));
+            if (separation < 0 || separation > 256) throw new ArgumentOutOfRangeException(nameof(separation));
+            var left = Math.Cos(separation * Math.PI / 512);
+            var right = Math.Sin(separation * Math.PI / 512);
+            var stereo = new short[checked(mono.Length * 2)];
+            for (var i = 0; i < mono.Length; i++)
+            {
+                stereo[2 * i] = (short)Math.Round(mono[i] * left);
+                stereo[2 * i + 1] = (short)Math.Round(mono[i] * right);
+            }
+            return stereo;
+        }
         public float Gain(Mobj source, Mobj listener)
         {
             if (listener == null) throw new ArgumentNullException(nameof(listener));

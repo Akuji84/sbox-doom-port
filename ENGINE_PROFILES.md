@@ -558,3 +558,16 @@ This adds attenuation, not the complete reference mixer: stereo panning, channel
 priorities, pitch randomization, music and device listening tests remain pending.
 Tests cover curve loading, distance lookup, local sounds, cutoff and overflow-safe
 coordinate differences. Existing Doom audio and simulation are unchanged.
+
+### 2026-09-22: stereo encounter sounds
+
+Encounter sounds now play through two-channel SoundStream output. The initial
+left/right separation follows pinned Heretic s_sound.c using the source bearing
+relative to the player; local/player-origin sounds stay centered. Mono WAD samples
+are converted to interleaved stereo with equal-power channel gains. This gain law
+is a preview mixer choice, not a claim of bit-identical legacy backend output.
+
+Panning is sampled when each sound starts. Distance attenuation and master volume
+continue updating during playback. Continuous re-panning, original channel-priority
+rules, pitch variation, music and in-editor listening tests remain pending.
+Tests cover left/right placement, turning, local centering and PCM bounds.

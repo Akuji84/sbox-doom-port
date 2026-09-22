@@ -57,6 +57,22 @@ static class HereticSoundChecks
         Check(invalid, "Truncated SNDCURVE accepted.");
         var wadCurve = new HereticSoundAttenuation(content.Wad.ReadLump(content.Wad.GetLumpNumber("SNDCURVE")));
         Check(wadCurve.Gain(s.Body, s.Body) > 0, "Bundled sound curve muted local audio.");
+        source.X = Fixed.Zero; source.Y = Fixed.FromInt(100); listener.X = listener.Y = Fixed.Zero; listener.Angle = Angle.Ang0;
+        var left = HereticSoundAttenuation.Separation(source, listener);
+        source.Y = Fixed.FromInt(-100);
+        var right = HereticSoundAttenuation.Separation(source, listener);
+        Check(left < 128 && right > 128 && HereticSoundAttenuation.Separation(listener, listener) == 128,
+            "Sound orientation or local centering differs.");
+        listener.Angle = Angle.Ang180;
+        Check(HereticSoundAttenuation.Separation(source, listener) < 128, "Listener rotation did not reverse pan.");
+        var pcm = new short[] { short.MinValue, 0, short.MaxValue };
+        var centered = HereticSoundAttenuation.Stereo(pcm, 128);
+        Check(centered.Length == 6 && centered[0] == centered[1] && centered[4] == centered[5], "Centered stereo conversion differs.");
+        var hardLeft = HereticSoundAttenuation.Stereo(pcm, 0);
+        var hardRight = HereticSoundAttenuation.Stereo(pcm, 256);
+        Check(hardLeft[0] == short.MinValue && hardLeft[1] == 0 && hardRight[0] == 0 && hardRight[1] == short.MinValue,
+            "Stereo interleaving, side gain or sample limits differ.");
+        Console.WriteLine("PASS Heretic stereo: left/right orientation, listener rotation, local centering and interleaved PCM bounds");
         Console.WriteLine("PASS Heretic sound attenuation: curve validation, distance, local gain and extreme-coordinate bounds");
         Console.WriteLine("PASS Heretic sound: fifteen licensed WAD samples, validated DMX decoding and weapon/impact/enemy events");
     }

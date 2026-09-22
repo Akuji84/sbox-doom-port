@@ -43,11 +43,11 @@ public sealed class SboxHereticSound : IDisposable
         if (!cache.TryGetValue(id, out var data) || OutputVolume(source) <= 0) return;
         if (active.Count >= 16)
         { active[0].handle.Stop(); active[0].stream.Close(); active.RemoveAt(0); }
-        var stream = new SoundStream(data.SampleRate);
+        var stream = new SoundStream(data.SampleRate, 2);
         var handle = stream.Play();
         handle.ListenLocal = true;
         handle.Volume = OutputVolume(source);
-        stream.WriteData(data.Samples); stream.Close();
+        stream.WriteData(HereticSoundAttenuation.Stereo(data.Samples, HereticSoundAttenuation.Separation(source, session.Body))); stream.Close();
         active.Add((stream, handle, source));
     }
     public void Dispose()

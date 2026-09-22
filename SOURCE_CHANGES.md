@@ -205,3 +205,9 @@ Gauntlet-to-ranged selection rule, with skill/rounding and ownership regressions
 Adapt pinned GPL s_sound.c approximate distance/SNDCURVE lookup for native preview
 playback. Add live volume updates and regression coverage for curve validation,
 hearing bounds and wide coordinate differences.
+
+### 2026-09-22 - Stereo Heretic encounter output
+
+Adapt pinned GPL s_sound.c separation calculation. Add equal-power interleaved
+stereo conversion and native two-channel playback, verified against installed
+SDK metadata and orientation/sample-boundary regressions.
