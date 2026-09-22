@@ -72,7 +72,7 @@ namespace ManagedDoom
     }
     public sealed partial class HereticWorldSession
     {
-        // Explicit fixture spawn until normal weapon firing is connected.
+        // Shared explicit-velocity spawn for lobbed shots, fragments and regression fixtures.
         internal HereticProjectile SpawnMaceProjectile(HereticActorType type, Fixed x, Fixed y, Fixed z,
             Angle angle, Fixed momX, Fixed momY, Fixed momZ)
         {

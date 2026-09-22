@@ -685,3 +685,27 @@ fragment ownership/angles, all three liquid types for each projectile, actual
 Clink damage, and cleanup. Existing Doom compatibility baselines remain required.
 Firemace firing, randomized lob selection, pickups and the preview weapon binding
 are the next milestone; they are not enabled by this physics checkpoint.
+
+### 2026-09-22: normal Firemace weapon integration
+
+The combat preview now connects the normal Firemace to its native projectile
+physics. Firing uses the pinned four-tick initial windup and three-tick burst
+shots, consumes one ammo per shot, and selects a lobbed ball when the simulation
+random byte is below 28. Fast shots retain spread/weapon jitter and the sixteen-tick
+drop timer; lobbed shots inherit half the player's horizontal momentum and use
+pitch-dependent launch height/vertical speed. Normal shot sounds use the bundled
+licensed WAD. Powered death balls remain disabled.
+
+Preview weapon pickups grant 50 ammo, small/large ammo pickups grant 20/100,
+capacity is 150, and existing difficulty bonuses apply. Selection and empty-ammo
+fallback follow the reference rankings among implemented weapons. Enable
+TestCombat and collect a Firemace, or also enable TestMace for a test grant, then
+press 7. Map pickup locations are used directly for this isolated preview;
+reference campaign random placement/absence and deathmatch relocation remain
+pending. Player feet-clipping compatibility is also not complete.
+
+Tests cover ownership, forced fast/lobbed branches, windup and burst timing,
+last-ammo fallback, replay RNG/projectile states, map weapon/ammo pickups,
+difficulty bonus, capacity and selection ranking. Existing five-WAD Doom
+compatibility baselines remain required. In-editor playtesting, powered weapons,
+full enemy behavior, campaign integration, saves and multiplayer are outstanding.
