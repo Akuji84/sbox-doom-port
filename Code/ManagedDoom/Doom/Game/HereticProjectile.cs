@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 //
@@ -31,7 +32,7 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
@@ -49,11 +50,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (action == HereticAction.A_SpawnRippers) { session.SpawnBlasterRippers(Body); return; }
             if (action == HereticAction.A_BoltSpark) { session.SpawnCrossbowSpark(Body); return; }
             if (SupportsMace(action)) { ExecuteMace(action); return; }
             if (action == HereticAction.A_PhoenixPuff) session.SpawnPhoenixTrail(Body);
@@ -67,19 +69,27 @@ namespace ManagedDoom
             var def = HereticDefinitions.Actors[(int)Type];
             if ((def.Flags2 & HereticActorFlags2.MF2_THRUGHOST) != 0 && (target.Flags & MobjFlags.Shadow) != 0) return true;
             if ((target.Flags & MobjFlags.Shootable) == 0) return (target.Flags & MobjFlags.Solid) == 0;
+            if (Type == HereticActorType.MT_RIPPER)
+            {
+                if ((target.Flags & MobjFlags.NoBlood) == 0) session.SpawnRipperBlood(Body);
+                session.RequestSound(HereticSoundId.sfx_ripslop, Body);
+                session.DamageTestEnemy(target, ((session.World.Random.Next() & 3) + 2) * def.Damage, inflictor: Body);
+                return true;
+            }
             session.DamageTestEnemy(target, (session.World.Random.Next() % 8 + 1) * def.Damage, inflictor: Body);
             return false;
         }
         internal void Advance(bool half = false)
         {
             if (!Flying) return;
+            if (Type == HereticActorType.MT_BLASTERFX1) { AdvanceBlaster(half); return; }
             bouncedThisTick = false;
             var dx = half ? Body.MomX / 2 : Body.MomX;
             var dy = half ? Body.MomY / 2 : Body.MomY;
             var dz = half ? Body.MomZ / 2 : Body.MomZ;
             // Bounded substeps prevent a bolt crossing a narrow target between collision checks.
             var magnitude = Math.Max(Math.Abs((long)dx.Data), Math.Max(Math.Abs((long)dy.Data), Math.Abs((long)dz.Data)));
-            var steps = Math.Max(1, (int)((magnitude + 8 * Fixed.FracUnit - 1) / (8 * Fixed.FracUnit)));
+            var steps = Type == HereticActorType.MT_RIPPER ? 1 : Math.Max(1, (int)((magnitude + 8 * Fixed.FracUnit - 1) / (8 * Fixed.FracUnit)));
             var startZ = Body.Z; var startX = Body.X; var startY = Body.Y;
             for (var i = 1; i <= steps; i++)
             {

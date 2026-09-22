@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
@@ -216,13 +217,19 @@ namespace ManagedDoom
         }
         public bool TestPoweredGoldWand { get; private set; }
         public void GrantTestPoweredGoldWand() => TestPoweredGoldWand = true;
-        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        public bool TestPoweredBlaster { get; private set; }
+        public void GrantTestPoweredBlaster(int ammo = 50)
+        {
+            GrantTestBlaster(ammo); TestPoweredBlaster = true;
+            if (ReadyWeapon == HereticWeapon.wp_blaster && session.State.Health > 0) SetState(Weapon.Ready);
+        }
+        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) || (TestPoweredBlaster && ReadyWeapon == HereticWeapon.wp_blaster) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
                 (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster && weapon != HereticWeapon.wp_gauntlets && weapon != HereticWeapon.wp_crossbow && weapon != HereticWeapon.wp_skullrod && weapon != HereticWeapon.wp_phoenixrod && weapon != HereticWeapon.wp_mace) ||
                 (weapon == HereticWeapon.wp_goldwand && Ammo <= 0) ||
-                (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo <= 0)) ||
+                (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo < WeaponAmmoCost(HereticWeapon.wp_blaster))) ||
                 (weapon == HereticWeapon.wp_gauntlets && !HasGauntlets) ||
                 (weapon == HereticWeapon.wp_mace && (!HasMace || MaceAmmo <= 0)) ||
                 (weapon == HereticWeapon.wp_phoenixrod && (!HasPhoenix || PhoenixAmmo <= 0)) ||
@@ -231,10 +238,10 @@ namespace ManagedDoom
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
             return true;
         }
-        private static int WeaponAmmoCost(HereticWeapon weapon) => HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
+        private int WeaponAmmoCost(HereticWeapon weapon) => weapon == HereticWeapon.wp_blaster && TestPoweredBlaster ? 5 : HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
         private bool HasAmmo()
         {
-            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_mace ? MaceAmmo > 0 : ReadyWeapon == HereticWeapon.wp_phoenixrod ? PhoenixAmmo > 0 : ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo > 0 : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
+            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_mace ? MaceAmmo > 0 : ReadyWeapon == HereticWeapon.wp_phoenixrod ? PhoenixAmmo > 0 : ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo > 0 : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo >= WeaponAmmoCost(HereticWeapon.wp_blaster) : Ammo > 0)) return true;
             // P_CheckAmmo uses strictly more than one shot for automatic selection.
             PendingWeapon = HasSkullRod && SkullRodAmmo > 1 ? HereticWeapon.wp_skullrod : HasBlaster && BlasterAmmo > WeaponAmmoCost(HereticWeapon.wp_blaster)
                 ? HereticWeapon.wp_blaster : HasCrossbow && CrossbowAmmo > 1 ? HereticWeapon.wp_crossbow : HasMace && MaceAmmo > 1 ? HereticWeapon.wp_mace : Ammo > WeaponAmmoCost(HereticWeapon.wp_goldwand)
@@ -343,6 +350,14 @@ namespace ManagedDoom
                         case HereticAction.A_FireGoldWandPL1: Fire(false); break;
                         case HereticAction.A_FireGoldWandPL2: FirePoweredGoldWand(); break;
                         case HereticAction.A_FireBlasterPL1: Fire(true); break;
+                        case HereticAction.A_FireBlasterPL2:
+                            if (BlasterAmmo >= 5 && session.State.Health > 0)
+                            {
+                                BlasterAmmo -= 5; BlasterShots++;
+                                session.SpawnPlayerProjectile(HereticActorType.MT_BLASTERFX1, session.Body.Angle);
+                                session.RequestSound(HereticSoundId.sfx_blssht, session.Body);
+                            }
+                            break;
                         default: throw new NotSupportedException("Gold Wand action: " + state.Action);
                     }
                     if (!Visible) return;

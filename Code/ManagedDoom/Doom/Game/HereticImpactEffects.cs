@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
@@ -123,6 +124,7 @@ namespace ManagedDoom
                 body.UpdateFrameInterpolationInfo();
                 if (effect.Type == HereticActorType.MT_CRBOWFX4) MoveCrossbowSpark(body);
                 else if (IsLiquidChunk(effect.Type)) MoveLiquidChunk(effect);
+                else if (effect.Type == HereticActorType.MT_BLOOD) MovePhoenixTrail(body);
                 else if (effect.Type == HereticActorType.MT_PHOENIXPUFF) MovePhoenixTrail(body);
                 else if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
                 else body.Z += body.MomZ;

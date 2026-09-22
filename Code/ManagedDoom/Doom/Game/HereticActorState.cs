@@ -73,6 +73,12 @@ namespace ManagedDoom
             finally { transitionDepth--; }
         }
 
+        // s&Doom modification: 2026-09-22, bounded ripper-blood lifetime jitter.
+        internal void ExtendPositiveTics(int amount)
+        {
+            if (amount < 0 || amount > 3) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (!Removed && Tics > 0) Tics = checked(Tics + amount);
+        }
         internal void ShortenPositiveTics(int amount)
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));

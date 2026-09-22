@@ -1017,3 +1017,20 @@ fallback, last-ammo switching, cleanup and dead-player gating. Existing bounded
 projectile substeps remain in use; player feet clipping is still incomplete.
 Tome pickup and duration, remaining powered attacks, campaign/save/multiplayer
 support and in-editor playtesting remain outstanding.
+
+### 2026-09-22: Powered Dragon Claw preview
+
+Added Test Powered Blaster (requires Test Combat; select Dragon Claw with 4).
+Powered shots cost five ammo and use native projectile states, an eighth-step
+spawn advance, eight movement increments per simulation tick and random smoke.
+Explosions spawn eight radial rippers with owner attribution. Rippers damage and
+pass through eligible targets including ghosts, and emit blood
+and the rip sound. Floor impacts trigger terrain effects. Low ammo prevents
+selection/firing and falls back without consuming the remainder.
+
+Tests cover ammo thresholds/cost/fallback, moving projectile damage and cleanup,
+owner exclusion, eight-ripper spawning, piercing and ghost damage, blood,
+smoke and normal-Claw isolation. The existing preview effect movement stops blood
+at walls rather than reproducing every legacy cosmetic physics detail. General
+pushable actors are not yet supported. Tome pickup/duration, remaining powered
+weapons, campaign/save/multiplayer integration and editor playtesting remain open.
