@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Tome inventory and power timer.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -23,7 +24,7 @@ using System;
 namespace ManagedDoom
 {
     [Flags] public enum HereticKeys { None = 0, Yellow = 1, Green = 2, Blue = 4 }
-    public enum HereticArtifact { QuartzFlask, MysticUrn, WingsOfWrath, RingOfInvincibility, Torch, ChaosDevice, TimeBomb, Shadowsphere }
+    public enum HereticArtifact { QuartzFlask, MysticUrn, WingsOfWrath, RingOfInvincibility, Torch, ChaosDevice, TimeBomb, Shadowsphere, TomeOfPower }
     public struct HereticCommand
     {
         public sbyte Forward, Side, Look, Fly;
@@ -35,6 +36,8 @@ namespace ManagedDoom
     public sealed class HereticPlayerState
     {
         public bool HasMapScroll { get; internal set; }
+        public int TomesOfPower { get; internal set; }
+        public int WeaponPowerTics { get; internal set; }
         public int Shadowspheres { get; internal set; }
         public int InvisibilityTics { get; internal set; }
         public int TimeBombs { get; internal set; }

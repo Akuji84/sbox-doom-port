@@ -1105,3 +1105,31 @@ and cleanup after death. All five Doom compatibility fixtures remain unchanged.
 Boss-specific rain damage, D'Sparil teleport avoidance and network player colors
 await their respective actor/multiplayer support. Tome pickup and duration,
 campaign progression, saves, multiplayer and in-editor playtesting remain open.
+
+### 2026-09-22: Tome of Power preview
+
+Map thing 86 (MT_ARTITOMEOFPOWER) now joins the opt-in combat inventory with the
+sixteen-item cap, floating pickup presentation, artifact pickup animation and
+licensed sounds. K uses a collected Tome. The preview displays inventory count
+and remaining power time. Its 1400-tick duration is forty seconds at 35 Hz;
+refresh is accepted only at 128 ticks or less. Rejected use retains inventory.
+
+The timer selects powered state tables and ammo costs for all eight implemented
+player weapons without granting ownership or ammunition. The shared Gauntlet
+action also uses the timed power for range, healing, spread, impact and sound.
+Staff/Gauntlet activation immediately selects their powered ready animation;
+expiry schedules lowering and raising with normal animations. Phoenix expiry
+interrupts an active powered cycle, charges its deferred ammo and clears refire;
+idle expiry does not charge ammo. Ammo is clamped at zero on that transition.
+Other attacks already in progress retain their state chain, as in the reference.
+Already-fired powered projectiles finish independently of Tome expiry.
+
+Death clears the timer. Explicit Test Powered weapon switches remain independent
+preview overrides. Regression checks cover pickup/full inventory, activation,
+refresh boundaries, exact duration, weapon ownership and powered selection,
+ammo gates, melee transitions, Phoenix active/idle expiry, existing projectiles
+and death. Existing Doom compatibility checks remain unchanged.
+
+The Tome's chicken reversal awaits player morph support. Complete artifact HUD,
+remaining actors/artifacts, campaign progression, saves, multiplayer and
+in-editor playtesting are still unfinished; production Heretic loading is gated.

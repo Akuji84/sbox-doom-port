@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, timed Tome weapon selection and transitions.
 // s&Doom modification: 2026-09-22, powered Hellstaff preview.
 // s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
@@ -199,7 +200,7 @@ namespace ManagedDoom
             // The reference bag increases Firemace capacity but grants no mace ammo.
             return true;
         }
-        // Adapted 2026-09-22: powered staff preview; Tome inventory is not enabled yet.
+        // Adapted 2026-09-22: explicit powered-weapon test overrides, independent of the timed Tome.
         public bool TestPoweredStaff { get; private set; }
         public void GrantTestPoweredStaff()
         {
@@ -246,7 +247,36 @@ namespace ManagedDoom
             GrantTestSkullRod(ammo); TestPoweredSkullRod = true;
             if (ReadyWeapon == HereticWeapon.wp_skullrod && session.State.Health > 0) SetState(Weapon.Ready);
         }
-        private HereticWeaponDefinition Weapon => ((TestPoweredSkullRod && ReadyWeapon == HereticWeapon.wp_skullrod) || (TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) || (TestPoweredBlaster && ReadyWeapon == HereticWeapon.wp_blaster) || (TestPoweredPhoenix && ReadyWeapon == HereticWeapon.wp_phoenixrod) || (TestPoweredMace && ReadyWeapon == HereticWeapon.wp_mace) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        internal bool IsPowered(HereticWeapon weapon) => session.State.WeaponPowerTics > 0 || weapon switch
+        {
+            HereticWeapon.wp_staff => TestPoweredStaff,
+            HereticWeapon.wp_gauntlets => TestPoweredGauntlets,
+            HereticWeapon.wp_goldwand => TestPoweredGoldWand,
+            HereticWeapon.wp_crossbow => TestPoweredCrossbow,
+            HereticWeapon.wp_blaster => TestPoweredBlaster,
+            HereticWeapon.wp_skullrod => TestPoweredSkullRod,
+            HereticWeapon.wp_phoenixrod => TestPoweredPhoenix,
+            HereticWeapon.wp_mace => TestPoweredMace,
+            _ => false
+        };
+        private HereticWeaponDefinition Weapon => (IsPowered(ReadyWeapon) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        // Adapted from P_UseArtifact/P_PlayerThink. Call after changing the timer.
+        internal void ActivateTome()
+        {
+            if (session.State.Health > 0 && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets))
+                SetState(Weapon.Ready);
+        }
+        internal void ExpireTome()
+        {
+            if (session.State.Health <= 0 || IsPowered(ReadyWeapon)) return;
+            if (ReadyWeapon == HereticWeapon.wp_phoenixrod && State != HereticStateId.S_PHOENIXREADY && State != HereticStateId.S_PHOENIXUP)
+            {
+                SetState(HereticStateId.S_PHOENIXREADY);
+                PhoenixAmmo = Math.Max(0, PhoenixAmmo - 1); Refire = 0; flameCount = 0;
+            }
+            else if (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets)
+                PendingWeapon = ReadyWeapon;
+        }
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -261,7 +291,8 @@ namespace ManagedDoom
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
             return true;
         }
-        private int WeaponAmmoCost(HereticWeapon weapon) => ((weapon == HereticWeapon.wp_skullrod && TestPoweredSkullRod) || (weapon == HereticWeapon.wp_blaster && TestPoweredBlaster) || (weapon == HereticWeapon.wp_mace && TestPoweredMace)) ? 5 : HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
+        private int WeaponAmmoCost(HereticWeapon weapon) =>
+            (IsPowered(weapon) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)weapon].AmmoPerShot;
         private bool HasAmmo()
         {
             if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_mace ? MaceAmmo >= WeaponAmmoCost(HereticWeapon.wp_mace) : ReadyWeapon == HereticWeapon.wp_phoenixrod ? PhoenixAmmo > 0 : ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo >= WeaponAmmoCost(HereticWeapon.wp_skullrod) : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo >= WeaponAmmoCost(HereticWeapon.wp_blaster) : Ammo > 0)) return true;
@@ -490,11 +521,11 @@ namespace ManagedDoom
             Y = Fixed.FromInt(32 + (random.Next() & 3));
             var body = session.Body;
             var damage = ((random.Next() & 7) + 1) * 2;
-            var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << (TestPoweredGauntlets ? 17 : 18))));
-            var range = Fixed.FromInt(TestPoweredGauntlets ? 256 : 65);
+            var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << (IsPowered(HereticWeapon.wp_gauntlets) ? 17 : 18))));
+            var range = Fixed.FromInt(IsPowered(HereticWeapon.wp_gauntlets) ? 256 : 65);
             var slope = aiming.AimLineAttack(body, angle, range);
             var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8));
-            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon, poweredGauntlets: TestPoweredGauntlets);
+            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon, poweredGauntlets: IsPowered(HereticWeapon.wp_gauntlets));
             session.SpawnWeaponBlood(hit, angle, slope);
             GauntletAttacks++;
             if (hit?.Actor == null)
@@ -506,8 +537,8 @@ namespace ManagedDoom
             var target = hit.Value.Actor;
             session.DamageTestEnemy(target, damage);
             var light = random.Next(); session.Camera.ExtraLight = light < 64 ? 0 : light < 160 ? 1 : 2;
-            if (TestPoweredGauntlets) session.GiveHealth(damage >> 1);
-            session.RequestSound(TestPoweredGauntlets ? HereticSoundId.sfx_gntpow : HereticSoundId.sfx_gnthit, body);
+            if (IsPowered(HereticWeapon.wp_gauntlets)) session.GiveHealth(damage >> 1);
+            session.RequestSound(IsPowered(HereticWeapon.wp_gauntlets) ? HereticSoundId.sfx_gntpow : HereticSoundId.sfx_gnthit, body);
             angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
             var delta = unchecked(angle.Data - body.Angle.Data);
             const uint turn = 0x40000000u / 20;
