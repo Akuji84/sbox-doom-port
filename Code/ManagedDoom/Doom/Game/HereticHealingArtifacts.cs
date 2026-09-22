@@ -22,12 +22,14 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight/invulnerability subset.
-        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT;
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT || type == HereticActorType.MT_MISC5;
         internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.ChaosDevice) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.TimeBomb) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticArtifact.ChaosDevice)
+            if (type == HereticArtifact.TimeBomb)
+            { if (State.TimeBombs >= 16) return false; State.TimeBombs++; }
+            else if (type == HereticArtifact.ChaosDevice)
             { if (State.ChaosDevices >= 16) return false; State.ChaosDevices++; }
             else if (type == HereticArtifact.Torch)
             { if (State.Torches >= 16) return false; State.Torches++; }
@@ -84,7 +86,13 @@ namespace ManagedDoom
         }
         internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.ChaosDevice) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.TimeBomb) throw new ArgumentOutOfRangeException(nameof(type));
+            if (type == HereticArtifact.TimeBomb)
+            {
+                if (State.Health <= 0 || State.TimeBombs <= 0) return false;
+                SpawnTimeBomb(); State.TimeBombs--; State.Message = "Used Time Bomb of the Ancients";
+                RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
             if (type == HereticArtifact.ChaosDevice)
             {
                 if (State.Health <= 0 || State.ChaosDevices <= 0 || !UseChaosTeleport()) return false;

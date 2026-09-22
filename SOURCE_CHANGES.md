@@ -498,3 +498,19 @@ starts with unchanged RNG/inventory, flight preservation, telefrag success and
 rejection, fog/audio and cleanup. Existing Doom compatibility baselines remain
 required. Deathmatch destination selection, chicken undo, full campaign/network/
 save support and in-editor playtesting remain outstanding.
+
+### 2026-09-22: Time Bomb of the Ancients
+
+Added native Time Bomb inventory, map pickups, a sixteen-item cap and B-key use
+in the combat preview. A bomb is placed 24 units ahead of the player and advances
+through the Heretic fuse and explosion states: sound at tick 40, blast at tick 46,
+and removal at tick 70. The blast uses the existing 128-unit radius damage path,
+including visibility, armor, self-damage and registered Clink targets. Explosion
+height, shadow removal and liquid-floor effects follow the reference actions.
+Armed bombs continue ticking and unlink normally after their owner dies.
+
+Regression checks cover placement, inventory limits, pickup retention/collection,
+fuse timing, audio, player/enemy damage and cleanup after death. All five production
+Doom WAD simulation/render baselines still pass. This remains preview-only;
+general monster support, campaign saves/networking and editor playtesting are
+not completed by this checkpoint.
