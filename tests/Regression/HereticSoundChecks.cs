@@ -17,7 +17,7 @@ static class HereticSoundChecks
             Check(sound.SampleRate > 0 && sound.Samples.Length > 0 && sound.Samples.Any(x => x != 0), "Empty decoded sound " + name);
             count++;
         }
-        Check(count == 18, "Encounter sound mapping incomplete.");
+        Check(count == 20, "Encounter sound mapping incomplete.");
         var synthetic = new byte[43]; synthetic[0] = 3; synthetic[2] = 0x11; synthetic[3] = 0x2b; synthetic[4] = 35;
         synthetic[24] = 0; synthetic[25] = 128; synthetic[26] = 255;
         var decoded = HereticSoundData.Decode(synthetic);
@@ -74,6 +74,6 @@ static class HereticSoundChecks
             "Stereo interleaving, side gain or sample limits differ.");
         Console.WriteLine("PASS Heretic stereo: left/right orientation, listener rotation, local centering and interleaved PCM bounds");
         Console.WriteLine("PASS Heretic sound attenuation: curve validation, distance, local gain and extreme-coordinate bounds");
-        Console.WriteLine("PASS Heretic sound: eighteen licensed WAD samples, validated DMX decoding and weapon/impact/enemy events");
+        Console.WriteLine("PASS Heretic sound: twenty licensed WAD samples, validated DMX decoding and weapon/impact/enemy events");
     }
 }

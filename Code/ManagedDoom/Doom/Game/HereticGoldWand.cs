@@ -20,15 +20,42 @@ using System;
 namespace ManagedDoom
 {
     public readonly record struct HereticWandShot(int Damage, Angle Angle, Fixed Slope, HereticTraceHit? Hit);
-    /// <summary>Normal staff, Gold Wand, Crossbow, Dragon Claw, Hellstaff and Gauntlets controller for the opt-in encounter.</summary>
+    /// <summary>Normal staff, Gold Wand, Crossbow, Dragon Claw, Hellstaff, Phoenix Rod and Gauntlets controller for the opt-in encounter.</summary>
     public sealed class HereticGoldWand
     {
         private readonly HereticWorldSession session;
         private readonly Hitscan aiming;
         private bool attack;
+        private bool attackDown;
         private int depth;
         public HereticWeapon ReadyWeapon { get; private set; } = HereticWeapon.wp_goldwand;
         public HereticWeapon? PendingWeapon { get; private set; }
+        public bool HasPhoenix { get; private set; }
+        public int PhoenixAmmo { get; private set; }
+        public int PhoenixShots { get; private set; }
+        public void GrantTestPhoenix(int ammo = 2)
+        {
+            if (ammo < 1 || ammo > 20) throw new ArgumentOutOfRangeException(nameof(ammo));
+            HasPhoenix = true; PhoenixAmmo = ammo;
+        }
+        internal bool GivePhoenixAmmo(int amount, bool bonus)
+        {
+            if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (session.State.Health <= 0 || PhoenixAmmo >= 20) return false;
+            var empty = PhoenixAmmo == 0;
+            PhoenixAmmo = (int)Math.Min(20L, PhoenixAmmo + (long)amount + (bonus ? amount / 2 : 0));
+            if (empty && HasPhoenix && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets)) PendingWeapon = HereticWeapon.wp_phoenixrod;
+            return true;
+        }
+        internal bool GivePhoenix(bool bonus)
+        {
+            if (session.State.Health <= 0) return false;
+            var ammo = GivePhoenixAmmo(2, bonus);
+            if (HasPhoenix) return ammo;
+            HasPhoenix = true;
+            if (ReadyWeapon != HereticWeapon.wp_phoenixrod) PendingWeapon = HereticWeapon.wp_phoenixrod;
+            return true;
+        }
         public bool HasSkullRod { get; private set; }
         public int SkullRodAmmo { get; private set; }
         public int SkullRodShots { get; private set; }
@@ -52,7 +79,7 @@ namespace ManagedDoom
             var ammo = GiveSkullRodAmmo(50, bonus);
             if (HasSkullRod) return ammo;
             HasSkullRod = true;
-            if (ReadyWeapon != HereticWeapon.wp_skullrod) PendingWeapon = HereticWeapon.wp_skullrod;
+            if (ReadyWeapon != HereticWeapon.wp_phoenixrod && ReadyWeapon != HereticWeapon.wp_skullrod) PendingWeapon = HereticWeapon.wp_skullrod;
             return true;
         }
         public bool HasCrossbow { get; private set; }
@@ -78,7 +105,7 @@ namespace ManagedDoom
             var ammo = GiveCrossbowAmmo(10, bonus);
             if (HasCrossbow) return ammo;
             HasCrossbow = true;
-            if (ReadyWeapon != HereticWeapon.wp_skullrod && ReadyWeapon != HereticWeapon.wp_blaster && ReadyWeapon != HereticWeapon.wp_crossbow) PendingWeapon = HereticWeapon.wp_crossbow;
+            if (ReadyWeapon != HereticWeapon.wp_phoenixrod && ReadyWeapon != HereticWeapon.wp_skullrod && ReadyWeapon != HereticWeapon.wp_blaster && ReadyWeapon != HereticWeapon.wp_crossbow) PendingWeapon = HereticWeapon.wp_crossbow;
             return true;
         }
         public bool HasGauntlets { get; private set; }
@@ -115,7 +142,7 @@ namespace ManagedDoom
             if (HasBlaster) return gaveAmmo;
             HasBlaster = true;
             // Dragon Claw outranks the wand, crossbow and melee weapons.
-            if (ReadyWeapon != HereticWeapon.wp_skullrod && ReadyWeapon != HereticWeapon.wp_blaster) PendingWeapon = HereticWeapon.wp_blaster;
+            if (ReadyWeapon != HereticWeapon.wp_phoenixrod && ReadyWeapon != HereticWeapon.wp_skullrod && ReadyWeapon != HereticWeapon.wp_blaster) PendingWeapon = HereticWeapon.wp_blaster;
             return true;
         }
         // Adapted 2026-09-22: single-player P_GiveWeapon/WeaponValue for gauntlets.
@@ -131,10 +158,11 @@ namespace ManagedDoom
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
-                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster && weapon != HereticWeapon.wp_gauntlets && weapon != HereticWeapon.wp_crossbow && weapon != HereticWeapon.wp_skullrod) ||
+                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster && weapon != HereticWeapon.wp_gauntlets && weapon != HereticWeapon.wp_crossbow && weapon != HereticWeapon.wp_skullrod && weapon != HereticWeapon.wp_phoenixrod) ||
                 (weapon == HereticWeapon.wp_goldwand && Ammo <= 0) ||
                 (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo <= 0)) ||
                 (weapon == HereticWeapon.wp_gauntlets && !HasGauntlets) ||
+                (weapon == HereticWeapon.wp_phoenixrod && (!HasPhoenix || PhoenixAmmo <= 0)) ||
                 (weapon == HereticWeapon.wp_skullrod && (!HasSkullRod || SkullRodAmmo <= 0)) ||
                 (weapon == HereticWeapon.wp_crossbow && (!HasCrossbow || CrossbowAmmo <= 0))) return false;
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
@@ -143,11 +171,11 @@ namespace ManagedDoom
         private static int WeaponAmmoCost(HereticWeapon weapon) => HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
         private bool HasAmmo()
         {
-            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo > 0 : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
+            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_phoenixrod ? PhoenixAmmo > 0 : ReadyWeapon == HereticWeapon.wp_skullrod ? SkullRodAmmo > 0 : ReadyWeapon == HereticWeapon.wp_crossbow ? CrossbowAmmo > 0 : ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
             // P_CheckAmmo uses strictly more than one shot for automatic selection.
             PendingWeapon = HasSkullRod && SkullRodAmmo > 1 ? HereticWeapon.wp_skullrod : HasBlaster && BlasterAmmo > WeaponAmmoCost(HereticWeapon.wp_blaster)
                 ? HereticWeapon.wp_blaster : HasCrossbow && CrossbowAmmo > 1 ? HereticWeapon.wp_crossbow : Ammo > WeaponAmmoCost(HereticWeapon.wp_goldwand)
-                ? HereticWeapon.wp_goldwand : HasGauntlets ? HereticWeapon.wp_gauntlets : HereticWeapon.wp_staff;
+                ? HereticWeapon.wp_goldwand : HasGauntlets ? HereticWeapon.wp_gauntlets : HasPhoenix && PhoenixAmmo > 1 ? HereticWeapon.wp_phoenixrod : HereticWeapon.wp_staff;
             SetState(Weapon.Down);
             return false;
         }
@@ -219,9 +247,14 @@ namespace ManagedDoom
                             break;
                         case HereticAction.A_WeaponReady:
                             if (PendingWeapon != null) SetState(Weapon.Down);
-                            else if (attack) { if (HasAmmo()) BeginAttack(false); }
+                            else if (attack)
+                            {
+                                if ((!attackDown || ReadyWeapon != HereticWeapon.wp_phoenixrod) && HasAmmo())
+                                { attackDown = true; BeginAttack(false); }
+                            }
                             else
                             {
+                                attackDown = false;
                                 var body = session.Body;
                                 var bob = (body.MomX * body.MomX + body.MomY * body.MomY) / 4;
                                 if (bob > Fixed.FromInt(16)) bob = Fixed.FromInt(16);
@@ -234,6 +267,7 @@ namespace ManagedDoom
                             if (attack && PendingWeapon == null && HasAmmo()) { Refire++; BeginAttack(true); }
                             else { Refire = 0; if (PendingWeapon == null) HasAmmo(); }
                             break;
+                        case HereticAction.A_FirePhoenixPL1: FirePhoenix(); break;
                         case HereticAction.A_FireSkullRodPL1: FireSkullRod(); break;
                         case HereticAction.A_FireCrossbowPL1: FireCrossbow(); break;
                         case HereticAction.A_GauntletAttack: AttackGauntlets(); break;
@@ -248,6 +282,16 @@ namespace ManagedDoom
                 } while (Tics == 0);
             }
             finally { depth--; }
+        }
+        // Adapted 2026-09-22 from pinned p_pspr.c A_FirePhoenixPL1.
+        private void FirePhoenix()
+        {
+            if (PhoenixAmmo <= 0 || session.State.Health <= 0) return;
+            PhoenixAmmo--; PhoenixShots++;
+            session.SpawnPlayerProjectile(HereticActorType.MT_PHOENIXFX1, session.Body.Angle);
+            var recoil = session.Body.Angle + Angle.Ang180;
+            session.Body.MomX += Fixed.FromInt(4) * Trig.Cos(recoil);
+            session.Body.MomY += Fixed.FromInt(4) * Trig.Sin(recoil);
         }
         // Adapted 2026-09-22 from pinned p_pspr.c A_FireSkullRodPL1.
         private void FireSkullRod()

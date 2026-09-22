@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 namespace ManagedDoom
 {
-    public sealed class HereticProjectile
+    public sealed class HereticProjectile : IHereticActorActions
     {
         private readonly HereticWorldSession session;
         public Mobj Body { get; }
@@ -29,11 +29,11 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1)
-                throw new NotSupportedException("Only normal crossbow and Hellstaff projectiles are enabled.");
+            if (type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1)
+                throw new NotSupportedException("Only normal Crossbow, Hellstaff and Phoenix Rod projectiles are enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
-            Animation = new HereticActorState(def.SpawnState);
+            Animation = new HereticActorState(def.SpawnState, this);
             Body = new Mobj(session.World) { X = session.Body.X, Y = session.Body.Y,
                 Z = session.Body.Z + Fixed.FromInt(32) + Fixed.FromInt(session.State.LookDirection) / 173,
                 Radius = def.Radius, Height = def.Height, Health = def.SpawnHealth,
@@ -45,6 +45,14 @@ namespace ManagedDoom
             session.World.ThingMovement.SetThingPosition(Body);
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
+        }
+        public bool Supports(HereticAction action) => Type == HereticActorType.MT_PHOENIXFX1 &&
+            (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
+        public void Execute(HereticAction action, HereticActorState actor)
+        {
+            if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (action == HereticAction.A_PhoenixPuff) session.SpawnPhoenixTrail(Body);
+            else session.PhoenixRadiusAttack(Body);
         }
         internal void SetFlightState(HereticStateId state) { Animation.SetState(state); Sync(); }
         private void Sync() { Body.Sprite = (Sprite)Animation.Definition.Sprite; Body.Frame = Animation.Definition.Frame; }

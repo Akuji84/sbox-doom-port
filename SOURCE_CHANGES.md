@@ -260,3 +260,25 @@ capacity, difficulty bonuses, selection ranking and projectile cleanup. Existing
 Doom baselines remain required. Powered Hellstaff, other remaining weapons,
 full enemy behavior, campaign integration, saves and multiplayer remain gated;
 in-editor playtesting is outstanding.
+
+### 2026-09-22: normal Phoenix Rod
+
+The native combat preview adds the normal Phoenix Rod, including five-tick
+windup, one-ammo fireballs, four-unit recoil, animated lateral trails and impact
+sounds. The projectile action runner dispatches Phoenix trails and explosions
+without invoking Doom actor actions. Splash damage uses a 128-unit maximum-axis
+radius minus the target radius, with visibility checks, and can hurt the shooter.
+The preview routes splash through the existing player armor/health and registered
+Clink damage paths. Boss immunities and other actors remain gated with those enemies.
+
+Weapon pickups grant two ammo, small/large ammo grant one/ten, and capacity is 20.
+Existing difficulty bonuses and reference selection/fallback priorities apply.
+In the preview enable TestCombat and collect the weapon, or enable TestPhoenix
+for a test grant; press 6 to select it. Powered flames remain disabled.
+
+Tests exercise windup, final ammo, recoil, native damage, trails and cleanup,
+self splash with armor, map visibility blocking, and weapon/ammo collection.
+The five existing Doom simulation/render baselines remain required. Cosmetic
+trail clipping uses shared path traversal; exact legacy trail physics and liquid
+floor splash effects are not implemented. Full enemy behavior, campaign, saves,
+multiplayer and in-editor playtesting remain outstanding.

@@ -118,7 +118,8 @@ namespace ManagedDoom
                 var effect = impactEffects[i];
                 var body = effect.Body;
                 body.UpdateFrameInterpolationInfo();
-                if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
+                if (effect.Type == HereticActorType.MT_PHOENIXPUFF) MovePhoenixTrail(body);
+                else if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
                 else body.Z += body.MomZ;
                 if (effect.Type != HereticActorType.MT_BLOODSPLATTER && body.MomZ != Fixed.Zero)
                 {
