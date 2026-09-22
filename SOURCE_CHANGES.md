@@ -391,3 +391,23 @@ Doom compatibility baselines remain required. This is the manually used healing
 subset: automatic emergency healing, the general inventory selector/HUD, other
 artifacts, deathmatch respawning, persistence and networking remain outstanding.
 In-editor playtesting is still required.
+
+### 2026-09-22: Baby-difficulty emergency healing
+
+Lethal incoming damage on Baby difficulty now attempts automatic healing after
+difficulty halving and armor absorption. It uses the minimum sufficient Quartz
+Flasks first, otherwise sufficient Mystic Urns, otherwise a sufficient combination.
+Health/body values remain synchronized before normal damage/death handling. Auto
+use retains the reference silent behavior rather than playing manual-use audio.
+Other single-player difficulties do not auto-use these artifacts.
+
+The reference mixed-inventory branch can overdraw flasks and remove the wrong
+slot. This implementation deliberately corrects that behavior: it consumes only
+owned quantities and decrements urns from their own count. Insufficient inventory
+is left untouched. Calculations use wide intermediates for extreme damage.
+
+Tests cover damage/armor order, flask/urn priority, mixed inventory, exact survival
+thresholds, insufficient supplies, damage feedback, death flags, other difficulties
+and extreme damage. Existing Doom compatibility hashes remain required. Deathmatch
+and chicken-player behavior remain gated with those unfinished systems; in-editor
+playtesting is outstanding.

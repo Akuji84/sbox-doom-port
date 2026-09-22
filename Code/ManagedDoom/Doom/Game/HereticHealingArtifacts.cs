@@ -32,6 +32,28 @@ namespace ManagedDoom
             else { if (State.MysticUrns >= 16) return false; State.MysticUrns++; }
             return true;
         }
+        // Adapted 2026-09-22: P_AutoUseHealth, single-player Baby difficulty.
+        // Correct the reference mixed-inventory overdraw/wrong-slot bug: consume
+        // only owned quantities, and remove urns from their own inventory count.
+        private void AutoUseHealingArtifacts(int damage)
+        {
+            if (skill != GameSkill.Baby || State.Health <= 0 || damage < State.Health) return;
+            var needed = (long)damage - State.Health + 1;
+            var flaskHealing = State.QuartzFlasks * 25;
+            var urnHealing = State.MysticUrns * 100;
+            int flasks = 0, urns = 0;
+            if (flaskHealing >= needed) flasks = (int)((needed + 24) / 25);
+            else if (urnHealing >= needed) urns = (int)((needed + 99) / 100);
+            else if (flaskHealing + urnHealing >= needed)
+            {
+                flasks = State.QuartzFlasks;
+                urns = (int)((needed - flaskHealing + 99) / 100);
+            }
+            else return; // Keep inventory unchanged if it cannot prevent death.
+            State.QuartzFlasks -= flasks; State.MysticUrns -= urns;
+            State.Health += flasks * 25 + urns * 100;
+            Body.Health = State.Health;
+        }
         internal bool UseHealingArtifact(HereticHealingArtifact type)
         {
             if ((uint)type > (uint)HereticHealingArtifact.MysticUrn) throw new ArgumentOutOfRangeException(nameof(type));

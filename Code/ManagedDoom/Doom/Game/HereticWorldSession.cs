@@ -282,6 +282,7 @@ namespace ManagedDoom
                 if (State.ArmorPoints == 0) State.ArmorType = 0;
                 amount -= saved;
             }
+            AutoUseHealingArtifacts(amount);
             State.DamageFlash = (int)Math.Min(100, (long)State.DamageFlash + amount);
             State.Health = Math.Max(0, State.Health - amount);
             Body.Health = State.Health;
