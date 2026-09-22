@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, optional palette mapping for lit Heretic weapon overlays.
 ﻿//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
@@ -46,7 +47,7 @@ namespace ManagedDoom.Video
             }
         }
 
-        public void DrawPatch(Patch patch, int x, int y, int scale)
+        public void DrawPatch(Patch patch, int x, int y, int scale, byte[] colorMap = null)
         {
             var drawX = x - scale * patch.LeftOffset;
             var drawY = y - scale * patch.TopOffset;
@@ -71,12 +72,12 @@ namespace ManagedDoom.Video
 
             for (; i < drawWidth; i++)
             {
-                DrawColumn(patch.Columns[frac.ToIntFloor()], drawX + i, drawY, scale);
+                DrawColumn(patch.Columns[frac.ToIntFloor()], drawX + i, drawY, scale, colorMap);
                 frac += step;
             }
         }
 
-        public void DrawPatchFlip(Patch patch, int x, int y, int scale)
+        public void DrawPatchFlip(Patch patch, int x, int y, int scale, byte[] colorMap = null)
         {
             var drawX = x - scale * patch.LeftOffset;
             var drawY = y - scale * patch.TopOffset;
@@ -102,12 +103,12 @@ namespace ManagedDoom.Video
             for (; i < drawWidth; i++)
             {
                 var col = patch.Width - frac.ToIntFloor() - 1;
-                DrawColumn(patch.Columns[col], drawX + i, drawY, scale);
+                DrawColumn(patch.Columns[col], drawX + i, drawY, scale, colorMap);
                 frac += step;
             }
         }
 
-        private void DrawColumn(Column[] source, int x, int y, int scale)
+        private void DrawColumn(Column[] source, int x, int y, int scale, byte[] colorMap = null)
         {
             var step = Fixed.One / scale;
 
@@ -140,7 +141,8 @@ namespace ManagedDoom.Video
 
                 for (; i < drawLength; i++)
                 {
-                    data[p] = column.Data[sourceIndex + frac.ToIntFloor()];
+                    var pixel = column.Data[sourceIndex + frac.ToIntFloor()];
+                    data[p] = colorMap == null ? pixel : colorMap[pixel];
                     p++;
                     frac += step;
                 }

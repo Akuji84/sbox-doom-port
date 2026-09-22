@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, expose shared weapon lighting for the Heretic overlay.
 // s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
 //
 // Copyright (C) 1993-1996 Id Software, Inc.
@@ -2922,6 +2923,14 @@ namespace ManagedDoom.Video
         }
 
 
+
+        internal byte[] GetWeaponColorMap(int sectorLight, bool fullBright)
+        {
+            if (fixedColorMap != 0) return colorMap[fixedColorMap];
+            if (fullBright) return colorMap.FullBright;
+            var level = Math.Clamp((sectorLight >> lightSegShift) + extraLight, 0, lightLevelCount - 1);
+            return scaleLight[level][maxScaleLight - 1];
+        }
 
         private void DrawPlayerSprites(Player player)
         {

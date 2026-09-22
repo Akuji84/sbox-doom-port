@@ -322,9 +322,8 @@ movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
 empty ammo lowers the wand and raises the staff. Keys 1 and 2 select staff and wand. The normal Gold Wand state/damage rules come from the
 pinned GPL p_pspr.c and starting ammo from g_game.c.
 
-This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds and final weapon lighting are not connected. `ShotFired` exposes the
-shot result for later effects/audio integration. The current overlay uses the
-base palette. Do not interpret this as the full Heretic weapon system or exact
+This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds are not connected. `ShotFired` exposes the
+shot result for later effects/audio integration. The overlay now uses sector lighting and full-bright frame flags. Do not interpret this as the full Heretic weapon system or exact
 whole-game random-stream compatibility with the reference.
 
 Tests verify first-shot and 11-tick refire cadence, damage/ammo, release, last
@@ -383,3 +382,15 @@ specials, including use-only exits, are ignored by weapon activation.
 Tests exercise all three actions, repeat reset, one-shot behavior, actual wand
 fire and read-only aiming. Monster projectile triggers remain part of the future
 projectile implementation. In-editor testing remains outstanding.
+
+### 2026-09-22: weapon overlay lighting
+
+Staff and Gold Wand overlays now use the shared renderer's weapon light table
+for the player's sector. Full-bright state frames retain their brightness; fixed
+colormaps take precedence when supplied by the renderer. Palette mapping applies
+only to opaque patch pixels and supports flipped frames and screen clipping.
+Existing DrawScreen callers retain their original unmapped behavior.
+
+Regression checks cover dark versus bright sectors, full-bright override, mapped
+normal/flipped patches and untouched background pixels. The full Doom render and
+simulation baselines remain required. In-editor testing remains outstanding.

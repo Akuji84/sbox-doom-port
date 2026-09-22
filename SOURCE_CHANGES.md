@@ -133,3 +133,9 @@ with cosmetic wall clipping and terminal impact states; add regression coverage.
 Adapt the player P_ShootSpecialLine table from pinned GPL p_spec.c and the weapon
 trace dispatch order from p_map.c. Reuse isolated Heretic sector/switch handlers,
 keep aiming read-only, and add regression coverage for all three impact actions.
+
+### 2026-09-22 - Heretic weapon lighting
+
+Reuse the shared weapon light table for native Heretic overlays. Add optional
+palette mapping to patch drawing while preserving existing callers, with dated
+modification notices and lighting/transparency regression checks.

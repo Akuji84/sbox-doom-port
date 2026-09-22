@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, sector lighting and full-bright Heretic weapon frames.
 // Copyright (C) 2026 s&Doom contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 using System;
@@ -51,8 +52,9 @@ namespace ManagedDoom
             {
                 var state = wand.Definition;
                 var frame = content.Sprites[(Sprite)state.Sprite].Frames[state.Frame & 0x7fff];
-                if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1);
-                else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1);
+                var map = renderer.GetWeaponColorMap(camera.Mobj.Subsector.Sector.LightLevel, (state.Frame & 0x8000) != 0);
+                if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map);
+                else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map);
             }
             var palette = content.Palette[0];
             for (var y = 0; y < Height; y++)

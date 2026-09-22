@@ -63,6 +63,27 @@ static class HereticWandChecks
         Check(!pixels.SequenceEqual(ready), "Firing frame did not change weapon rendering.");
         var output = Environment.GetEnvironmentVariable("HERETIC_WAND_RGBA");
         if (!string.IsNullOrEmpty(output)) File.WriteAllBytes(output, pixels);
+        var screen = new ManagedDoom.Video.DrawScreen(content.Wad, 320, 200);
+        var lighting = new ManagedDoom.Video.ThreeDRenderer(content, screen, 8);
+        lighting.Render(renderSession.Camera, Fixed.One);
+        var darkMap = lighting.GetWeaponColorMap(0, false);
+        var brightMap = lighting.GetWeaponColorMap(255, false);
+        Check(!darkMap.SequenceEqual(brightMap), "Weapon sector light has no effect.");
+        Check(lighting.GetWeaponColorMap(0, true).SequenceEqual(content.ColorMap.FullBright), "Full-bright weapon frame darkened.");
+        var patch = content.Sprites[(Sprite)HereticSpriteId.SPR_GWND].Frames[0].Patches[0];
+        foreach (var flip in new[] { false, true })
+        {
+            Array.Fill(screen.Data, (byte)247);
+            if (flip) screen.DrawPatchFlip(patch, 1, 32, 1); else screen.DrawPatch(patch, 1, 32, 1);
+            var plain = screen.Data.ToArray();
+            Array.Fill(screen.Data, (byte)247);
+            if (flip) screen.DrawPatchFlip(patch, 1, 32, 1, darkMap); else screen.DrawPatch(patch, 1, 32, 1, darkMap);
+            Check(!plain.SequenceEqual(screen.Data), "Weapon patch ignored palette mapping.");
+            for (var i = 0; i < plain.Length; i++)
+                if (plain[i] != 247) Check(screen.Data[i] == darkMap[plain[i]], "Weapon patch mapped a pixel incorrectly.");
+            Check(screen.Data[0] == 247, "Weapon overlay overwrote transparent background.");
+        }
+        Console.WriteLine("PASS Heretic weapon lighting: sector darkness, full-bright override, mapped normal/flipped patches and transparency");
         var look = new HereticWorldSession(content); look.State.LookDirection = 45;
         var aimed = new HereticGoldWand(look); HereticWandShot? shotResult = null;
         aimed.ShotFired += shot => shotResult = shot;
