@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in registered enemy morph dispatch.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -24,7 +25,11 @@ namespace ManagedDoom
         // Internal foundation only: inventory activation stays gated until the
         // morph handler implements actor replacement, restoration and retries.
         internal event Action<Mobj> EggMorphRequested;
-        internal void RequestEggMorph(Mobj target) => EggMorphRequested?.Invoke(target);
+        internal void RequestEggMorph(Mobj target)
+        {
+            EggMorphRequested?.Invoke(target);
+            if (TestEnemyMorphEnabled) MorphTestEnemy(target);
+        }
         internal void SpawnEggVolley()
         {
             if (State.Health <= 0) return;

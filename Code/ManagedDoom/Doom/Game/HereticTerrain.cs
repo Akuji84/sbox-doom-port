@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, shared feather particle landing and gravity.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -66,7 +67,7 @@ namespace ManagedDoom
             body.UpdateFrameInterpolationInfo();
             var effect = new HereticMapActor(type, body, state); impactEffects.Add(effect); return effect;
         }
-        private static bool IsLiquidChunk(HereticActorType type) => type == HereticActorType.MT_SPLASH || type == HereticActorType.MT_SLUDGECHUNK;
+        private static bool IsLiquidChunk(HereticActorType type) => type == HereticActorType.MT_SPLASH || type == HereticActorType.MT_SLUDGECHUNK || type == HereticActorType.MT_FEATHER;
         private void MoveLiquidChunk(HereticMapActor effect)
         {
             var body = effect.Body;

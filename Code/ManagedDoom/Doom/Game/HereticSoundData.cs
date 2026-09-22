@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, chicken actor sounds.
 // s&Doom modification: 2026-09-22, powered Hellstaff sounds.
 // s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
@@ -44,6 +45,10 @@ namespace ManagedDoom
             HereticSoundId.sfx_gntpow => "GNTPOW",
             HereticSoundId.sfx_stfpow => "STFPOW",
             HereticSoundId.sfx_stfcrk => "STFCRK",
+            HereticSoundId.sfx_chicpai => "CHICPAI",
+            HereticSoundId.sfx_chicatk => "CHICATK",
+            HereticSoundId.sfx_chicdth => "CHICDTH",
+            HereticSoundId.sfx_chicact => "CHICACT",
             HereticSoundId.sfx_clksit => "CLKSIT",
             HereticSoundId.sfx_clkatk => "CLKATK",
             HereticSoundId.sfx_clkdth => "CLKDTH",

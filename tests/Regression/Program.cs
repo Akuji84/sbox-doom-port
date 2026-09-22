@@ -249,6 +249,7 @@ HereticPoweredSkullRodChecks.Verify(root);
 HereticTomeChecks.Verify(root);
 HereticArtifactHudChecks.Verify(root);
 HereticEggChecks.Verify(root);
+HereticChickenChecks.Verify(root);
 HereticAutomapChecks.Verify(root);
 CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

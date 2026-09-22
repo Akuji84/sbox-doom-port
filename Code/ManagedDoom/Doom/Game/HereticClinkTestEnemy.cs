@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, reversible chicken test-enemy lifecycle.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 // s&Doom modification: 2026-09-22, normal Gold Wand replaces the encounter test ray.
 //
@@ -24,11 +25,11 @@ using System.Collections.Generic;
 namespace ManagedDoom
 {
     public readonly record struct HereticTestDrop(HereticActorType Type, int Amount, Fixed X, Fixed Y, Fixed Z, Fixed MomX, Fixed MomY, Fixed MomZ);
-    public sealed class HereticClinkTestEnemy : IHereticActorActions
+    public sealed partial class HereticClinkTestEnemy : IHereticActorActions
     {
         private readonly HereticWorldSession session;
         private readonly VisibilityCheck visibility;
-        public HereticCombatant Combatant { get; }
+        public HereticCombatant Combatant { get; private set; }
         public Mobj Body => Combatant.Body;
         public event Action<HereticSoundId, Mobj> SoundRequested;
         public event Action<HereticTestDrop> DropRequested;
@@ -38,7 +39,7 @@ namespace ManagedDoom
             visibility = new VisibilityCheck(session.World);
             Combatant = new HereticCombatant(session.World, HereticActorType.MT_CLINK, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -55,12 +56,16 @@ namespace ManagedDoom
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {
-            var def = HereticDefinitions.Actors[(int)HereticActorType.MT_CLINK];
+            var elapsed = action == HereticAction.A_ChicLook || action == HereticAction.A_ChicPain ? 10 : action == HereticAction.A_ChicChase ? 3 : action == HereticAction.A_ChicAttack ? 18 : 0;
+            if (elapsed != 0 && UpdateChicken(elapsed)) return;
+            var def = HereticDefinitions.Actors[(int)Combatant.Type];
             switch (action)
             {
+                case HereticAction.A_ChicLook:
                 case HereticAction.A_Look:
                     if (CanSee) { Body.Target = session.Body; Sound(def.SeeSound); state.SetState(def.SeeState); }
                     break;
+                case HereticAction.A_ChicChase:
                 case HereticAction.A_Chase:
                     if (session.State.Health <= 0) { Body.Target = null; state.SetState(def.SpawnState); break; }
                     if (Body.ReactionTime > 0) Body.ReactionTime--;
@@ -78,10 +83,16 @@ namespace ManagedDoom
                     Sound(def.AttackSound);
                     if (MeleeRange) session.DamageEnvironment(session.World.Random.Next() % 7 + 3);
                     break;
+                case HereticAction.A_ChicAttack:
+                    if (Body.Target != null && MeleeRange) session.DamageEnvironment(1 + (session.World.Random.Next() & 1));
+                    break;
+                case HereticAction.A_Feathers: session.SpawnChickenFeathers(Body); break;
+                case HereticAction.A_ChicPain:
                 case HereticAction.A_Pain: Sound(def.PainSound); break;
                 case HereticAction.A_Scream: Sound(def.DeathSound); break;
                 case HereticAction.A_NoBlocking:
                     Body.Flags &= ~MobjFlags.Solid;
+                    if (IsChicken) break;
                     var random = session.World.Random;
                     if (random.Next() <= 84)
                     {

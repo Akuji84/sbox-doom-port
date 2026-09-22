@@ -812,3 +812,28 @@ preview control can fire eggs until that work is integrated. Tests exercise the
 internal volley, spread/speed/aim, owner/ghost/height handling, random ordering,
 absence of ordinary damage, floor impacts and cleanup. Existing Doom behavior
 remains protected by the five WAD compatibility fixtures.
+
+### 2026-09-22: Registered enemy chicken lifecycle
+
+Added an internal Clink-to-chicken lifecycle with native chicken state tables,
+health/dimensions, sounds, attacks, pain/death feathers and ordinary damage.
+Replacement preserves position, angle, target and initial ghost status, unlinks
+the old body and removes its shootable/solid flags without recording a kill.
+Chicken actions reduce the reference forty-second-plus-random duration. Expiry
+probes the original Clink dimensions and restores spawn health if it fits;
+blocked restoration retries after five seconds. Restoration preserves angle and
+target and emits teleport fog. A dead chicken stays dead and records one kill;
+it does not execute Clink's ammo drop.
+
+The failed-fit path retains the existing chicken object and state atomically
+instead of deleting/recreating it as the C reference does. It therefore avoids
+that reference's failed-spawn RNG and momentum reset. Chicken pursuit shares the
+existing limited Clink preview movement; full vanilla chase behavior remains
+unfinished. Feather motion shares native low-gravity particle clipping/landing.
+
+Opt-in internal egg dispatch exercises this lifecycle in regression checks.
+Morph Ovum inventory/controls remain gated while player morphing and remaining
+actor exclusions are integrated. Tests cover replacement and stale-body flags,
+identity/target/ghost handling, timer bounds, blocked restoration/retry, egg
+integration, state ticking, single kill accounting and feather cleanup. Existing
+Doom compatibility results remain unchanged.
