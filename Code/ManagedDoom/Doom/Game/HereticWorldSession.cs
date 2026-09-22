@@ -120,6 +120,7 @@ namespace ManagedDoom
                 }
                 LookAndFly(command);
             }
+            if (command.UseArtifact is HereticHealingArtifact artifact) UseHealingArtifact(artifact);
             EnvironmentForces(onGround);
             if (State.Health <= 0) { TickDead(); return; }
             MoveHorizontal(command);
@@ -341,7 +342,7 @@ namespace ManagedDoom
             foreach (var thing in world.Map.Things)
             {
                 var decision = HereticMapSpawns.Decide(thing, skill);
-                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC13 && decision.Type != HereticActorType.MT_MISC0 && ArmorPickup(decision.Type) == 0 && !CrossbowPickup(decision.Type) && !SkullRodPickup(decision.Type) && !PhoenixPickup(decision.Type) && !MacePickup(decision.Type))) continue;
+                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC13 && decision.Type != HereticActorType.MT_MISC0 && ArmorPickup(decision.Type) == 0 && !CrossbowPickup(decision.Type) && !SkullRodPickup(decision.Type) && !PhoenixPickup(decision.Type) && !MacePickup(decision.Type) && !HealingArtifactPickup(decision.Type))) continue;
                 SpawnMapActor(thing, decision.Type);
                 UnsupportedMapThings--;
             }
@@ -361,10 +362,21 @@ namespace ManagedDoom
             {
                 var actor = actors[i];
                 var ammo = AmmoPickup(actor.Type);
-                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC13 && actor.Type != HereticActorType.MT_MISC0 && ArmorPickup(actor.Type) == 0 && !CrossbowPickup(actor.Type) && !SkullRodPickup(actor.Type) && !PhoenixPickup(actor.Type) && !MacePickup(actor.Type)))) continue;
+                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC13 && actor.Type != HereticActorType.MT_MISC0 && ArmorPickup(actor.Type) == 0 && !CrossbowPickup(actor.Type) && !SkullRodPickup(actor.Type) && !PhoenixPickup(actor.Type) && !MacePickup(actor.Type) && !HealingArtifactPickup(actor.Type)))) continue;
                 var body = actor.Body; var dz = body.Z - Body.Z;
                 if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
+                else if (HealingArtifactPickup(actor.Type))
+                {
+                    if (!GiveHealingArtifact(actor.Type == HereticActorType.MT_MISC3 ? HereticHealingArtifact.QuartzFlask : HereticHealingArtifact.MysticUrn)) continue;
+                    State.Message = actor.Type == HereticActorType.MT_MISC3 ? "Quartz Flask" : "Mystic Urn";
+                    State.PickupFlash = Math.Min(int.MaxValue - 6, State.PickupFlash) + 6;
+                    body.Flags &= ~MobjFlags.Special;
+                    actor.Animation.SetState(HereticStateId.S_DEADARTI1);
+                    impactEffects.Add(actor); actors.RemoveAt(i);
+                    RequestSound(HereticSoundId.sfx_artiup, body);
+                    continue;
+                }
                 else if (MacePickup(actor.Type))
                 {
                     var weapon = actor.Type == HereticActorType.MT_WMACE;
@@ -436,7 +448,7 @@ namespace ManagedDoom
         private void SpawnMapActor(MapThing thing, HereticActorType type)
         {
             var def = HereticDefinitions.Actors[(int)type];
-            var bobSeed = (type == HereticActorType.MT_MISC0 || ArmorPickup(type) != 0) ? world.Random.Next() : def.SpawnHealth;
+            var bobSeed = (type == HereticActorType.MT_MISC0 || ArmorPickup(type) != 0 || HealingArtifactPickup(type)) ? world.Random.Next() : def.SpawnHealth;
             var tics = HereticDefinitions.States[(int)def.SpawnState].Tics;
             var animation = new HereticActorState(def.SpawnState, initialTics: tics > 0 ? 1 + world.Random.Next() % tics : null);
             // Explicit shared spatial flags; behavior flags remain family-owned.

@@ -730,3 +730,24 @@ RNG consumption and deterministic replay, full-cap retention and capped collecti
 removal and sound. Existing Doom simulation/render baselines remain required.
 Other enemy families, artifact drops, full campaign/saves/multiplayer and in-editor
 playtesting remain outstanding.
+
+### 2026-09-22: healing artifact inventory
+
+The combat preview now spawns and collects Quartz Flasks and Mystic Urns into
+separate stored counts, capped at sixteen of each. Collecting an artifact plays
+ARTIUP, gives pickup feedback and runs the non-respawning DEADARTI animation
+before unlinking its actor. Full inventory leaves the map artifact available.
+Both artifact types use the existing item bob animation before collection.
+
+Q uses one Quartz Flask (+25 health); U uses one Mystic Urn (+100 health), capped
+at 100. Successful use synchronizes player/body health, consumes one stored item
+and plays ARTIUSE. Full-health or dead-player use does not consume an item, and
+dead players cannot acquire one. The preview shows both inventory counts. Artifact
+commands retain short frame taps and are consumed only once during tick catch-up.
+
+Regression coverage checks both map pickups, storage caps, full-health retention,
+healing/capping, animated pickup cleanup, short-tap input and death gating. Existing
+Doom compatibility baselines remain required. This is the manually used healing
+subset: automatic emergency healing, the general inventory selector/HUD, other
+artifacts, deathmatch respawning, persistence and networking remain outstanding.
+In-editor playtesting is still required.

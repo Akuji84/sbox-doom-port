@@ -9,6 +9,7 @@ namespace ManagedDoom
     {
         private double remainder;
         private HereticWeapon? pendingWeapon;
+        private HereticHealingArtifact? pendingArtifact;
         private bool observedUse, sentUse, pendingUse, pendingCenter, pendingLand, pendingTestAttack;
         public int TickCount { get; private set; }
         public void Advance(double elapsedSeconds, HereticCommand sampled, Action<HereticCommand> tick)
@@ -22,6 +23,7 @@ namespace ManagedDoom
             pendingLand |= sampled.Land;
             pendingTestAttack |= sampled.TestAttack;
             pendingWeapon = sampled.SelectWeapon ?? pendingWeapon;
+            pendingArtifact = sampled.UseArtifact ?? pendingArtifact;
             // Bound recovery after a paused/stalled editor frame. Retain the fractional tick.
             remainder += Math.Min(elapsedSeconds, 0.25) * 35;
             while (remainder >= 1 - 1e-9)
@@ -38,8 +40,10 @@ namespace ManagedDoom
                 command.Land |= pendingLand;
                 command.TestAttack |= pendingTestAttack;
                 command.SelectWeapon = pendingWeapon;
+                command.UseArtifact = pendingArtifact;
                 tick(command);
                 pendingWeapon = null;
+                pendingArtifact = null;
                 sentUse = command.Use;
                 pendingCenter = pendingLand = pendingTestAttack = false;
                 remainder = Math.Max(0, remainder - 1);

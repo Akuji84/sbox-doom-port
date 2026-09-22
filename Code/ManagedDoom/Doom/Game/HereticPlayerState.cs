@@ -23,15 +23,19 @@ using System;
 namespace ManagedDoom
 {
     [Flags] public enum HereticKeys { None = 0, Yellow = 1, Green = 2, Blue = 4 }
+    public enum HereticHealingArtifact { QuartzFlask, MysticUrn }
     public struct HereticCommand
     {
         public sbyte Forward, Side, Look, Fly;
         public short Turn;
         public bool Use, CenterLook, Land, TestAttack;
         public HereticWeapon? SelectWeapon;
+        public HereticHealingArtifact? UseArtifact;
     }
     public sealed class HereticPlayerState
     {
+        public int QuartzFlasks { get; internal set; }
+        public int MysticUrns { get; internal set; }
         public HereticKeys Keys { get; internal set; }
         public int LookDirection { get; internal set; }
         public bool Centering { get; internal set; }
