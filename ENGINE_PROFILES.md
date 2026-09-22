@@ -1217,3 +1217,21 @@ This enables enemy morphing only for the registered Clink preview encounter.
 Player morphing, beak controls, Tome chicken reversal, additional monsters/bosses,
 campaign progression, saves and multiplayer remain unfinished. Production
 Heretic loading stays gated.
+
+### 2026-09-22: Player beak weapon foundation
+
+Added internal beak activation and native normal/powered attacks to the existing
+weapon controller. Peck attacks use the reference 64-unit melee trace, normal
+1-4 damage or powered 4-32 damage, target facing, rising MT_BEAKPUFF, one of three
+licensed peck sounds and randomized attack-state duration. The peck counter
+moves the weapon overlay and settles after release. Beak mode locks ordinary
+weapon selection and uses no gun ammunition; death lowers and hides it.
+
+The timed weapon power selects super-chicken attacks without an additional test
+flag. Expiry returns subsequent attacks to the normal table. All beak entry
+points remain internal until player body replacement/restoration is complete;
+this does not yet expose player transformation or change the normal player's
+body animation, camera height or movement. Existing Doom weapon paths are
+unchanged. Regression checks cover activation/switch restrictions, both damage
+ranges, ghost contacts, melee distance, timing, peck motion, sounds/puffs,
+release, expiry and death.

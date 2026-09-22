@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, native beak attack foundation.
 // s&Doom modification: 2026-09-22, timed Tome weapon selection and transitions.
 // s&Doom modification: 2026-09-22, powered Hellstaff preview.
 // s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
@@ -29,7 +30,7 @@ namespace ManagedDoom
 {
     public readonly record struct HereticWandShot(int Damage, Angle Angle, Fixed Slope, HereticTraceHit? Hit);
     /// <summary>Normal staff, Gold Wand, Crossbow, Dragon Claw, Hellstaff, Phoenix Rod, Firemace and Gauntlets controller for the opt-in encounter.</summary>
-    public sealed class HereticGoldWand
+    public sealed partial class HereticGoldWand
     {
         private readonly HereticWorldSession session;
         private readonly Hitscan aiming;
@@ -279,7 +280,7 @@ namespace ManagedDoom
         }
         public bool SelectWeapon(HereticWeapon weapon)
         {
-            if (session.State.Health <= 0 || !Visible ||
+            if (session.State.Health <= 0 || !Visible || ReadyWeapon == HereticWeapon.wp_beak ||
                 (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster && weapon != HereticWeapon.wp_gauntlets && weapon != HereticWeapon.wp_crossbow && weapon != HereticWeapon.wp_skullrod && weapon != HereticWeapon.wp_phoenixrod && weapon != HereticWeapon.wp_mace) ||
                 (weapon == HereticWeapon.wp_goldwand && Ammo <= 0) ||
                 (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo < WeaponAmmoCost(HereticWeapon.wp_blaster))) ||
@@ -321,6 +322,11 @@ namespace ManagedDoom
         }
         public void Tick(bool attackHeld)
         {
+            if (ReadyWeapon == HereticWeapon.wp_beak && session.State.Health > 0)
+            {
+                Y = Fixed.FromInt(32) + Fixed.FromInt(BeakPeck) / 2;
+                BeakPeck = Math.Max(0, BeakPeck - 3);
+            }
             attack = attackHeld && session.State.Health > 0;
             if (!Visible) return;
             if (session.State.Health <= 0 && State != Weapon.Down)
@@ -349,6 +355,14 @@ namespace ManagedDoom
                     switch (state.Action)
                     {
                         case HereticAction.None: break;
+                        case HereticAction.A_BeakReady:
+                            if (attack) { attackDown = true; SetState(Weapon.Attack); }
+                            else attackDown = false;
+                            break;
+                        case HereticAction.A_BeakRaise:
+                            Y = Fixed.FromInt(32); SetState(Weapon.Ready); break;
+                        case HereticAction.A_BeakAttackPL1: AttackBeak(false); break;
+                        case HereticAction.A_BeakAttackPL2: AttackBeak(true); break;
                         case HereticAction.A_Raise:
                             Y -= Fixed.FromInt(6);
                             if (Y <= Fixed.FromInt(32)) { Y = Fixed.FromInt(32); SetState(Weapon.Ready); }

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, native rising beak puff.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
@@ -36,7 +37,7 @@ namespace ManagedDoom
             if (hit.Line is { } line && line.FrontSector.CeilingFlat == world.Map.SkyFlatNumber &&
                 (z > line.FrontSector.CeilingHeight || line.BackSector?.CeilingFlat == world.Map.SkyFlatNumber)) return;
             var blasterActor = weapon == HereticWeapon.wp_blaster && hit.Actor != null;
-            var type = weapon == HereticWeapon.wp_gauntlets ? (poweredGauntlets ? HereticActorType.MT_GAUNTLETPUFF2 : HereticActorType.MT_GAUNTLETPUFF1) : weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? (poweredStaff ? HereticActorType.MT_STAFFPUFF2 : HereticActorType.MT_STAFFPUFF) : poweredGoldWand ? HereticActorType.MT_GOLDWANDPUFF2 : HereticActorType.MT_GOLDWANDPUFF1;
+            var type = weapon == HereticWeapon.wp_beak ? HereticActorType.MT_BEAKPUFF : weapon == HereticWeapon.wp_gauntlets ? (poweredGauntlets ? HereticActorType.MT_GAUNTLETPUFF2 : HereticActorType.MT_GAUNTLETPUFF1) : weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? (poweredStaff ? HereticActorType.MT_STAFFPUFF2 : HereticActorType.MT_STAFFPUFF) : poweredGoldWand ? HereticActorType.MT_GOLDWANDPUFF2 : HereticActorType.MT_GOLDWANDPUFF1;
             var def = HereticDefinitions.Actors[(int)type];
             if (!blasterActor) z += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
             var animation = new HereticActorState(def.SpawnState);
@@ -47,7 +48,7 @@ namespace ManagedDoom
                 LastLook = world.Random.Next() % 4,
                 Flags = MobjFlags.NoGravity | MobjFlags.NoBlockMap | (weapon == HereticWeapon.wp_gauntlets ? MobjFlags.Shadow : 0),
                 Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame,
-                MomZ = weapon == HereticWeapon.wp_staff && !poweredStaff ? Fixed.One : weapon == HereticWeapon.wp_gauntlets ? new Fixed(52428) : Fixed.Zero
+                MomZ = (weapon == HereticWeapon.wp_staff && !poweredStaff) || weapon == HereticWeapon.wp_beak ? Fixed.One : weapon == HereticWeapon.wp_gauntlets ? new Fixed(52428) : Fixed.Zero
             };
             world.ThingMovement.SetThingPosition(body);
             body.FloorZ = body.Subsector.Sector.FloorHeight;
