@@ -141,12 +141,12 @@ namespace ManagedDoom
             }
             return null;
         }
-        public HereticDamageResult DamageTestEnemy(Mobj body, int damage, bool environment = false)
+        public HereticDamageResult DamageTestEnemy(Mobj body, int damage, bool environment = false, Mobj inflictor = null)
         {
             foreach (var enemy in testEnemies)
                 if (enemy.Body == body)
                 {
-                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : Body, environment ? null : Body);
+                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : Body);
                     if (result == HereticDamageResult.Killed) TestKills++;
                     return result;
                 }
@@ -165,6 +165,7 @@ namespace ManagedDoom
         private void TickClinkTest(bool shoot)
         {
             TickImpactEffects();
+            TickProjectiles();
             GoldWand?.Tick(shoot);
             foreach (var enemy in testEnemies) enemy.Tick();
         }

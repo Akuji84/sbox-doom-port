@@ -220,5 +220,6 @@ HereticSoundChecks.Verify(root);
 HereticAmmoChecks.Verify(root);
 HereticArmorChecks.Verify(root);
 HereticFeedbackChecks.Verify(root);
+HereticCrossbowChecks.Verify(root);
 CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, isolated native Heretic crossbow collision and sky routing.
 // s&Doom modification: 2026-09-22, Heretic test-enemy contact, crush and telefrag routing.
 // s&Doom modification: 2026-09-22, Heretic player/scenery height collision.
 // s&Doom modification: 2026-09-18, isolated Heretic movement dispatch.
@@ -64,6 +65,7 @@ namespace ManagedDoom
         private bool floatOk;
 
         private LineDef currentCeilingLine;
+        internal bool HereticMissileHitSky => currentCeilingLine?.BackSector?.CeilingFlat == world.Map.SkyFlatNumber;
 
         public int crossedSpecialCount;
         public LineDef[] crossedSpecials;
@@ -293,6 +295,9 @@ namespace ManagedDoom
             {
                 return true;
             }
+
+            if (world.HereticSession?.FindProjectile(currentThing) is HereticProjectile projectile)
+                return projectile.Contact(thing);
 
             // Heretic player/scenery contacts use height as well as the blockmap footprint.
             // Keep this dispatch ahead of Doom's missile, pickup and damage actions.

@@ -211,3 +211,29 @@ hearing bounds and wide coordinate differences.
 Adapt pinned GPL s_sound.c separation calculation. Add equal-power interleaved
 stereo conversion and native two-channel playback, verified against installed
 SDK metadata and orientation/sample-boundary regressions.
+
+### 2026-09-22: normal Crossbow and native projectiles
+
+The opt-in combat preview now supports the normal Crossbow: map weapon and
+small/large ammo pickups, ownership, ranked selection, 50-ammo capacity,
+difficulty bonuses, one-ammo three-bolt volleys and empty-ammo fallback.
+Enable TestCombat in the Heretic preview and collect the weapon, or also enable
+TestCrossbow to grant it for testing. Press 3 to select an owned Crossbow.
+
+Bolts use immutable Heretic actor definitions, sector-linked sprites, fixed-tick
+motion, autoaim/pitch, owner and height exclusion, per-bolt ghost rules, damage,
+impact states and sounds. They use isolated collision dispatch in the shared
+movement engine without invoking Doom actor definitions. Sky impacts disappear;
+other impacts animate and are unlinked when finished. Existing bolts continue
+ticking independently of weapon selection and the player's attack button.
+
+Movement uses collision substeps of at most eight map units to avoid crossing
+narrow targets. This is a deliberate robustness choice, not bit-identical legacy
+missile movement. Feet clipping, powered Crossbow, other projectile families,
+full enemy damage rules, multiplayer and saves remain pending. The preview is
+still gated and requires in-editor playtesting before release.
+
+Regression coverage exercises three-bolt firing, actual Clink damage, rendering,
+replay determinism, ammo/fallback, map weapon collection, bonuses/caps, owner and
+ghost exclusion, vertical separation and sky/floor impact cleanup. The unchanged
+five-WAD Doom simulation/render baselines remain required.
