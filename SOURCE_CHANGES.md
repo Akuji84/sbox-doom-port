@@ -167,3 +167,8 @@ bonus and pickup sound with regression coverage; preserve navigation-only spawns
 
 Adapt the single-player P_GiveWeapon path from pinned GPL p_inter.c for Dragon
 Claw. Add filtered spawning, ownership/ammo grants, pickup sound and regressions.
+
+### 2026-09-22 - Healing potion pickup and bobbing
+
+Adapt normal P_GiveBody and healing potion touch rules from pinned GPL p_inter.c,
+and item bob offsets/phase from p_mobj.c. Add healing and animation regressions.

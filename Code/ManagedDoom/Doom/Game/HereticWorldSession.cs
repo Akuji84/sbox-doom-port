@@ -308,10 +308,19 @@ namespace ManagedDoom
             foreach (var thing in world.Map.Things)
             {
                 var decision = HereticMapSpawns.Decide(thing, skill);
-                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14)) continue;
+                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC0)) continue;
                 SpawnMapActor(thing, decision.Type);
                 UnsupportedMapThings--;
             }
+        }
+        // Adapted 2026-09-22 from pinned p_inter.c P_GiveBody, normal player only.
+        internal bool GiveHealth(int amount)
+        {
+            if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (State.Health <= 0 || State.Health >= 100) return false;
+            State.Health = (int)Math.Min(100, (long)State.Health + amount);
+            Body.Health = State.Health;
+            return true;
         }
         private void PickupKeys()
         {
@@ -319,10 +328,16 @@ namespace ManagedDoom
             {
                 var actor = actors[i];
                 var ammo = AmmoPickup(actor.Type);
-                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14))) continue;
+                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC0))) continue;
                 var body = actor.Body; var dz = body.Z - Body.Z;
                 if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
+                else if (actor.Type == HereticActorType.MT_MISC0)
+                {
+                    if (!GiveHealth(10)) continue;
+                    State.Message = "Healing potion";
+                    RequestSound(HereticSoundId.sfx_itemup, Body);
+                }
                 else if (actor.Type == HereticActorType.MT_MISC14)
                 {
                     if (!GoldWand.GiveBlaster(skill == GameSkill.Baby || skill == GameSkill.Nightmare)) continue;
@@ -343,6 +358,7 @@ namespace ManagedDoom
         private void SpawnMapActor(MapThing thing, HereticActorType type)
         {
             var def = HereticDefinitions.Actors[(int)type];
+            var bobSeed = type == HereticActorType.MT_MISC0 ? world.Random.Next() : def.SpawnHealth;
             var tics = HereticDefinitions.States[(int)def.SpawnState].Tics;
             var animation = new HereticActorState(def.SpawnState, initialTics: tics > 0 ? 1 + world.Random.Next() % tics : null);
             // Explicit shared spatial flags; behavior flags remain family-owned.
@@ -354,7 +370,7 @@ namespace ManagedDoom
             if ((def.Flags & HereticActorFlags.MF_NOBLOCKMAP) != 0 || HereticMapSpawns.KeyFor(type) != HereticKeys.None) flags |= MobjFlags.NoBlockMap;
             if ((thing.Flags & ThingFlags.Ambush) != 0) flags |= MobjFlags.Ambush;
             var body = new Mobj(world) { X = thing.X, Y = thing.Y, Angle = thing.Angle, Radius = def.Radius,
-                Height = def.Height, Health = def.SpawnHealth, Flags = flags, Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame };
+                Height = def.Height, Health = bobSeed, Flags = flags, Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame };
             world.ThingMovement.SetThingPosition(body);
             body.FloorZ = body.Subsector.Sector.FloorHeight;
             body.CeilingZ = body.Subsector.Sector.CeilingHeight;

@@ -465,3 +465,15 @@ editor shortcut rather than a requirement for acquiring the weapon.
 The pickup uses single-player P_GiveWeapon rules. Cooperative weapon-stay and
 deathmatch respawn behavior remain disabled with the multiplayer gameplay gate.
 Tests cover real map collection, ownership, selection, sound and cap boundaries.
+
+### 2026-09-22: healing potions
+
+Test Combat now spawns filtered healing potions (map thing 81). They animate and
+bob using the pinned fixed-point 64-phase offsets with a seeded starting phase.
+Touching a potion restores 10 health up to 100, synchronizes the player and body
+health, removes the accepted pickup and plays ITEMUP. Full-health players leave
+it available; healing cannot revive a dead player. Navigation-only remains unchanged.
+
+Tests cover collection, cap/retention, synchronized health, death rejection and
+bob peak/wrap. Inventory healing artifacts, transformed-player health limits and
+multiplayer pickup rules remain pending. In-editor testing is still outstanding.

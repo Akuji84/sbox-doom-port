@@ -59,6 +59,33 @@ static class HereticAmmoChecks
         full.GiveAmmo(true, 200, false);
         Check(full.GiveBlaster(false) && full.HasBlaster && full.BlasterAmmo == 200,
             "Full ammo prevented acquiring an unowned weapon.");
+        var healing = new HereticWorldSession(content);
+        var potionThing = healing.World.Map.Things.First(t => t.Type == 10 && ((int)t.Flags & 2) != 0 && ((int)t.Flags & 16) == 0);
+        potionThing.Type = 81;
+        Check(healing.StartClinkTest() != null, "Healing encounter failed.");
+        var potion = healing.Actors.First(a => a.Type == HereticActorType.MT_MISC0);
+        potion.Body.Health = 0;
+        for (var i = 0; i < 65; i++)
+        {
+            potion.Tick();
+            if (i == 16) Check(potion.Body.Z == potion.Body.FloorZ + new Fixed(524287), "Potion bob peak differs.");
+        }
+        Check(potion.Body.Z == potion.Body.FloorZ, "Potion bob did not wrap after 64 phases.");
+        healing.World.ThingMovement.UnsetThingPosition(healing.Body);
+        healing.Body.X = potion.Body.X; healing.Body.Y = potion.Body.Y; healing.Body.Z = potion.Body.Z;
+        healing.World.ThingMovement.SetThingPosition(healing.Body);
+        healing.Body.FloorZ = potion.Body.FloorZ; healing.Body.CeilingZ = potion.Body.CeilingZ;
+        healing.Tick(default);
+        Check(healing.Actors.Contains(potion), "Full-health player consumed potion.");
+        healing.DamageEnvironment(5);
+        healing.Tick(default);
+        Check(healing.State.Health == 100 && healing.Body.Health == 100 && potion.Animation.Removed,
+            "Potion did not heal/cap/synchronize health and disappear.");
+        healing.DamageEnvironment(30);
+        Check(healing.GiveHealth(10) && healing.State.Health == 80 && healing.Body.Health == 80, "Health grant differs.");
+        healing.DamageEnvironment(100);
+        Check(!healing.GiveHealth(10) && healing.Body.Health == 0, "Healing resurrected a dead player.");
+        Console.WriteLine("PASS Heretic healing: map collection, full-health retention, capped synchronized health and no resurrection");
         Console.WriteLine("PASS Dragon Claw pickup: map touch, ownership, ammo, selection, sound and duplicate/full-ammo behavior");
         Console.WriteLine("PASS Heretic ammo: opt-in map spawns, idempotence, touch/removal, full-cap retention, difficulty bonus and ownership isolation");
     }
