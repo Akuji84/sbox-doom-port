@@ -19,8 +19,9 @@ namespace ManagedDoom
         public const int Height = 200;
         public string Report { get; }
         public bool AutomapVisible { get; set; }
-        private float automapZoom = 1;
-        public void ZoomAutomap(bool closer) => automapZoom = Math.Clamp(automapZoom * (closer ? 1.25f : 0.8f), 0.125f, 16f);
+        public HereticAutomapView Automap { get; }
+        private readonly Patch[] markDigits;
+        public void ZoomAutomap(bool closer) => Automap?.ChangeZoom(closer);
         public HereticMapPreview(GameContent content, int episode = 1, int map = 1)
             : this(content, World.CreateGeometryPreview(content, episode, map), null) { }
         public HereticMapPreview(GameContent content, HereticWorldSession session)
@@ -29,6 +30,11 @@ namespace ManagedDoom
         {
             this.content = content;
             world = previewWorld;
+            if (world.HereticSession != null)
+            {
+                Automap = new HereticAutomapView(world.HereticSession);
+                markDigits = Enumerable.Range(0, 10).Select(i => Patch.FromWad(content.Wad, "IN" + i)).ToArray();
+            }
             tintTable = content.Wad.ReadLump(content.Wad.GetLumpNumber("TINTTAB"));
             if (tintTable.Length != 65536) throw new InvalidOperationException("Heretic TINTTAB must contain 65536 bytes.");
             var start = world.Map.Things.FirstOrDefault(t => t.Type == 1);
@@ -50,7 +56,7 @@ namespace ManagedDoom
                 throw new ArgumentException("Preview requires a 320x200 RGBA buffer.");
             if (world.HereticSession == null) world.SetPreviewTime(tic);
             if (AutomapVisible && world.HereticSession != null)
-                HereticAutomap.Render(world.HereticSession, screen, automapZoom);
+                HereticAutomap.Render(world.HereticSession, screen, Automap, markDigits);
             else
             {
                 var original = camera.Mobj.Angle;

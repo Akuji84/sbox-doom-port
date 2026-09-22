@@ -938,3 +938,19 @@ simulation continues while the automap is open. Rendering the map does not itsel
 reveal additional walls or advance gameplay RNG. Tests cover discovery/reveal,
 hidden lines, visible rendering, zoom bounds, return to 3D and pickup/duplicate
 behavior. In-editor input and visual playtesting remain outstanding.
+
+### 2026-09-22: Automap free panning and numbered markers
+
+Added O-key follow/free-pan switching, arrow-key panning and M/C marker controls.
+Free panning is bounded to map vertices and scales with elapsed time and zoom.
+Returning to follow immediately recenters on the player. While the map is open,
+arrow input navigates the map instead of turning or pitching the player; WASD
+movement and the running simulation remain available. A crosshair identifies the
+free-pan center, and the player marker stays at its actual map position.
+
+Up to ten numbered world-position marks use the bundled IN0-IN9 digit patches;
+after ten, new marks replace slots cyclically. Clearing marks also resets the next
+slot. Marks, pan and zoom remain local preview UI state across map toggles. Tests
+cover pan bounds, frame-rate independence, follow behavior, marker cycling and
+visible clearing without changes to discovery. Full HUD/artwork, campaign/save
+integration and in-editor input/visual playtesting remain outstanding.
