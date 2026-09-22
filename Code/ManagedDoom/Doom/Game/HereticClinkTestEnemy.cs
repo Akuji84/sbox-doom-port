@@ -84,8 +84,7 @@ namespace ManagedDoom
                     var random = session.World.Random;
                     if (random.Next() <= 84)
                     {
-                        var drop = new HereticTestDrop(HereticActorType.MT_AMSKRDWIMPY, 20, Body.X, Body.Y, Body.Z + Body.Height / 2,
-                            new Fixed((random.Next() - random.Next()) << 8), new Fixed((random.Next() - random.Next()) << 8), Fixed.FromInt(5) + new Fixed(random.Next() << 10));
+                        var drop = session.SpawnClinkAmmoDrop(Body);
                         DropRequested?.Invoke(drop);
                     }
                     break;

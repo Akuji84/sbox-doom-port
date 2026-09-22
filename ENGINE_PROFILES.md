@@ -709,3 +709,24 @@ last-ammo fallback, replay RNG/projectile states, map weapon/ammo pickups,
 difficulty bonus, capacity and selection ranking. Existing five-WAD Doom
 compatibility baselines remain required. In-editor playtesting, powered weapons,
 full enemy behavior, campaign integration, saves and multiplayer are outstanding.
+
+### 2026-09-22: collectible Clink ammo drops
+
+Clink death drops now create native collectible Hellstaff ammo actors instead of
+only emitting a test event. Accepted drops retain the reference spawn/velocity
+RNG order, launch from the corpse midpoint, use gravity and ground friction,
+and land with liquid-floor effects where appropriate. The drop event remains
+available to regression observers. Drop chance remains the pinned 84 threshold.
+
+Dropped ammo uses its stored amount through the existing ammo pickup path,
+including difficulty bonuses, capacity, pickup sound/flash and actor unlinking.
+A full ammo reserve leaves the item available; ammo does not grant its weapon.
+Motion and animation continue after player death, while collection remains gated
+by the existing living-player path. Preview drop movement uses shared collision
+with stop-on-block behavior rather than full legacy item sliding.
+
+Tests cover a real Clink kill creating exactly one drop, initial toss/landing,
+RNG consumption and deterministic replay, full-cap retention and capped collection,
+removal and sound. Existing Doom simulation/render baselines remain required.
+Other enemy families, artifact drops, full campaign/saves/multiplayer and in-editor
+playtesting remain outstanding.

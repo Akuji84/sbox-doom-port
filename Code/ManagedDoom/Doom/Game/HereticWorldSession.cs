@@ -127,7 +127,7 @@ namespace ManagedDoom
             if (command.Use && !useDown) Use();
             useDown = command.Use;
             PickupKeys();
-            foreach (var actor in actors) actor.Tick();
+            foreach (var actor in actors) { TickDroppedItem(actor); actor.Tick(); }
             if (command.SelectWeapon is HereticWeapon selected) GoldWand?.SelectWeapon(selected);
             TickClinkTest(State.Health > 0 && command.TestAttack);
             world.Thinkers.Run();
@@ -302,7 +302,7 @@ namespace ManagedDoom
             world.SetPreviewTime(tic);
             MoveHorizontal(default);
             MoveVertical();
-            foreach (var actor in actors) actor.Tick();
+            foreach (var actor in actors) { TickDroppedItem(actor); actor.Tick(); }
             TickClinkTest(false);
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
@@ -385,7 +385,7 @@ namespace ManagedDoom
                 {
                     var weapon = actor.Type == HereticActorType.MT_WSKULLROD;
                     var bonus = skill == GameSkill.Baby || skill == GameSkill.Nightmare;
-                    if (!(weapon ? GoldWand.GiveSkullRod(bonus) : GoldWand.GiveSkullRodAmmo(actor.Type == HereticActorType.MT_AMSKRDWIMPY ? 20 : 100, bonus))) continue;
+                    if (!(weapon ? GoldWand.GiveSkullRod(bonus) : GoldWand.GiveSkullRodAmmo((body.Flags & MobjFlags.Dropped) != 0 ? body.Health : actor.Type == HereticActorType.MT_AMSKRDWIMPY ? 20 : 100, bonus))) continue;
                     State.Message = weapon ? "Hellstaff" : "Hellstaff ammo";
                     RequestSound(weapon ? HereticSoundId.sfx_wpnup : HereticSoundId.sfx_itemup, Body);
                 }

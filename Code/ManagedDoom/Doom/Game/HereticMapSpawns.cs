@@ -104,7 +104,7 @@ namespace ManagedDoom
         { Type = type; Body = body; Animation = animation; }
         internal void Tick()
         {
-            Body.UpdateFrameInterpolationInfo();
+            if ((Body.Flags & MobjFlags.Dropped) == 0) Body.UpdateFrameInterpolationInfo();
             if (Type == HereticActorType.MT_MISC0 || Type == HereticActorType.MT_ITEMSHIELD1 || Type == HereticActorType.MT_ITEMSHIELD2)
             {
                 Body.FloorZ = Body.Subsector.Sector.FloorHeight;
