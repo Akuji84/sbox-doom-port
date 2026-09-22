@@ -466,6 +466,7 @@ namespace ManagedDoom
             // Explicit shared spatial flags; behavior flags remain family-owned.
             var flags = (MobjFlags)0;
             if ((def.Flags & HereticActorFlags.MF_SOLID) != 0) flags |= MobjFlags.Solid;
+            if ((def.Flags & HereticActorFlags.MF_SHADOW) != 0) flags |= MobjFlags.Shadow;
             if ((def.Flags & HereticActorFlags.MF_NOGRAVITY) != 0) flags |= MobjFlags.NoGravity;
             if ((def.Flags & HereticActorFlags.MF_SPAWNCEILING) != 0) flags |= MobjFlags.SpawnCeiling;
             if ((def.Flags & HereticActorFlags.MF_NOSECTOR) != 0) flags |= MobjFlags.NoSector;

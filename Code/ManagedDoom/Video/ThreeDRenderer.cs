@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Heretic world-sprite TINTTAB translucency.
 // s&Doom modification: 2026-09-22, opt-in Heretic ghost weapon tint and lighting.
 // s&Doom modification: 2026-09-22, expose shared weapon lighting for the Heretic overlay.
 // s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
@@ -40,12 +41,18 @@ namespace ManagedDoom.Video
 
         private int windowSize;
         private readonly bool geometryPreview;
+        private readonly byte[] hereticTintTable;
 
         private Fixed frameFrac;
 
         public ThreeDRenderer(GameContent content, DrawScreen screen, int windowSize)
         {
             geometryPreview = content.Profile.Family == GameFamily.Heretic;
+            if (geometryPreview)
+            {
+                hereticTintTable = content.Wad.ReadLump(content.Wad.GetLumpNumber("TINTTAB"));
+                if (hereticTintTable.Length != 65536) throw new ArgumentException("Heretic TINTTAB must contain 65536 bytes.");
+            }
             colorMap = content.ColorMap;
             textures = content.Textures;
             flats = content.Flats;
@@ -2259,7 +2266,8 @@ namespace ManagedDoom.Video
             int y1,
             int y2,
             Fixed invScale,
-            Fixed textureAlt)
+            Fixed textureAlt,
+            bool translucent = false)
         {
             if (y2 - y1 < 0)
             {
@@ -2285,7 +2293,9 @@ namespace ManagedDoom.Video
             {
                 // Re-map color indices from wall texture column
                 // using a lighting/special effects LUT.
-                screenData[pos] = map[source[offset + ((frac.Data >> Fixed.FracBits) & 127)]];
+                var mapped = map[source[offset + ((frac.Data >> Fixed.FracBits) & 127)]];
+                // Heretic r_draw.c blends the lit source index with the destination.
+                screenData[pos] = translucent ? hereticTintTable[(screenData[pos] << 8) + mapped] : mapped;
                 frac += fracStep;
             }
         }
@@ -2382,7 +2392,8 @@ namespace ManagedDoom.Video
             Fixed invScale,
             Fixed textureAlt,
             int upperClip,
-            int lowerClip)
+            int lowerClip,
+            bool translucent = false)
         {
             foreach (var column in columns)
             {
@@ -2397,7 +2408,7 @@ namespace ManagedDoom.Video
                 if (y1 <= y2)
                 {
                     var alt = new Fixed(textureAlt.Data - (column.TopDelta << Fixed.FracBits));
-                    DrawColumn(column, map, x, y1, y2, invScale, alt);
+                    DrawColumn(column, map, x, y1, y2, invScale, alt, translucent);
                 }
             }
         }
@@ -2741,7 +2752,18 @@ namespace ManagedDoom.Video
                 }
             }
 
-            if ((sprite.MobjFlags & MobjFlags.Shadow) != 0)
+            if (hereticTintTable != null && (sprite.MobjFlags & MobjFlags.Shadow) != 0)
+            {
+                var frac = sprite.StartFrac;
+                for (var x = sprite.X1; x <= sprite.X2; x++)
+                {
+                    DrawMaskedColumn(sprite.Patch.Columns[frac.ToIntFloor()], sprite.ColorMap,
+                        x, centerYFrac - sprite.TextureAlt * sprite.Scale, sprite.Scale,
+                        Fixed.Abs(sprite.InvScale), sprite.TextureAlt, upperClip[x], lowerClip[x], true);
+                    frac += sprite.InvScale;
+                }
+            }
+            else if ((sprite.MobjFlags & MobjFlags.Shadow) != 0)
             {
                 var frac = sprite.StartFrac;
                 for (var x = sprite.X1; x <= sprite.X2; x++)

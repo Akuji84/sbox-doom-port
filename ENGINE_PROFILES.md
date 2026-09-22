@@ -889,3 +889,17 @@ blink, full duration, damage and death cleanup. This does not implement addition
 monster AI, enemy ranged attacks, multiplayer, saves or full campaign support.
 World ghost sprites still use the shared renderer's existing shadow treatment;
 Heretic world-sprite translucency and editor playtesting remain outstanding.
+
+### 2026-09-22: Heretic world-sprite translucency
+
+Heretic world sprites carrying the Shadow flag now blend their lit source pixels
+with the framebuffer through the bundled TINTTAB. The renderer retains shared
+sprite projection, scaling, flipping and wall/floor clipping. Doom continues to
+use its original fuzz path. Map actors now preserve the native Shadow flag, which
+makes Shadowsphere pickups translucent as well as armed bombs and shadow effects.
+This completes the world-sprite rendering gap noted in the Shadowsphere checkpoint.
+
+Regression coverage compares actual framebuffer pixels with the tint-table result
+at multiple viewing angles, checks repeatable rendering and pickup flags, and
+retains the five production Doom simulation/render baselines. In-editor visual
+playtesting, full monster support, campaign, saves and multiplayer remain pending.
