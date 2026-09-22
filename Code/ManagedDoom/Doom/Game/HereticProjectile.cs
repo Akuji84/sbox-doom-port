@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -30,13 +31,13 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
             Animation = new HereticActorState(def.SpawnState, this);
             Body = new Mobj(session.World) { X = session.Body.X, Y = session.Body.Y,
-                Z = session.Body.Z + Fixed.FromInt(32) + Fixed.FromInt(session.State.LookDirection) / 173,
+                Z = session.Body.Z + Fixed.FromInt(32) + (type == HereticActorType.MT_GOLDWANDFX2 ? Fixed.Zero : Fixed.FromInt(session.State.LookDirection) / 173),
                 Radius = def.Radius, Height = def.Height, Health = def.SpawnHealth,
                 Flags = MobjFlags.Missile | MobjFlags.NoGravity | MobjFlags.NoBlockMap | MobjFlags.DropOff,
                 Target = session.Body, Angle = angle, LastLook = session.World.Random.Next() % 4,
@@ -123,6 +124,10 @@ namespace ManagedDoom
             if (aiming.LineTarget == null) { angle += new Angle(1u << 26); slope = aiming.AimLineAttack(Body, angle, Fixed.FromInt(1024)); }
             if (aiming.LineTarget == null) { angle -= new Angle(2u << 26); slope = aiming.AimLineAttack(Body, angle, Fixed.FromInt(1024)); }
             if (aiming.LineTarget == null) { angle = original; slope = Fixed.FromInt(State.LookDirection) / 173; }
+            return SpawnAimedProjectile(type, angle, slope);
+        }
+        internal HereticProjectile SpawnAimedProjectile(HereticActorType type, Angle angle, Fixed slope)
+        {
             var bolt = new HereticProjectile(this, type, angle, slope);
             projectiles.Add(bolt);
             RequestSound(HereticDefinitions.Actors[(int)type].SeeSound, bolt.Body);

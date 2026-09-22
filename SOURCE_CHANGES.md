@@ -642,3 +642,18 @@ enemy damage, spark gravity/cleanup and deterministic spark replay. The full Doo
 compatibility suite remains required. This is an explicit powered-weapon preview;
 Tome pickup/duration, remaining powered weapons, campaign/save/multiplayer support
 and in-editor playtesting remain outstanding.
+
+### 2026-09-22: Powered Gold Wand preview
+
+Added Test Powered Gold Wand (requires Test Combat; select with 2). Each powered
+shot spends one ammo, launches two MT_GOLDWANDFX2 side missiles and fires five
+1-8-damage traces in the reference fan. All use the bullet aiming slope; the side
+missiles keep their explicit angles and source-height offset rather than acquiring
+independent targets. Traces use powered impact puffs and the existing firing sound.
+Normal weapon behavior stays on the original state table.
+
+Tests cover trace/missile counts, angles, shared slope, damage/impacts, free-look
+fallback, last-ammo switching, cleanup and dead-player gating. Existing bounded
+projectile substeps remain in use; player feet clipping is still incomplete.
+Tome pickup and duration, remaining powered attacks, campaign/save/multiplayer
+support and in-editor playtesting remain outstanding.

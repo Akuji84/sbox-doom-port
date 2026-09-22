@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 //
@@ -213,7 +214,9 @@ namespace ManagedDoom
             GrantTestCrossbow(ammo); TestPoweredCrossbow = true;
             if (ReadyWeapon == HereticWeapon.wp_crossbow && session.State.Health > 0) SetState(Weapon.Ready);
         }
-        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        public bool TestPoweredGoldWand { get; private set; }
+        public void GrantTestPoweredGoldWand() => TestPoweredGoldWand = true;
+        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -338,6 +341,7 @@ namespace ManagedDoom
                         case HereticAction.A_StaffAttackPL1: SwingStaff(false); break;
                         case HereticAction.A_StaffAttackPL2: SwingStaff(true); break;
                         case HereticAction.A_FireGoldWandPL1: Fire(false); break;
+                        case HereticAction.A_FireGoldWandPL2: FirePoweredGoldWand(); break;
                         case HereticAction.A_FireBlasterPL1: Fire(true); break;
                         default: throw new NotSupportedException("Gold Wand action: " + state.Action);
                     }
@@ -463,6 +467,34 @@ namespace ManagedDoom
                 body.Angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
             }
             StaffSwings++;
+        }
+        // Adapted 2026-09-22: A_FireGoldWandPL2; side missiles share the bullet slope.
+        private void FirePoweredGoldWand()
+        {
+            if (Ammo <= 0 || session.State.Health <= 0) return;
+            Ammo--; ShotsFired++;
+            var body = session.Body;
+            var slope = aiming.AimLineAttack(body, body.Angle, Fixed.FromInt(1024));
+            if (aiming.LineTarget == null)
+            {
+                slope = aiming.AimLineAttack(body, body.Angle + new Angle(1u << 26), Fixed.FromInt(1024));
+                if (aiming.LineTarget == null) slope = aiming.AimLineAttack(body, body.Angle - new Angle(1u << 26), Fixed.FromInt(1024));
+                if (aiming.LineTarget == null) slope = Fixed.FromInt(session.State.LookDirection) / 173;
+            }
+            const uint spread = 0x20000000u / 8;
+            session.SpawnAimedProjectile(HereticActorType.MT_GOLDWANDFX2, body.Angle - new Angle(spread), slope);
+            session.SpawnAimedProjectile(HereticActorType.MT_GOLDWANDFX2, body.Angle + new Angle(spread), slope);
+            for (var i = 0; i < 5; i++)
+            {
+                var angle = body.Angle - new Angle(spread) + new Angle((uint)i * (spread * 2 / 4));
+                var damage = 1 + (session.World.Random.Next() & 7);
+                var hit = session.TraceWeapon(angle, Fixed.FromInt(2048), slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8));
+                session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon, poweredGoldWand: true);
+                session.SpawnWeaponBlood(hit, angle, slope);
+                if (hit?.Actor != null) session.DamageTestEnemy(hit.Value.Actor, damage);
+                ShotFired?.Invoke(new(damage, angle, slope, hit));
+            }
+            session.RequestSound(HereticSoundId.sfx_gldhit, body);
         }
         private void Fire(bool blaster)
         {
