@@ -83,3 +83,11 @@ Carry scenery riders through vertical sector moves and roll back non-crushing
 moves that would trap the rider. Add ordinary player death camera/physics from
 the pinned GPL p_user.c and p_inter.c reference; preserve ongoing world ticks
 when environmental damage kills the player. Add sector-movement and death tests.
+
+### 2026-09-22 - Heretic ordinary monster damage component
+
+Adapt ordinary non-boss monster damage/kill rules from the pinned GPL p_inter.c
+reference into a separate Heretic combatant. Validate required state actions
+before construction; retain health, thrust, pain and death state without Doom
+actor definitions. Add nonlethal, normal/extreme death, action and guard tests.
+Map enemy activation and real AI/death-action implementations remain pending.

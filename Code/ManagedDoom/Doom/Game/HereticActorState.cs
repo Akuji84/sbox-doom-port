@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, bounded death-state tic shortening.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -70,6 +71,12 @@ namespace ManagedDoom
                 if (runAction && definition.Action != HereticAction.None) actions.Execute(definition.Action, this);
             }
             finally { transitionDepth--; }
+        }
+
+        internal void ShortenPositiveTics(int amount)
+        {
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (Tics > 0) Tics = Math.Max(1, Tics - amount);
         }
 
         public void Tick()

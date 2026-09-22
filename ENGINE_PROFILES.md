@@ -247,3 +247,32 @@ Regression tests drive real sector plane movement through rising, lowering,
 blocked and crushing cases, then check lethal damage, repeated damage, input
 suppression, death-camera rendering and continued simulation after death. All
 Doom compatibility hashes and 48-map Heretic regression checks remain required.
+
+## Chunk 4b: ordinary monster damage core
+
+`HereticCombatant` owns ordinary non-boss monster damage without assigning Doom
+actor definitions or calling Doom damage/state routines. It implements health
+and overkill, normal/suppressed/powered-staff thrust, pain chance, reaction-time
+reset, target thresholds, corpse flags/height, strict normal/extreme death
+selection and initial death-tic variation. It retains the source for kill
+accounting by its eventual owner. State changes dispatch through the supplied
+Heretic action handler and synchronize the shared rendering frame fields.
+
+Construction validates every action in the reachable spawn/see/pain/death chains
+before allocating a body or consuming randomness. Bosses, players, destructible
+props, negative damage and cross-session sources are explicitly rejected. This
+API accepts already-resolved ordinary hits: attack-specific transformations,
+whirlwinds, death-ball rules, rain scaling and player protections belong to
+specialized handlers. Zero damage is ignored and consumes no randomness.
+
+This checkpoint is the damage component, not active map combat. The owner must
+supply real AI/death actions, link and move bodies, remove expired actors, and
+handle sounds, drops and kill accounting. Regression tests use a clearly named
+action spy to test dispatch; it is not installed in the game. Map enemies remain
+unsupported until those behaviors are implemented. Existing scene gameplay and
+weapon controls do not change in this checkpoint.
+
+Tests cover pain, ordinary and powered thrust, source/target rules, overkill
+threshold boundaries, ordinary-death fallback, repeat-kill protection, death
+action timing, missing-action rejection and session isolation. The existing Doom
+compatibility snapshots still pass after these tests.
