@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -45,7 +46,7 @@ namespace ManagedDoom
                 throw new ArgumentException("Ordinary combatant requires a non-boss monster; players, bosses and destructible props need specialized damage handlers.", nameof(type));
             // Validate complete reachable chains before allocating an actor or advancing randomness.
             var visited = new HashSet<HereticStateId>();
-            foreach (var entry in new[] { def.SpawnState, def.SeeState, def.PainState, def.DeathState, def.ExtremeDeathState })
+            foreach (var entry in new[] { def.SpawnState, def.SeeState, def.PainState, def.MeleeState, def.MissileState, def.CrashState, def.DeathState, def.ExtremeDeathState })
             {
                 var state = entry;
                 while (state != HereticStateId.S_NULL && visited.Add(state))

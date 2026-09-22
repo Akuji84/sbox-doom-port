@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Heretic test-enemy contact, crush and telefrag routing.
 // s&Doom modification: 2026-09-22, Heretic player/scenery height collision.
 // s&Doom modification: 2026-09-18, isolated Heretic movement dispatch.
 ﻿// s&Doom modification notice (added 2026-09-16).
@@ -295,7 +296,7 @@ namespace ManagedDoom
 
             // Heretic player/scenery contacts use height as well as the blockmap footprint.
             // Keep this dispatch ahead of Doom's missile, pickup and damage actions.
-            if (world.HereticSession != null && currentThing == world.HereticSession.Body)
+            if (world.HereticSession != null && (currentThing == world.HereticSession.Body || world.HereticSession.IsTestEnemy(currentThing)))
             {
                 if (currentThing.Z >= thing.Z + thing.Height || currentThing.Z + currentThing.Height <= thing.Z)
                     return true;
@@ -1138,6 +1139,13 @@ namespace ManagedDoom
             if (thing == currentThing)
             {
                 return true;
+            }
+
+            if (world.HereticSession != null)
+            {
+                if (currentThing != world.HereticSession.Body) return false;
+                world.HereticSession.DamageTestEnemy(thing, 10000);
+                return (thing.Flags & MobjFlags.Shootable) == 0;
             }
 
             // Monsters don't stomp things except on boss level.

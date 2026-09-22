@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -26,7 +27,7 @@ namespace ManagedDoom
     {
         public sbyte Forward, Side, Look, Fly;
         public short Turn;
-        public bool Use, CenterLook, Land;
+        public bool Use, CenterLook, Land, TestAttack;
     }
     public sealed class HereticPlayerState
     {

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Heretic test-enemy contact, crush and telefrag routing.
 // s&Doom modification: 2026-09-22, carry Heretic scenery riders with sector planes.
 // s&Doom modification: 2026-09-18, Heretic geometry damage and stair speed.
 // s&Doom modification notice (added 2026-09-16).
@@ -112,8 +113,17 @@ namespace ManagedDoom
                     noFit = true;
                     if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageEnvironment(10);
                 }
-                // This checkpoint only spawns non-shootable scenery besides the player.
-                // Do not send Heretic bodies through Doom corpse/damage state actions.
+                else if ((thing.Flags & MobjFlags.Shootable) != 0)
+                {
+                    noFit = true;
+                    if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageTestEnemy(thing, 10, environment: true);
+                }
+                else if (thing.Health <= 0)
+                {
+                    thing.Flags &= ~MobjFlags.Solid;
+                    thing.Height = thing.Radius = Fixed.Zero;
+                }
+                // Heretic test enemies never enter Doom corpse/damage actions.
                 return true;
             }
 

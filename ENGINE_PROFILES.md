@@ -276,3 +276,32 @@ Tests cover pain, ordinary and powered thrust, source/target rules, overkill
 threshold boundaries, ordinary-death fallback, repeat-kill protection, death
 action timing, missing-action rejection and session isolation. The existing Doom
 compatibility snapshots still pass after these tests.
+
+## Chunk 4b: opt-in native Clink encounter
+
+Open `Assets/scenes/heretic-preview.scene`, enable **Test Combat** before Play,
+and use the existing movement/turn controls. Space fires a level test ray for
+20 damage, limited to one shot per eight ticks. This is a debugging attack, not
+an implemented Heretic weapon. The default navigation scene remains unchanged.
+
+The encounter searches for a visible, collision-free Clink spawn near the player.
+The enemy is linked into the real blockmap and sector rendering lists, uses the
+Heretic state runner/damage component, detects the player, approaches with basic
+collision-aware pursuit, and performs the reference 3–9 damage melee attack.
+Pain and death states run; death releases solid collision and records one kill.
+The pursuit routine is intentionally a limited test implementation, not the full
+vanilla A_Chase (door use, sound propagation, patrol/turn tactics and full actor
+movement remain pending). Normal map Clinks and other enemies remain disabled.
+
+Sound actions emit `SoundRequested`; the reference Clink drop chance, amount and
+initial velocity produce `DropRequested`. The preview does not yet play these
+sounds or instantiate collectible drops. Audio/inventory integration is still
+required. Telefragging and crusher damage are routed through Heretic combatant
+damage, never Doom actor actions. Required-action validation now includes melee,
+missile and crash chains as well as the previously checked states.
+
+Automated checks cover the native rendered encounter, melee damage, test input,
+pain/death completion, sound/drop requests, one-time kill accounting, telefragging,
+crusher damage, short input retention and deterministic encounter replay. All
+48-map and Doom baseline checks remain required. In-editor playtesting has not
+been performed.

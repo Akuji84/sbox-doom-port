@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 // s&Doom modification: 2026-09-22, sector riders and ordinary environmental death response.
 // s&Doom modification: 2026-09-22, scenery support and swept vertical collision.
 //
@@ -117,6 +118,7 @@ namespace ManagedDoom
             useDown = command.Use;
             PickupKeys();
             foreach (var actor in actors) actor.Tick();
+            TickClinkTest(State.Health > 0 && command.TestAttack);
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
             UpdateView();
@@ -277,6 +279,7 @@ namespace ManagedDoom
             MoveHorizontal(default);
             MoveVertical();
             foreach (var actor in actors) actor.Tick();
+            TickClinkTest(false);
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
             Camera.DeltaViewHeight = Fixed.Zero;

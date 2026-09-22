@@ -91,3 +91,11 @@ reference into a separate Heretic combatant. Validate required state actions
 before construction; retain health, thrust, pain and death state without Doom
 actor definitions. Add nonlethal, normal/extreme death, action and guard tests.
 Map enemy activation and real AI/death-action implementations remain pending.
+
+### 2026-09-22 - Native Clink test encounter
+
+Connect the Heretic combatant to an opt-in native preview encounter. Adapt Clink
+melee, pain/death sound requests and drop requests from the pinned GPL p_enemy.c;
+add explicitly limited preview pursuit, linked rendering/collision, test-ray
+input and Heretic crusher/telefrag dispatch. Expand action-chain validation and
+add native encounter and deterministic replay regression checks.
