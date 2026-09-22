@@ -41,9 +41,9 @@ namespace ManagedDoom
         internal bool GiveMaceAmmo(int amount, bool bonus)
         {
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
-            if (session.State.Health <= 0 || MaceAmmo >= 150) return false;
+            if (session.State.Health <= 0 || MaceAmmo >= AmmoCapacity(150)) return false;
             var empty = MaceAmmo == 0;
-            MaceAmmo = (int)Math.Min(150L, MaceAmmo + (long)amount + (bonus ? amount / 2 : 0));
+            MaceAmmo = (int)Math.Min((long)AmmoCapacity(150), MaceAmmo + (long)amount + (bonus ? amount / 2 : 0));
             if (empty && HasMace && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets)) PendingWeapon = HereticWeapon.wp_mace;
             return true;
         }
@@ -67,9 +67,9 @@ namespace ManagedDoom
         internal bool GivePhoenixAmmo(int amount, bool bonus)
         {
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
-            if (session.State.Health <= 0 || PhoenixAmmo >= 20) return false;
+            if (session.State.Health <= 0 || PhoenixAmmo >= AmmoCapacity(20)) return false;
             var empty = PhoenixAmmo == 0;
-            PhoenixAmmo = (int)Math.Min(20L, PhoenixAmmo + (long)amount + (bonus ? amount / 2 : 0));
+            PhoenixAmmo = (int)Math.Min((long)AmmoCapacity(20), PhoenixAmmo + (long)amount + (bonus ? amount / 2 : 0));
             if (empty && HasPhoenix && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets)) PendingWeapon = HereticWeapon.wp_phoenixrod;
             return true;
         }
@@ -93,9 +93,9 @@ namespace ManagedDoom
         internal bool GiveSkullRodAmmo(int amount, bool bonus)
         {
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
-            if (session.State.Health <= 0 || SkullRodAmmo >= 200) return false;
+            if (session.State.Health <= 0 || SkullRodAmmo >= AmmoCapacity(200)) return false;
             var empty = SkullRodAmmo == 0;
-            SkullRodAmmo = (int)Math.Min(200L, SkullRodAmmo + (long)amount + (bonus ? amount / 2 : 0));
+            SkullRodAmmo = (int)Math.Min((long)AmmoCapacity(200), SkullRodAmmo + (long)amount + (bonus ? amount / 2 : 0));
             if (empty && HasSkullRod && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets)) PendingWeapon = HereticWeapon.wp_skullrod;
             return true;
         }
@@ -119,9 +119,9 @@ namespace ManagedDoom
         internal bool GiveCrossbowAmmo(int amount, bool bonus)
         {
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
-            if (session.State.Health <= 0 || CrossbowAmmo >= 50) return false;
+            if (session.State.Health <= 0 || CrossbowAmmo >= AmmoCapacity(50)) return false;
             var empty = CrossbowAmmo == 0;
-            CrossbowAmmo = (int)Math.Min(50L, CrossbowAmmo + (long)amount + (bonus ? amount / 2 : 0));
+            CrossbowAmmo = (int)Math.Min((long)AmmoCapacity(50), CrossbowAmmo + (long)amount + (bonus ? amount / 2 : 0));
             if (empty && HasCrossbow && (ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets)) PendingWeapon = HereticWeapon.wp_crossbow;
             return true;
         }
@@ -151,7 +151,7 @@ namespace ManagedDoom
         {
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
             var previous = blaster ? BlasterAmmo : Ammo;
-            var maximum = blaster ? 200 : 100;
+            var maximum = AmmoCapacity(blaster ? 200 : 100);
             if (previous >= maximum || session.State.Health <= 0) return false;
             if (bonus) amount += amount >> 1;
             var total = (int)Math.Min(maximum, (long)previous + amount);
@@ -180,6 +180,18 @@ namespace ManagedDoom
             return true;
         }
         public int StaffSwings { get; private set; }
+        // Adapted 2026-09-22: pinned p_inter.c SPR_BAGH pickup and ammo limits.
+        public bool HasBagOfHolding { get; private set; }
+        private int AmmoCapacity(int normal) => HasBagOfHolding ? normal * 2 : normal;
+        internal bool GiveBagOfHolding(bool bonus)
+        {
+            if (session.State.Health <= 0) return false;
+            HasBagOfHolding = true;
+            GiveAmmo(false, 10, bonus); GiveAmmo(true, 10, bonus);
+            GiveCrossbowAmmo(5, bonus); GiveSkullRodAmmo(20, bonus); GivePhoenixAmmo(1, bonus);
+            // The reference bag increases Firemace capacity but grants no mace ammo.
+            return true;
+        }
         private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {

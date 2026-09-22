@@ -903,3 +903,20 @@ Regression coverage compares actual framebuffer pixels with the tint-table resul
 at multiple viewing angles, checks repeatable rendering and pickup flags, and
 retains the five production Doom simulation/render baselines. In-editor visual
 playtesting, full monster support, campaign, saves and multiplayer remain pending.
+
+### 2026-09-22: Bag of Holding
+
+Added collectible Bag of Holding map items to the native combat preview, including
+item bobbing, pickup sound/flash, removal and preview status. The first bag
+doubles all six ammo capacities; subsequent bags never multiply them again.
+Each bag supplies 10 Gold Wand, 10 Dragon Claw, 5 Crossbow, 20 Hellstaff and 1 Phoenix
+ammo before the existing Baby/Nightmare bonus and integer rounding. As in pinned
+p_inter.c, bags grant no Firemace ammo and remain collectible at full capacity.
+Ammo grants do not confer weapon ownership. Ordinary ammo and weapon pickups now
+respect the increased capacities; dead players cannot collect bags.
+
+Regression checks cover normal/doubled caps for all ammo types, repeat pickups,
+reference grant amounts, difficulty scaling, map pickup feedback, ownership and
+death gating. Existing Doom compatibility baselines remain required. This is still
+an isolated preview checkpoint; campaign inventory persistence, multiplayer and
+in-editor playtesting remain outstanding.
