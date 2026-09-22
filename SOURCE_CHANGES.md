@@ -723,3 +723,25 @@ wraparound, overlapping heights, elevated/lowered targets, minimum travel time,
 and dead/missing targets. This is a tested prerequisite; powered Hellstaff firing
 remains disabled until rain creation, ownership limits, lifetime and impacts are
 implemented. Existing weapon behavior is unchanged.
+
+### 2026-09-22: Powered Hellstaff preview
+
+Test Powered Skull Rod (with Test Combat; select 5) enables native powered
+Hellstaff shots. Each costs five ammo and launches a seeking MT_HORNRODFX2.
+Impact runs the original explosion frames, hides the actor above its ceiling and
+produces red single-player rain for up to 140 storm ticks. Two storms are tracked;
+a third shortens the older tracked storm to at most sixteen remaining ticks.
+Falling rain inherits its firing owner, damages supported ordinary enemies and
+uses separate airborne/floor impacts, including probabilistic liquid splashes.
+Firing, impact and periodic rain sounds come from the bundled licensed WAD.
+
+The new rain counter is deterministic and separate from the seeker target (the C
+reference reused a union for those roles). Expired storm references are also
+cleared after player death. The existing bounded projectile movement is retained.
+Tests cover ammo/fallback, owner/target, homing action, storm replacement and
+lifetime, rain collisions, liquid effects, sound cadence, deterministic replay
+and cleanup after death. All five Doom compatibility fixtures remain unchanged.
+
+Boss-specific rain damage, D'Sparil teleport avoidance and network player colors
+await their respective actor/multiplayer support. Tome pickup and duration,
+campaign progression, saves, multiplayer and in-editor playtesting remain open.

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Hellstaff and rain lifecycle.
 // s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
@@ -34,7 +35,7 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
@@ -52,11 +53,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsRain(action)) { ExecuteRain(action); return; }
             if (action == HereticAction.A_FlameEnd) { Body.MomZ += new Fixed(98304); return; }
             if (action == HereticAction.A_FloatPuff) { Body.MomZ += new Fixed(117964); return; }
             if (action == HereticAction.A_SpawnRippers) { session.SpawnBlasterRippers(Body); return; }
@@ -108,7 +110,11 @@ namespace ManagedDoom
                     Animation.SetState(HereticDefinitions.Actors[(int)Type].DeathState); if (!Animation.Removed) Sync(); return;
                 }
                 if (Body.Z <= Body.FloorZ || Body.Z + Body.Height > Body.CeilingZ)
-                { Explode(Body.Z + Body.Height > Body.CeilingZ && Body.Subsector.Sector.CeilingFlat == session.World.Map.SkyFlatNumber); return; }
+                {
+                    // Rain impacts choose floor versus airborne animation by Z.
+                    if (Type == HereticActorType.MT_RAINPLR3 && Body.Z <= Body.FloorZ) Body.Z = Body.FloorZ;
+                    Explode(Body.Z + Body.Height > Body.CeilingZ && Body.Subsector.Sector.CeilingFlat == session.World.Map.SkyFlatNumber); return;
+                }
             }
         }
         private void Explode(bool sky)
@@ -146,7 +152,7 @@ namespace ManagedDoom
             if (aiming.LineTarget == null) { angle -= new Angle(2u << 26); slope = aiming.AimLineAttack(Body, angle, Fixed.FromInt(1024)); }
             if (aiming.LineTarget == null) { angle = original; slope = Fixed.FromInt(State.LookDirection) / 173; }
             var bolt = SpawnAimedProjectile(type, angle, slope);
-            if (type == HereticActorType.MT_MACEFX4 && bolt.Flying) bolt.SeekerTarget = aiming.LineTarget;
+            if ((type == HereticActorType.MT_MACEFX4 && bolt.Flying) || type == HereticActorType.MT_HORNRODFX2) bolt.SeekerTarget = aiming.LineTarget;
             return bolt;
         }
         internal HereticProjectile SpawnAimedProjectile(HereticActorType type, Angle angle, Fixed slope)
