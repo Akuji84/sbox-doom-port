@@ -33,8 +33,13 @@ static class HereticClinkChecks
         var target = shooting.StartClinkTest();
         Check(target != null, "Test ray target placement failed.");
         shooting.Body.Angle = Geometry.PointToAngle(shooting.Body.X, shooting.Body.Y, target.Body.X, target.Body.Y);
-        shooting.Tick(new HereticCommand { TestAttack = true });
-        Check(target.Body.Health == HereticDefinitions.Actors[(int)HereticActorType.MT_CLINK].SpawnHealth - 20, "Test input did not damage linked target.");
+        for (var i = 0; i < 40 && shooting.GoldWand.ShotsFired == 0; i++)
+        {
+            shooting.Body.Angle = Geometry.PointToAngle(shooting.Body.X, shooting.Body.Y, target.Body.X, target.Body.Y);
+            shooting.Tick(new HereticCommand { TestAttack = true });
+        }
+        var dealt = HereticDefinitions.Actors[(int)HereticActorType.MT_CLINK].SpawnHealth - target.Body.Health;
+        Check(dealt >= 7 && dealt <= 14 && shooting.GoldWand.Ammo == 49, "Gold Wand input did not damage linked target/use ammo.");
         var stepper = new HereticFrameStepper(); var attacks = 0;
         stepper.Advance(0.001, new HereticCommand { TestAttack = true }, c => { if(c.TestAttack) attacks++; });
         stepper.Advance(0.03, default, c => { if(c.TestAttack) attacks++; });
@@ -53,7 +58,7 @@ static class HereticClinkChecks
         {
             a.Body.Angle = Geometry.PointToAngle(a.Body.X, a.Body.Y, ea.Body.X, ea.Body.Y);
             b.Body.Angle = Geometry.PointToAngle(b.Body.X, b.Body.Y, eb.Body.X, eb.Body.Y);
-            var cmd = new HereticCommand { TestAttack = i % 10 == 0 };
+            var cmd = new HereticCommand { TestAttack = true };
             a.Tick(cmd); b.Tick(cmd);
             Check(a.State.Health == b.State.Health && ea.Body.Health == eb.Body.Health && ea.Body.X == eb.Body.X && ea.Body.Y == eb.Body.Y && ea.Combatant.Animation.State == eb.Combatant.Animation.State && a.World.Random.Index == b.World.Random.Index, "Clink encounter replay diverged.");
         }

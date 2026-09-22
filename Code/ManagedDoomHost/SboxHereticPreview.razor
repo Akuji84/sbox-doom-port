@@ -81,7 +81,7 @@
                 tic = _stepper.TickCount;
                 _message = "Navigation test: WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; keys " + _session.State.Keys + ". " + _session.State.Message +
-                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: Space fires a level test ray; kills " + _session.TestKills + ". Audio/drop playback is not connected. " : "Combat is disabled. ") + "Weapons, inventory, campaign, saves and multiplayer are not active.";
+                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: Space fires the normal Gold Wand; ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Audio/drop playback is not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
                 StateHasChanged();
             }
             if (tic == _lastTic && Yaw == _lastYaw) return;

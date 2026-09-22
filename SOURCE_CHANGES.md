@@ -99,3 +99,10 @@ melee, pain/death sound requests and drop requests from the pinned GPL p_enemy.c
 add explicitly limited preview pursuit, linked rendering/collision, test-ray
 input and Heretic crusher/telefrag dispatch. Expand action-chain validation and
 add native encounter and deterministic replay regression checks.
+
+### 2026-09-22 - Normal Gold Wand checkpoint
+
+Adapt normal Gold Wand weapon-state timing, damage, spread, aiming and starting
+ammo from pinned GPL p_pspr.c/g_game.c. Replace the opt-in encounter test ray with
+this weapon and render Blasphemer weapon frames. Keep weapon states separate from
+Doom, expose shot results for later effects, and add ammo/timing/rendering tests.

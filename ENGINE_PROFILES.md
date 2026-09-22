@@ -280,9 +280,9 @@ compatibility snapshots still pass after these tests.
 ## Chunk 4b: opt-in native Clink encounter
 
 Open `Assets/scenes/heretic-preview.scene`, enable **Test Combat** before Play,
-and use the existing movement/turn controls. Space fires a level test ray for
-20 damage, limited to one shot per eight ticks. This is a debugging attack, not
-an implemented Heretic weapon. The default navigation scene remains unchanged.
+and use the existing movement/turn controls. Space now fires the normal Gold Wand
+described below. The earlier fixed-damage debugging ray has been replaced.
+The default navigation scene remains unchanged.
 
 The encounter searches for a visible, collision-free Clink spawn near the player.
 The enemy is linked into the real blockmap and sector rendering lists, uses the
@@ -305,3 +305,31 @@ pain/death completion, sound/drop requests, one-time kill accounting, telefraggi
 crusher damage, short input retention and deterministic encounter replay. All
 48-map and Doom baseline checks remain required. In-editor playtesting has not
 been performed.
+
+## Chunk 4c: normal Gold Wand in the test encounter
+
+The opt-in **Test Combat** scene starts with the normal Gold Wand and 50 rounds.
+Space holds attack. Its separate weapon-state runner processes zero-duration
+psprite transitions correctly, raises/lowers the weapon, animates attacks and
+handles refire/release without using Doom weapon definitions. Firing consumes one
+round and deals 7–14 damage. The first shot is accurate; repeated shots use the
+reference spread. It uses the shared read-only aim calculation, including the
+three-angle target search and view-pitch fallback, then sends damage only through
+the Heretic enemy path. Non-shootable scenery is ignored by the bullet query.
+
+The bundled Blasphemer weapon sprites are drawn over the shared preview with
+movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
+empty ammo stops firing. The normal Gold Wand state/damage rules come from the
+pinned GPL p_pspr.c and starting ammo from g_game.c.
+
+This is still a limited weapon checkpoint. Powered mode, weapon switching and
+staff fallback, inventory/ammo pickups, attack sounds, impact puffs, line-shoot
+activation, and final weapon lighting are not connected. `ShotFired` exposes the
+shot result for later effects/audio integration. The current overlay uses the
+base palette. Do not interpret this as the full Heretic weapon system or exact
+whole-game random-stream compatibility with the reference.
+
+Tests verify first-shot and 11-tick refire cadence, damage/ammo, release, last
+round and empty ammo, death lowering, pitch fallback, real Clink hits/replay and
+raised/firing sprite rendering. A generated 320x200 firing frame was visually
+inspected. In-editor playtesting remains outstanding.

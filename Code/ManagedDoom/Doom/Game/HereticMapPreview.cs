@@ -46,6 +46,14 @@ namespace ManagedDoom
             camera.Mobj.Angle = original + Angle.FromDegree(yawDegrees);
             try { renderer.Render(camera, Fixed.One, world.HereticSession?.State.LookDirection ?? 0); }
             finally { camera.Mobj.Angle = original; }
+            var wand = world.HereticSession?.GoldWand;
+            if (wand?.Visible == true)
+            {
+                var state = wand.Definition;
+                var frame = content.Sprites[(Sprite)state.Sprite].Frames[state.Frame & 0x7fff];
+                if (frame.Flip[0]) screen.DrawPatchFlip(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1);
+                else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1);
+            }
             var palette = content.Palette[0];
             for (var y = 0; y < Height; y++)
             for (var x = 0; x < Width; x++)

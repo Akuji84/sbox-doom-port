@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, normal Gold Wand replaces the encounter test ray.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -114,7 +115,7 @@ namespace ManagedDoom
         private readonly List<HereticClinkTestEnemy> testEnemies = new();
         public int TestEnemyCount => testEnemies.Count;
         public int TestKills { get; private set; }
-        private int testShotCooldown;
+        public HereticGoldWand GoldWand { get; private set; }
         public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y)
         {
             var enemy = new HereticClinkTestEnemy(this);
@@ -135,7 +136,7 @@ namespace ManagedDoom
             {
                 var angle = Body.Angle + Angle.FromDegree(offset);
                 var enemy = TrySpawnClinkTest(Body.X + distance * Trig.Cos(angle), Body.Y + distance * Trig.Sin(angle));
-                if (enemy != null) return enemy;
+                if (enemy != null) { GoldWand ??= new HereticGoldWand(this); return enemy; }
             }
             return null;
         }
@@ -157,13 +158,7 @@ namespace ManagedDoom
         }
         private void TickClinkTest(bool shoot)
         {
-            if (testShotCooldown > 0) testShotCooldown--;
-            if (shoot && testShotCooldown == 0)
-            {
-                var hit = TraceAim(Body.Angle, Fixed.FromInt(1024), Fixed.Zero);
-                if (hit?.Actor != null) DamageTestEnemy(hit.Value.Actor, 20);
-                testShotCooldown = 8;
-            }
+            GoldWand?.Tick(shoot);
             foreach (var enemy in testEnemies) enemy.Tick();
         }
     }

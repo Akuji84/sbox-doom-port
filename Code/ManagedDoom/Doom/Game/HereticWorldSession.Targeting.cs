@@ -6,12 +6,12 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         /// <summary>Height-aware obstruction query for future attacks; applies no damage or line actions.</summary>
-        public HereticTraceHit? TraceAim(Angle angle, Fixed range, Fixed slope)
+        public HereticTraceHit? TraceAim(Angle angle, Fixed range, Fixed slope, Fixed? originZ = null, bool shootableOnly = false)
         {
             if (range <= Fixed.Zero || range > Fixed.FromInt(2048)) throw new ArgumentOutOfRangeException(nameof(range));
             if (slope < Fixed.FromInt(-4) || slope > Fixed.FromInt(4)) throw new ArgumentOutOfRangeException(nameof(slope));
             HereticTraceHit? hit = null;
-            var eye = Camera.ViewZ;
+            var eye = originZ ?? Camera.ViewZ;
             world.PathTraversal.PathTraverse(Body.X, Body.Y, Body.X + range * Trig.Cos(angle), Body.Y + range * Trig.Sin(angle),
                 PathTraverseFlags.AddLines | PathTraverseFlags.AddThings, intercept =>
                 {
@@ -30,7 +30,7 @@ namespace ManagedDoom
                     else
                     {
                         var actor = intercept.Thing;
-                        if (actor == Body || (actor.Flags & (MobjFlags.Solid | MobjFlags.Shootable)) == 0 || z < actor.Z || z > actor.Z + actor.Height) return true;
+                        if (actor == Body || (actor.Flags & (shootableOnly ? MobjFlags.Shootable : MobjFlags.Solid | MobjFlags.Shootable)) == 0 || z < actor.Z || z > actor.Z + actor.Height) return true;
                         hit = new(actor, null, distance, z);
                     }
                     return false;
