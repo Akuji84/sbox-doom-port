@@ -183,3 +183,9 @@ Add both filtered map pickups, bobbing, status display and boundary regressions.
 Adapt pinned GPL sb_bar.c palette selection and p_inter.c damage/pickup counters.
 Apply PLAYPAL feedback in the native preview with simulation-driven decay and
 rendering/priority/death regressions.
+
+### 2026-09-22 - Normal Gauntlets
+
+Adapt unpowered A_GauntletAttack and weapon activation sounds from pinned GPL
+p_pspr.c, puff motion from p_mobj.c and forward movement from p_user.c. Add an
+explicit preview grant, sounds, fallback and native melee regressions.

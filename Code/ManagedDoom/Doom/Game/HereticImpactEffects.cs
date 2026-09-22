@@ -32,7 +32,7 @@ namespace ManagedDoom
             if (hit.Line is { } line && line.FrontSector.CeilingFlat == world.Map.SkyFlatNumber &&
                 (z > line.FrontSector.CeilingHeight || line.BackSector?.CeilingFlat == world.Map.SkyFlatNumber)) return;
             var blasterActor = weapon == HereticWeapon.wp_blaster && hit.Actor != null;
-            var type = weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? HereticActorType.MT_STAFFPUFF : HereticActorType.MT_GOLDWANDPUFF1;
+            var type = weapon == HereticWeapon.wp_gauntlets ? HereticActorType.MT_GAUNTLETPUFF1 : weapon == HereticWeapon.wp_blaster ? (blasterActor ? HereticActorType.MT_BLASTERPUFF2 : HereticActorType.MT_BLASTERPUFF1) : weapon == HereticWeapon.wp_staff ? HereticActorType.MT_STAFFPUFF : HereticActorType.MT_GOLDWANDPUFF1;
             var def = HereticDefinitions.Actors[(int)type];
             if (!blasterActor) z += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
             var animation = new HereticActorState(def.SpawnState);
@@ -41,9 +41,9 @@ namespace ManagedDoom
                 X = Body.X + distance * Trig.Cos(angle), Y = Body.Y + distance * Trig.Sin(angle), Z = z,
                 Radius = def.Radius, Height = def.Height, Health = def.SpawnHealth,
                 LastLook = world.Random.Next() % 4,
-                Flags = MobjFlags.NoGravity | MobjFlags.NoBlockMap,
+                Flags = MobjFlags.NoGravity | MobjFlags.NoBlockMap | (weapon == HereticWeapon.wp_gauntlets ? MobjFlags.Shadow : 0),
                 Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame,
-                MomZ = weapon == HereticWeapon.wp_staff ? Fixed.One : Fixed.Zero
+                MomZ = weapon == HereticWeapon.wp_staff ? Fixed.One : weapon == HereticWeapon.wp_gauntlets ? new Fixed(52428) : Fixed.Zero
             };
             world.ThingMovement.SetThingPosition(body);
             body.FloorZ = body.Subsector.Sector.FloorHeight;

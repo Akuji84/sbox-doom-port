@@ -507,3 +507,17 @@ Palette selection follows pinned sb_bar.c. Preview counters decay once per
 simulation tick, including after death; rendering never changes them. Detailed
 attacker-facing death-camera behavior remains pending. Tests cover palette
 rendering, precedence, armor absorption, timer decay and lethal damage.
+
+### 2026-09-22: normal Gauntlets
+
+Enable Test Combat and Test Gauntlets, then press 8 to select them. Normal attacks
+use the pinned unpowered state sequence, 65-unit reach, 2-16 damage in multiples
+of two, spread and overlay jitter. They consume no ammo, emit normal gauntlet
+puffs and activation/use/hit/miss sounds, and drive the player's extra-light
+flicker. A successful hit steers toward the target and requests the reference
+single-tick forward command; release clears weapon lighting.
+
+Gauntlets participate in empty-ammo fallback after available ranged weapons.
+Powered life-steal, map pickup, and full projectile-based weapons remain pending.
+Tests exercise ownership gating, cadence, actual melee damage, impact creation,
+forward-command consumption and light reset. In-editor testing remains outstanding.

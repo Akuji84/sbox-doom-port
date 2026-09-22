@@ -29,6 +29,9 @@ namespace ManagedDoom
         private int depth;
         public HereticWeapon ReadyWeapon { get; private set; } = HereticWeapon.wp_goldwand;
         public HereticWeapon? PendingWeapon { get; private set; }
+        public bool HasGauntlets { get; private set; }
+        public int GauntletAttacks { get; private set; }
+        public void GrantTestGauntlets() => HasGauntlets = true;
         public bool HasBlaster { get; private set; }
         public int BlasterAmmo { get; private set; }
         public int BlasterShots { get; private set; }
@@ -68,20 +71,21 @@ namespace ManagedDoom
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
-                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster) ||
+                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand && weapon != HereticWeapon.wp_blaster && weapon != HereticWeapon.wp_gauntlets) ||
                 (weapon == HereticWeapon.wp_goldwand && Ammo <= 0) ||
-                (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo <= 0))) return false;
+                (weapon == HereticWeapon.wp_blaster && (!HasBlaster || BlasterAmmo <= 0)) ||
+                (weapon == HereticWeapon.wp_gauntlets && !HasGauntlets)) return false;
             if (weapon != ReadyWeapon) PendingWeapon = weapon;
             return true;
         }
         private static int WeaponAmmoCost(HereticWeapon weapon) => HereticDefinitions.Weapons1[(int)weapon].AmmoPerShot;
         private bool HasAmmo()
         {
-            if (ReadyWeapon == HereticWeapon.wp_staff || (ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
+            if ((ReadyWeapon == HereticWeapon.wp_staff || ReadyWeapon == HereticWeapon.wp_gauntlets) || (ReadyWeapon == HereticWeapon.wp_blaster ? BlasterAmmo > 0 : Ammo > 0)) return true;
             // P_CheckAmmo uses strictly more than one shot for automatic selection.
             PendingWeapon = HasBlaster && BlasterAmmo > WeaponAmmoCost(HereticWeapon.wp_blaster)
                 ? HereticWeapon.wp_blaster : Ammo > WeaponAmmoCost(HereticWeapon.wp_goldwand)
-                ? HereticWeapon.wp_goldwand : HereticWeapon.wp_staff;
+                ? HereticWeapon.wp_goldwand : HasGauntlets ? HereticWeapon.wp_gauntlets : HereticWeapon.wp_staff;
             SetState(Weapon.Down);
             return false;
         }
@@ -108,6 +112,11 @@ namespace ManagedDoom
             if (session.State.Health <= 0 && State != Weapon.Down)
                 SetState(Weapon.Down);
             if (Tics != -1 && --Tics == 0) SetState(Definition.Next);
+        }
+        private void BeginAttack(bool held)
+        {
+            SetState(held ? Weapon.HoldAttack : Weapon.Attack);
+            if (ReadyWeapon == HereticWeapon.wp_gauntlets) session.RequestSound(HereticSoundId.sfx_gntuse, session.Body);
         }
         private void SetState(HereticStateId next)
         {
@@ -141,13 +150,14 @@ namespace ManagedDoom
                                     ReadyWeapon = PendingWeapon ?? ReadyWeapon;
                                     PendingWeapon = null;
                                     Refire = 0;
+                                    if (ReadyWeapon == HereticWeapon.wp_gauntlets) session.RequestSound(HereticSoundId.sfx_gntact, session.Body);
                                     SetState(Weapon.Up);
                                 }
                             }
                             break;
                         case HereticAction.A_WeaponReady:
                             if (PendingWeapon != null) SetState(Weapon.Down);
-                            else if (attack) { if (HasAmmo()) SetState(Weapon.Attack); }
+                            else if (attack) { if (HasAmmo()) BeginAttack(false); }
                             else
                             {
                                 var body = session.Body;
@@ -159,9 +169,11 @@ namespace ManagedDoom
                             }
                             break;
                         case HereticAction.A_ReFire:
-                            if (attack && PendingWeapon == null && HasAmmo()) { Refire++; SetState(Weapon.HoldAttack); }
+                            if (attack && PendingWeapon == null && HasAmmo()) { Refire++; BeginAttack(true); }
                             else { Refire = 0; if (PendingWeapon == null) HasAmmo(); }
                             break;
+                        case HereticAction.A_GauntletAttack: AttackGauntlets(); break;
+                        case HereticAction.A_Light0: session.Camera.ExtraLight = 0; break;
                         case HereticAction.A_StaffAttackPL1: SwingStaff(); break;
                         case HereticAction.A_FireGoldWandPL1: Fire(false); break;
                         case HereticAction.A_FireBlasterPL1: Fire(true); break;
@@ -174,6 +186,41 @@ namespace ManagedDoom
             finally { depth--; }
         }
         // Adapted 2026-09-22 from the pinned p_pspr.c A_StaffAttackPL1.
+        // Adapted 2026-09-22 from pinned p_pspr.c A_GauntletAttack, unpowered only.
+        private void AttackGauntlets()
+        {
+            if (session.State.Health <= 0) return;
+            var random = session.World.Random;
+            X = Fixed.FromInt((random.Next() & 3) - 2);
+            Y = Fixed.FromInt(32 + (random.Next() & 3));
+            var body = session.Body;
+            var damage = ((random.Next() & 7) + 1) * 2;
+            var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
+            var range = Fixed.FromInt(65);
+            var slope = aiming.AimLineAttack(body, angle, range);
+            var hit = session.TraceWeapon(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8));
+            session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
+            session.SpawnWeaponBlood(hit, angle, slope);
+            GauntletAttacks++;
+            if (hit?.Actor == null)
+            {
+                if (random.Next() > 64) session.Camera.ExtraLight = session.Camera.ExtraLight == 0 ? 1 : 0;
+                session.RequestSound(HereticSoundId.sfx_gntful, body);
+                return;
+            }
+            var target = hit.Value.Actor;
+            session.DamageTestEnemy(target, damage);
+            var light = random.Next(); session.Camera.ExtraLight = light < 64 ? 0 : light < 160 ? 1 : 2;
+            session.RequestSound(HereticSoundId.sfx_gnthit, body);
+            angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
+            var delta = unchecked(angle.Data - body.Angle.Data);
+            const uint turn = 0x40000000u / 20;
+            const uint offset = 0x40000000u / 21;
+            if (delta > 0x80000000u)
+                body.Angle = unchecked((int)delta) < -(int)turn ? angle + new Angle(offset) : body.Angle - new Angle(turn);
+            else body.Angle = delta > turn ? angle - new Angle(offset) : body.Angle + new Angle(turn);
+            body.Flags |= MobjFlags.JustAttacked;
+        }
         private void SwingStaff()
         {
             if (session.State.Health <= 0) return;

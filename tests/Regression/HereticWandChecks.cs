@@ -128,6 +128,33 @@ static class HereticWandChecks
         Check(ghostSession.TraceAim(ghostAngle, Fixed.FromInt(2048), Fixed.Zero, ghostZ, true)?.Actor == ghost.Body,
             "Ghost filter leaked into general aiming.");
         Console.WriteLine("PASS Heretic weapon edge cases: reference fallback priority/reserve, manual last-round selection and staff ghost pass-through");
+        var gauntletSession = new HereticWorldSession(content);
+        var gauntlets = new HereticGoldWand(gauntletSession);
+        Check(!gauntlets.SelectWeapon(HereticWeapon.wp_gauntlets), "Ungiven gauntlets selectable.");
+        gauntlets.GrantTestGauntlets(); gauntlets.SelectWeapon(HereticWeapon.wp_gauntlets);
+        for (var i = 0; i < 60; i++) gauntlets.Tick(false);
+        Check(gauntlets.State == HereticStateId.S_GAUNTLETREADY, "Gauntlets failed to raise.");
+        for (var i = 0; i < 40; i++) gauntlets.Tick(true);
+        Check(gauntlets.GauntletAttacks == 8 && gauntlets.Ammo == 50 && gauntlets.BlasterAmmo == 0,
+            "Gauntlet cadence/ammo differs.");
+        for (var i = 0; i < 30; i++) gauntlets.Tick(false);
+        Check(gauntlets.State == HereticStateId.S_GAUNTLETREADY && gauntletSession.Camera.ExtraLight == 0,
+            "Gauntlet release failed to clear light.");
+        var contact = new HereticWorldSession(content); var victim = contact.StartClinkTest();
+        Check(victim != null, "Gauntlet melee fixture failed.");
+        contact.GoldWand.GrantTestGauntlets(); contact.GoldWand.SelectWeapon(HereticWeapon.wp_gauntlets);
+        for (var i = 0; i < 150 && contact.State.Health == 100; i++) contact.Tick(default);
+        for (var i = 0; i < 40; i++) contact.GoldWand.Tick(false);
+        contact.Body.Angle = Geometry.PointToAngle(contact.Body.X, contact.Body.Y, victim.Body.X, victim.Body.Y);
+        var victimHealth = victim.Body.Health;
+        for (var i = 0; i < 9; i++) contact.GoldWand.Tick(true);
+        var gauntletDamage = victimHealth - victim.Body.Health;
+        Check(gauntletDamage >= 2 && gauntletDamage <= 16 && gauntletDamage % 2 == 0 &&
+            (contact.Body.Flags & MobjFlags.JustAttacked) != 0, "Gauntlet melee damage/lunge flag differs.");
+        Check(contact.ImpactEffects.Any(x => x.Type == HereticActorType.MT_GAUNTLETPUFF1), "Gauntlet puff missing.");
+        contact.Tick(default);
+        Check((contact.Body.Flags & MobjFlags.JustAttacked) == 0, "Gauntlet forward impulse repeated.");
+        Console.WriteLine("PASS normal Gauntlets: explicit grant, cadence, ammo-free melee, impact, forward impulse and light reset");
         var look = new HereticWorldSession(content); look.State.LookDirection = 45;
         var aimed = new HereticGoldWand(look); HereticWandShot? shotResult = null;
         aimed.ShotFired += shot => shotResult = shot;

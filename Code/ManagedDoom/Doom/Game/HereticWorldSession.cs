@@ -99,6 +99,11 @@ namespace ManagedDoom
             if (State.DamageFlash > 0) State.DamageFlash--;
             if (State.PickupFlash > 0) State.PickupFlash--;
             if (State.Health <= 0) { TickDead(); return; }
+            if ((Body.Flags & MobjFlags.JustAttacked) != 0)
+            {
+                command.Turn = 0; command.Forward = 100; command.Side = 0;
+                Body.Flags &= ~MobjFlags.JustAttacked;
+            }
             Camera.UpdateFrameInterpolationInfo();
             Body.UpdateFrameInterpolationInfo();
             foreach (var sector in world.Map.Sectors) sector.UpdateFrameInterpolationInfo();
@@ -278,6 +283,7 @@ namespace ManagedDoom
             State.Health = Math.Max(0, State.Health - amount);
             Body.Health = State.Health;
             if (State.Health != 0) return;
+            Camera.ExtraLight = 0;
             State.Flying = false; State.FlightTics = 0; State.FlyHeight = 0;
             State.Message = "You died.";
             Body.Flags &= ~(MobjFlags.Shootable | MobjFlags.Solid | MobjFlags.Float | MobjFlags.SkullFly | MobjFlags.NoGravity);
