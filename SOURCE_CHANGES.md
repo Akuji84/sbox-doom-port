@@ -139,3 +139,9 @@ keep aiming read-only, and add regression coverage for all three impact actions.
 Reuse the shared weapon light table for native Heretic overlays. Add optional
 palette mapping to patch drawing while preserving existing callers, with dated
 modification notices and lighting/transparency regression checks.
+
+### 2026-09-22 - Native Heretic encounter audio
+
+Add validated DMX decoding, explicit enabled Heretic sound names, session sound
+events and a bounded s&box preview playback adapter. Use bundled licensed WAD
+samples; preserve isolated Doom audio behavior. Add decoding/event regressions.

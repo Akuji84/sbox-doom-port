@@ -294,9 +294,8 @@ vanilla A_Chase (door use, sound propagation, patrol/turn tactics and full actor
 movement remain pending). Normal map Clinks and other enemies remain disabled.
 
 Sound actions emit `SoundRequested`; the reference Clink drop chance, amount and
-initial velocity produce `DropRequested`. The preview does not yet play these
-sounds or instantiate collectible drops. Audio/inventory integration is still
-required. Telefragging and crusher damage are routed through Heretic combatant
+initial velocity produce `DropRequested`. The preview now plays these encounter sounds locally. Collectible drops and
+full audio/inventory integration remain pending. Telefragging and crusher damage are routed through Heretic combatant
 damage, never Doom actor actions. Required-action validation now includes melee,
 missile and crash chains as well as the previously checked states.
 
@@ -322,7 +321,7 @@ movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
 empty ammo lowers the wand and raises the staff. Keys 1 and 2 select staff and wand. The normal Gold Wand state/damage rules come from the
 pinned GPL p_pspr.c and starting ammo from g_game.c.
 
-This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds are not connected. `ShotFired` exposes the
+This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups are not connected. `ShotFired` exposes the
 shot result for later effects/audio integration. The overlay now uses sector lighting and full-bright frame flags. Do not interpret this as the full Heretic weapon system or exact
 whole-game random-stream compatibility with the reference.
 
@@ -339,7 +338,7 @@ linked test enemies in melee reach, and turns toward a struck target. Selection
 waits for the current attack, lowers the old weapon and raises the selected one.
 Empty wand ammo falls back to the staff. Unsupported weapons and an empty wand
 cannot be selected. Selection taps survive frames shorter than one simulation tick.
-Staff sprites use the existing weapon overlay. Sounds remain pending.
+Staff sprites use the existing weapon overlay; impact sounds now play locally.
 
 ### 2026-09-22: native weapon impact puffs
 
@@ -353,7 +352,7 @@ player death. Existing effects advance before newly fired weapon effects.
 
 Tests cover rendered pixels, impact placement, random use, sky suppression,
 non-blocking flags, staff rise, lifetime and removal, plus both actual weapons
-creating their respective effects. Impact sounds remain pending; this is not full reference attack/RNG compatibility.
+creating their respective effects. Positional audio remains pending; this is not full reference attack/RNG compatibility.
 
 ### 2026-09-22: hitscan blood splatter
 
@@ -394,3 +393,21 @@ Existing DrawScreen callers retain their original unmapped behavior.
 Regression checks cover dark versus bright sectors, full-bright override, mapped
 normal/flipped patches and untouched background pixels. The full Doom render and
 simulation baselines remain required. In-editor testing remains outstanding.
+
+### 2026-09-22: native encounter sound playback
+
+The opt-in Test Combat preview now plays Gold Wand fire, staff impact and Clink
+sight/attack/pain/death sounds through s&box SoundStream. Seven enabled sound
+names resolve directly to Blasphemer WAD lumps, without Doom sound identifiers.
+DMX headers, rates and declared lengths are validated before subscribing to
+session events; unsigned samples are converted to signed PCM after removing
+DMX guard samples. Malformed or missing enabled assets fail preview setup.
+
+SoundVolume controls local preview playback (default 0.4). Playback is bounded to
+16 active voices and disposes its handles/subscription on teardown or preview
+failure. This is local, non-positional audio: reference channel priority,
+attenuation/panning, pitch variation, music and world/environment sounds remain
+pending. In-editor listening and device-output testing remain outstanding.
+
+Tests decode all seven bundled samples, check PCM conversion and malformed input,
+and verify session events from real wand shots, staff impacts and Clink behavior.

@@ -49,6 +49,7 @@ namespace ManagedDoom
             body.CeilingZ = body.Subsector.Sector.CeilingHeight;
             body.UpdateFrameInterpolationInfo();
             impactEffects.Add(new HereticMapActor(type, body, animation));
+            RequestSound(def.AttackSound, body);
         }
 
         // Adapted 2026-09-22: P_BloodSplatter and the hitscan blood chance.

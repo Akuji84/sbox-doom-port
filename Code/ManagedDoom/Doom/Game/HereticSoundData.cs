@@ -1,0 +1,33 @@
+// Copyright (C) 2026 s&Doom contributors; SPDX-License-Identifier: GPL-2.0-or-later
+using System;
+namespace ManagedDoom
+{
+    public readonly record struct HereticSoundData(int SampleRate, short[] Samples)
+    {
+        // Names for the currently enabled encounter, checked against pinned Heretic sounds.c.
+        public static string LumpName(HereticSoundId sound) => sound switch
+        {
+            HereticSoundId.sfx_gldhit => "GLDHIT",
+            HereticSoundId.sfx_stfhit => "STFHIT",
+            HereticSoundId.sfx_clksit => "CLKSIT",
+            HereticSoundId.sfx_clkatk => "CLKATK",
+            HereticSoundId.sfx_clkdth => "CLKDTH",
+            HereticSoundId.sfx_clkact => "CLKACT",
+            HereticSoundId.sfx_clkpai => "CLKPAI",
+            _ => null
+        };
+        public static HereticSoundData Decode(byte[] data)
+        {
+            if (data == null || data.Length < 8 || data[0] != 3 || data[1] != 0)
+                throw new ArgumentException("Invalid DMX sound header.");
+            var rate = data[2] | data[3] << 8;
+            var count = (uint)(data[4] | data[5] << 8 | data[6] << 16 | data[7] << 24);
+            if (rate == 0 || count <= 32 || count > (uint)(data.Length - 8))
+                throw new ArgumentException("Invalid DMX sound rate or sample count.");
+            // DMX stores sixteen guard samples at each end.
+            var samples = new short[(int)count - 32];
+            for (var i = 0; i < samples.Length; i++) samples[i] = (short)((data[i + 24] - 128) << 8);
+            return new(rate, samples);
+        }
+    }
+}

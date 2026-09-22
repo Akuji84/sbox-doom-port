@@ -175,6 +175,7 @@ namespace ManagedDoom
             session.SpawnWeaponImpact(hit, angle, slope, ReadyWeapon);
             session.SpawnWeaponBlood(hit, angle, slope);
             if (hit?.Actor != null) session.DamageTestEnemy(hit.Value.Actor, damage);
+            session.RequestSound(HereticSoundId.sfx_gldhit, body);
             ShotsFired++;
             ShotFired?.Invoke(new(damage, angle, slope, hit));
         }

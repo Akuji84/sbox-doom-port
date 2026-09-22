@@ -127,6 +127,7 @@ namespace ManagedDoom
             if (!new VisibilityCheck(world).CheckSight(body, Body)) return null;
             world.ThingMovement.SetThingPosition(body);
             body.Z = body.FloorZ = world.ThingMovement.CurrentFloorZ; body.CeilingZ = world.ThingMovement.CurrentCeilingZ;
+            enemy.SoundRequested += RequestSound;
             body.UpdateFrameInterpolationInfo(); testEnemies.Add(enemy); return enemy;
         }
         public HereticClinkTestEnemy StartClinkTest()
@@ -155,6 +156,11 @@ namespace ManagedDoom
         {
             foreach (var enemy in testEnemies) if (enemy.Body == body) return true;
             return false;
+        }
+        public event Action<HereticSoundId, Mobj> SoundRequested;
+        internal void RequestSound(HereticSoundId sound, Mobj source)
+        {
+            if ((int)sound != 0) SoundRequested?.Invoke(sound, source);
         }
         private void TickClinkTest(bool shoot)
         {

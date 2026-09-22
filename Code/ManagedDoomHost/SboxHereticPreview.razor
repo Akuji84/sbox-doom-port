@@ -21,6 +21,8 @@
     [Property] public bool TestCombat { get; set; }
     [Property] public bool TestFlight { get; set; }
     private HereticWorldSession _session;
+    private SboxHereticSound _sound;
+    [Property] public float SoundVolume { get; set; } = 0.4f;
     private readonly HereticFrameStepper _stepper = new();
     [Property] public float Yaw { get; set; }
     private GameContent _content;
@@ -41,6 +43,7 @@
             {
                 _session = new HereticWorldSession(_content, Episode, Map, Skill);
                 if (TestCombat && _session.StartClinkTest() is null) throw new InvalidOperationException("No space for the Clink test encounter.");
+                if (TestCombat) _sound = new SboxHereticSound(_content, _session);
                 _preview = new HereticMapPreview(_content, _session);
             }
             else _preview = new HereticMapPreview(_content, Episode, Map);
@@ -50,6 +53,7 @@
         }
         catch (Exception ex)
         {
+            _sound?.Dispose(); _sound = null;
             _content?.Dispose();
             _content = null;
             _preview = null;
@@ -63,6 +67,7 @@
         if (_preview is null) return;
         try
         {
+            if (_sound != null) { _sound.Volume = SoundVolume; _sound.Update(); }
             _elapsed += Time.Delta;
             var tic = (int)(_elapsed * 35);
             if (_session is not null)
@@ -82,7 +87,7 @@
                 tic = _stepper.TickCount;
                 _message = "Navigation test: WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; keys " + _session.State.Keys + ". " + _session.State.Message +
-                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: 1 selects staff, 2 Gold Wand; Space attacks; wand ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Audio/drop playback is not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
+                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: 1 selects staff, 2 Gold Wand; Space attacks; wand ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Local encounter sounds enabled; collectible drops are not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
                 StateHasChanged();
             }
             if (tic == _lastTic && Yaw == _lastYaw) return;
@@ -93,6 +98,7 @@
         }
         catch (Exception ex)
         {
+            _sound?.Dispose(); _sound = null;
             _preview = null;
             _message = "Heretic preview: " + ex.Message;
             StateHasChanged();
@@ -108,6 +114,7 @@
     protected override void OnDestroy()
     {
         _preview = null;
+        _sound?.Dispose(); _sound = null;
         _texture?.Dispose();
         _content?.Dispose();
         base.OnDestroy();
