@@ -452,3 +452,16 @@ Baby/Nightmare increase the grant by half, rounding down. Full-ammo pickups rema
 in the map. Replenishing an empty owned weapon from staff selects it; collecting
 ammo never grants weapon ownership. Backpacks, other ammo, collectible enemy
 drops, multiplayer pickup rules and in-editor testing remain pending.
+
+### 2026-09-22: Dragon Claw weapon pickup
+
+Test Combat now also spawns filtered map thing 53 (Dragon Claw). Touching an
+unowned weapon grants ownership, supplies 30 ammo (45 on Baby/Nightmare), selects
+it over the staff or wand, removes the pickup and plays WPNUP. Duplicate weapons
+grant ammo; an owned weapon remains in the map when ammo is full. An unowned
+weapon can still be acquired with full ammo. Test Blaster remains an optional
+editor shortcut rather than a requirement for acquiring the weapon.
+
+The pickup uses single-player P_GiveWeapon rules. Cooperative weapon-stay and
+deathmatch respawn behavior remain disabled with the multiplayer gameplay gate.
+Tests cover real map collection, ownership, selection, sound and cap boundaries.

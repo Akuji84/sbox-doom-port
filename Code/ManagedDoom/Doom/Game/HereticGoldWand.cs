@@ -52,6 +52,17 @@ namespace ManagedDoom
                 PendingWeapon = blaster ? HereticWeapon.wp_blaster : HereticWeapon.wp_goldwand;
             return true;
         }
+        // Adapted 2026-09-22 from pinned p_inter.c P_GiveWeapon, single-player only.
+        internal bool GiveBlaster(bool bonus)
+        {
+            if (session.State.Health <= 0) return false;
+            var gaveAmmo = GiveAmmo(true, 30, bonus);
+            if (HasBlaster) return gaveAmmo;
+            HasBlaster = true;
+            // Dragon Claw outranks both other currently implemented weapons.
+            if (ReadyWeapon != HereticWeapon.wp_blaster) PendingWeapon = HereticWeapon.wp_blaster;
+            return true;
+        }
         public int StaffSwings { get; private set; }
         private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)

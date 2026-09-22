@@ -162,3 +162,8 @@ p_map.c staff ghost pass-through. Add targeted selection and trace regressions.
 Adapt implemented ammo types from pinned GPL p_inter.c P_GiveAmmo and the actor
 pickup values. Add opt-in filtered map spawning, collection, caps, difficulty
 bonus and pickup sound with regression coverage; preserve navigation-only spawns.
+
+### 2026-09-22 - Dragon Claw map pickup
+
+Adapt the single-player P_GiveWeapon path from pinned GPL p_inter.c for Dragon
+Claw. Add filtered spawning, ownership/ammo grants, pickup sound and regressions.

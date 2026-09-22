@@ -308,7 +308,7 @@ namespace ManagedDoom
             foreach (var thing in world.Map.Things)
             {
                 var decision = HereticMapSpawns.Decide(thing, skill);
-                if (decision.Disposition != HereticSpawnDisposition.Unsupported || AmmoPickup(decision.Type).amount == 0) continue;
+                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14)) continue;
                 SpawnMapActor(thing, decision.Type);
                 UnsupportedMapThings--;
             }
@@ -319,10 +319,16 @@ namespace ManagedDoom
             {
                 var actor = actors[i];
                 var ammo = AmmoPickup(actor.Type);
-                if (actor.Key == HereticKeys.None && (GoldWand == null || ammo.amount == 0)) continue;
+                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14))) continue;
                 var body = actor.Body; var dz = body.Z - Body.Z;
                 if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
+                else if (actor.Type == HereticActorType.MT_MISC14)
+                {
+                    if (!GoldWand.GiveBlaster(skill == GameSkill.Baby || skill == GameSkill.Nightmare)) continue;
+                    State.Message = "Dragon Claw";
+                    RequestSound(HereticSoundId.sfx_wpnup, Body);
+                }
                 else
                 {
                     if (!GoldWand.GiveAmmo(ammo.blaster, ammo.amount, skill == GameSkill.Baby || skill == GameSkill.Nightmare)) continue;

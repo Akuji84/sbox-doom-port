@@ -17,7 +17,7 @@ static class HereticSoundChecks
             Check(sound.SampleRate > 0 && sound.Samples.Length > 0 && sound.Samples.Any(x => x != 0), "Empty decoded sound " + name);
             count++;
         }
-        Check(count == 10, "Encounter sound mapping incomplete.");
+        Check(count == 11, "Encounter sound mapping incomplete.");
         var synthetic = new byte[43]; synthetic[0] = 3; synthetic[2] = 0x11; synthetic[3] = 0x2b; synthetic[4] = 35;
         synthetic[24] = 0; synthetic[25] = 128; synthetic[26] = 255;
         var decoded = HereticSoundData.Decode(synthetic);
@@ -41,6 +41,6 @@ static class HereticSoundChecks
         s.DamageTestEnemy(enemy.Body, 10000);
         for (var i = 0; i < 16; i++) s.Tick(default);
         Check(events.Contains(HereticSoundId.sfx_clkdth), "Enemy death sound not forwarded.");
-        Console.WriteLine("PASS Heretic sound: ten licensed WAD samples, validated DMX decoding and weapon/impact/enemy events");
+        Console.WriteLine("PASS Heretic sound: eleven licensed WAD samples, validated DMX decoding and weapon/impact/enemy events");
     }
 }

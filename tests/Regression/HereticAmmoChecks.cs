@@ -34,6 +34,32 @@ static class HereticAmmoChecks
         Check(weapon.BlasterAmmo == 200 && !weapon.GiveAmmo(true, 1, false), "Dragon Claw cap differs.");
         s.DamageEnvironment(100); weapon.Ammo = 0;
         Check(!weapon.GiveAmmo(false, 10, false), "Dead player received ammo.");
+        var pickupSession = new HereticWorldSession(content);
+        // Replace an unsupported ammo map thing before opt-in spawning with a weapon fixture.
+        var thing = pickupSession.World.Map.Things.First(t => t.Type == 10 && ((int)t.Flags & 2) != 0 && ((int)t.Flags & 16) == 0);
+        thing.Type = 53;
+        Check(pickupSession.StartClinkTest() != null, "Weapon pickup fixture encounter failed.");
+        var pickup = pickupSession.Actors.First(a => a.Type == HereticActorType.MT_MISC14);
+        Check(!pickupSession.GoldWand.HasBlaster, "Weapon granted before touching pickup.");
+        var pickupSound = false;
+        pickupSession.SoundRequested += (id, source) => { if (id == HereticSoundId.sfx_wpnup) pickupSound = true; };
+        pickupSession.World.ThingMovement.UnsetThingPosition(pickupSession.Body);
+        pickupSession.Body.X = pickup.Body.X; pickupSession.Body.Y = pickup.Body.Y; pickupSession.Body.Z = pickup.Body.Z;
+        pickupSession.World.ThingMovement.SetThingPosition(pickupSession.Body);
+        pickupSession.Body.FloorZ = pickup.Body.FloorZ; pickupSession.Body.CeilingZ = pickup.Body.CeilingZ;
+        pickupSession.Tick(default);
+        var picked = pickupSession.GoldWand;
+        Check(picked.HasBlaster && picked.BlasterAmmo == 30 && picked.PendingWeapon == HereticWeapon.wp_blaster &&
+            pickup.Animation.Removed && !pickupSession.Actors.Contains(pickup) && pickupSound,
+            "Map weapon pickup failed ownership/ammo/selection/removal/sound.");
+        Check(picked.GiveBlaster(true) && picked.BlasterAmmo == 75, "Duplicate weapon difficulty ammo grant differs.");
+        picked.GiveAmmo(true, 200, false);
+        Check(!picked.GiveBlaster(false), "Owned full-ammo weapon pickup was consumed.");
+        var full = new HereticGoldWand(new HereticWorldSession(content));
+        full.GiveAmmo(true, 200, false);
+        Check(full.GiveBlaster(false) && full.HasBlaster && full.BlasterAmmo == 200,
+            "Full ammo prevented acquiring an unowned weapon.");
+        Console.WriteLine("PASS Dragon Claw pickup: map touch, ownership, ammo, selection, sound and duplicate/full-ammo behavior");
         Console.WriteLine("PASS Heretic ammo: opt-in map spawns, idempotence, touch/removal, full-cap retention, difficulty bonus and ownership isolation");
     }
 }
