@@ -50,6 +50,8 @@ static class HereticHeightChecks
         Check(s.Body.Z + s.Body.Height == obstacle.Z && s.Body.MomZ == Fixed.Zero, "Flight tunneled through underside.");
         Check(s.Body.FloorZ == floor, "Actor support corrupted map floor height.");
         CheckTargeting(content);
+        CheckMovingSupport(content);
+        CheckDeath(content);
         Console.WriteLine("PASS Heretic actor height collision: side blocking, above/below clearance, swept landing, support movement, gravity and underside collision");
     }
     static void CheckTargeting(GameContent content)
@@ -75,6 +77,60 @@ static class HereticHeightChecks
         Check(wallHits > 0, "Aim passed through all enclosing walls.");
         try { s.TraceAim(Angle.Ang0, Fixed.Zero, Fixed.Zero); throw new Exception("Invalid aim range accepted."); }
         catch (ArgumentOutOfRangeException) { }
+    }
+
+    static void CheckMovingSupport(GameContent content)
+    {
+        var s = new HereticWorldSession(content);
+        var obstacle = s.Actors.First(a => (a.Body.Flags & MobjFlags.Solid) != 0).Body;
+        foreach (var actor in s.Actors) actor.Body.Flags &= ~MobjFlags.Solid;
+        var movement = s.World.ThingMovement;
+        movement.UnsetThingPosition(obstacle);
+        obstacle.X = s.Body.X; obstacle.Y = s.Body.Y;
+        obstacle.Flags |= MobjFlags.Solid;
+        obstacle.Flags &= ~MobjFlags.SpawnCeiling;
+        obstacle.Height = Fixed.FromInt(16);
+        movement.SetThingPosition(obstacle);
+        var sector = obstacle.Subsector.Sector;
+        sector.Special = 0;
+        var floor = sector.FloorHeight;
+        sector.CeilingHeight = floor + Fixed.FromInt(80);
+        obstacle.FloorZ = obstacle.Z = floor;
+        obstacle.CeilingZ = sector.CeilingHeight;
+        s.Body.FloorZ = floor; s.Body.CeilingZ = sector.CeilingHeight;
+        s.Body.Z = floor + obstacle.Height;
+        var action = s.World.SectorAction;
+        action.MovePlane(sector, Fixed.One, floor + Fixed.FromInt(4), false, 0, 1);
+        Check(s.Body.Z == floor + Fixed.FromInt(17) && s.StandingOnActor, "Lift left rider behind on rising scenery.");
+        action.MovePlane(sector, Fixed.One, floor, false, 0, -1);
+        Check(s.Body.Z == floor + Fixed.FromInt(16) && s.StandingOnActor, "Lowering scenery lost rider.");
+        var result = action.MovePlane(sector, Fixed.FromInt(16), floor + Fixed.FromInt(32), false, 0, 1);
+        Check(result == SectorActionResult.Crushed && sector.FloorHeight == floor && obstacle.Z == floor && s.Body.Z == floor + Fixed.FromInt(16), "Blocked rider move failed to roll back floor/actor/player.");
+        Check(s.State.Health == 100, "Non-crushing lift damaged rider.");
+        result = action.MovePlane(sector, Fixed.FromInt(16), floor + Fixed.FromInt(32), true, 0, 1);
+        Check(result == SectorActionResult.Crushed && s.State.Health == 90 && s.Body.Health == 90, "Rider crushing did not apply one Heretic damage event.");
+        Check(s.StandingOnActor, "Crushing lost support needed for subsequent ticks.");
+        Console.WriteLine("PASS Heretic sector riders: rising/lowering scenery, headroom rollback and crushing damage");
+    }
+
+    static void CheckDeath(GameContent content)
+    {
+        var s = new HereticWorldSession(content);
+        s.GrantFlight(100);
+        s.Tick(new HereticCommand { Fly = 5 });
+        var angle = s.Body.Angle;
+        s.DamageEnvironment(100);
+        Check(s.State.Health == 0 && s.Body.Health == 0 && !s.State.Flying && s.State.FlightTics == 0, "Lethal damage failed to clear flight/health.");
+        var height = s.Body.Height;
+        s.DamageEnvironment(100);
+        Check(s.Body.Height == height && height == Fixed.FromInt(14), "Death initialization repeated.");
+        Check((s.Body.Flags & (MobjFlags.Solid | MobjFlags.Shootable)) == 0, "Dead player remains solid/shootable.");
+        var time = s.World.LevelTime;
+        for (var i = 0; i < 50; i++) s.Tick(new HereticCommand { Forward = 50, Turn = 640, Fly = 5, Use = true });
+        Check(s.World.LevelTime > time && s.Camera.ViewHeight == Fixed.FromInt(6), "Death froze the world or camera did not settle.");
+        Check(s.Body.Angle == angle && s.State.Health == 0, "Dead player accepted live controls.");
+        new HereticMapPreview(content, s).Render(new byte[320 * 200 * 4], s.World.LevelTime);
+        Console.WriteLine("PASS Heretic environmental death: one-time corpse physics, flight cancellation, ignored input, continued world ticks and lowered camera");
     }
 
 }

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, sector riders and ordinary environmental death response.
 // s&Doom modification: 2026-09-22, scenery support and swept vertical collision.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -90,7 +91,8 @@ namespace ManagedDoom
         public void GrantFlight(int ticks) { State.FlightTics = Math.Max(0, ticks); }
         public void Tick(HereticCommand command)
         {
-            if (State.Health <= 0 || ExitRequested) return;
+            if (ExitRequested) return;
+            if (State.Health <= 0) { TickDead(); return; }
             Camera.UpdateFrameInterpolationInfo();
             Body.UpdateFrameInterpolationInfo();
             foreach (var sector in world.Map.Sectors) sector.UpdateFrameInterpolationInfo();
@@ -108,6 +110,7 @@ namespace ManagedDoom
                 LookAndFly(command);
             }
             EnvironmentForces(onGround);
+            if (State.Health <= 0) { TickDead(); return; }
             MoveHorizontal(command);
             MoveVertical();
             if (command.Use && !useDown) Use();
@@ -171,15 +174,16 @@ namespace ManagedDoom
         private bool OverlapsSolidActor(Mobj actor) => (actor.Flags & MobjFlags.Solid) != 0 &&
             Fixed.Abs(Body.X - actor.X) < Body.Radius + actor.Radius &&
             Fixed.Abs(Body.Y - actor.Y) < Body.Radius + actor.Radius;
-        public bool StandingOnActor
+        internal Mobj SupportingActor
         {
             get
             {
                 foreach (var actor in actors)
-                    if (OverlapsSolidActor(actor.Body) && Body.Z == actor.Body.Z + actor.Body.Height) return true;
-                return false;
+                    if (OverlapsSolidActor(actor.Body) && Body.Z == actor.Body.Z + actor.Body.Height) return actor.Body;
+                return null;
             }
         }
+        public bool StandingOnActor => SupportingActor != null;
         private void MoveVertical()
         {
             if (Body.Z < Body.FloorZ)
@@ -249,7 +253,39 @@ namespace ManagedDoom
             if (special == 7 && (tic & 31) == 0) DamageEnvironment(4);
             if (special == 9) { State.Secrets++; sector.Special = 0; }
         }
-        internal void DamageEnvironment(int amount) { State.Health = Math.Max(0, State.Health - amount); Body.Health = State.Health; }
+        internal void DamageEnvironment(int amount)
+        {
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (State.Health <= 0 || amount == 0) return;
+            State.Health = Math.Max(0, State.Health - amount);
+            Body.Health = State.Health;
+            if (State.Health != 0) return;
+            State.Flying = false; State.FlightTics = 0; State.FlyHeight = 0;
+            State.Message = "You died.";
+            Body.Flags &= ~(MobjFlags.Shootable | MobjFlags.Solid | MobjFlags.Float | MobjFlags.SkullFly | MobjFlags.NoGravity);
+            Body.Flags |= MobjFlags.Corpse | MobjFlags.DropOff;
+            Body.Height >>= 2;
+        }
+        // Ordinary player death camera/physics from p_user.c and p_inter.c.
+        // Corpse animation, attack-specific deaths and respawning require later combat/campaign work.
+        private void TickDead()
+        {
+            Camera.UpdateFrameInterpolationInfo();
+            Body.UpdateFrameInterpolationInfo();
+            foreach (var sector in world.Map.Sectors) sector.UpdateFrameInterpolationInfo();
+            world.SetPreviewTime(tic);
+            MoveHorizontal(default);
+            MoveVertical();
+            foreach (var actor in actors) actor.Tick();
+            world.Thinkers.Run();
+            UpdateSwitchesAndScroll();
+            Camera.DeltaViewHeight = Fixed.Zero;
+            Camera.ViewHeight = new Fixed(Math.Max(Fixed.FromInt(6).Data, (Camera.ViewHeight - Fixed.One).Data));
+            State.LookDirection -= Math.Sign(State.LookDirection) * Math.Min(6, Math.Abs(State.LookDirection));
+            Camera.ViewZ = new Fixed(Math.Clamp((Body.Z + Camera.ViewHeight).Data,
+                (Body.FloorZ + Fixed.FromInt(4)).Data, (Body.CeilingZ - Fixed.FromInt(4)).Data));
+            tic++;
+        }
         private void PickupKeys()
         {
             for (var i = actors.Count - 1; i >= 0; i--)

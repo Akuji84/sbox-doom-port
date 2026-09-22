@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, carry Heretic scenery riders with sector planes.
 // s&Doom modification: 2026-09-18, Heretic geometry damage and stair speed.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
@@ -188,7 +189,39 @@ namespace ManagedDoom
 		/// <summary>
 		/// Move a plane (floor or ceiling) and check for crushing.
 		/// </summary>
-		public SectorActionResult MovePlane(
+        public SectorActionResult MovePlane(Sector sector, Fixed speed, Fixed dest, bool crush, int floorOrCeiling, int direction)
+        {
+            var session = world.HereticSession;
+            var support = session?.SupportingActor;
+            if (support == null || (support.Subsector.Sector != sector && session.Body.Subsector.Sector != sector)) return MovePlaneCore(sector, speed, dest, crush, floorOrCeiling, direction);
+            var oldFloor = sector.FloorHeight;
+            var oldCeiling = sector.CeilingHeight;
+            var oldZ = session.Body.Z;
+            var health = session.State.Health;
+            var result = MovePlaneCore(sector, speed, dest, crush, floorOrCeiling, direction);
+            var desiredZ = support.Z + support.Height;
+            if (desiredZ + session.Body.Height > session.Body.CeilingZ)
+            {
+                if (!crush)
+                {
+                    // Roll back the same sector and recompute its actor heights, including the rider.
+                    sector.FloorHeight = oldFloor;
+                    sector.CeilingHeight = oldCeiling;
+                    ChangeSector(sector, false);
+                    session.Body.Z = oldZ;
+                }
+                else
+                {
+                    session.Body.Z = desiredZ;
+                    if (session.State.Health == health && (world.LevelTime & 3) == 0) session.DamageEnvironment(10);
+                }
+                return SectorActionResult.Crushed;
+            }
+            session.Body.Z = desiredZ;
+            return result;
+        }
+
+		private SectorActionResult MovePlaneCore(
 			Sector sector,
 			Fixed speed,
 			Fixed dest,

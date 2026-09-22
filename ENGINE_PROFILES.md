@@ -225,3 +225,25 @@ Regression fixtures cover overlapping versus separated actor heights, fast
 landing, standing and moving on scenery, gravity after support is lost, underside
 flight collision, aiming at/over an actor and stopping at map walls. All existing
 Doom simulation/render hashes and 48-map Heretic checks remain required.
+
+## Chunk 4b: sector riders and environmental death
+
+A player standing on scenery now follows its vertical movement when a sector
+floor raises or lowers it. Non-crushing planes roll back the sector, scenery and
+player when rider headroom is insufficient; crushing planes apply the existing
+Heretic environmental damage once per damage opportunity. This support applies
+to sector-driven vertical movement, not horizontal actor pushing or arbitrary
+multi-actor stacks.
+
+Environmental damage now initializes ordinary player death once, clears flight,
+removes solid/shootable flags and reduces the collision height. The death camera
+lowers to six units while world animations and movers continue. Dead-player live
+controls are ignored. This implements the ordinary camera/physics portion of
+p_user.c and p_inter.c at the previously pinned GPL reference; corpse animation,
+sounds, attacker-facing behavior, special deaths and respawning remain pending.
+Enemy damage and attacks are still not active.
+
+Regression tests drive real sector plane movement through rising, lowering,
+blocked and crushing cases, then check lethal damage, repeated damage, input
+suppression, death-camera rendering and continued simulation after death. All
+Doom compatibility hashes and 48-map Heretic regression checks remain required.

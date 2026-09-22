@@ -76,3 +76,10 @@ Add Heretic-only player/scenery height dispatch before Doom contact actions,
 swept vertical scenery collision, stationary actor support, and a side-effect-free
 actor/map-line aiming query. Add height, support and targeting regression cases;
 update the older collision fixture to explicitly overlap the obstacle vertically.
+
+### 2026-09-22 - Heretic sector riders and environmental death
+
+Carry scenery riders through vertical sector moves and roll back non-crushing
+moves that would trap the rider. Add ordinary player death camera/physics from
+the pinned GPL p_user.c and p_inter.c reference; preserve ongoing world ticks
+when environmental damage kills the player. Add sector-movement and death tests.
