@@ -773,3 +773,25 @@ and death. Existing Doom compatibility checks remain unchanged.
 The Tome's chicken reversal awaits player morph support. Complete artifact HUD,
 remaining actors/artifacts, campaign progression, saves, multiplayer and
 in-editor playtesting are still unfinished; production Heretic loading is gated.
+
+### 2026-09-22: Artifact inventory overview and Tome indicator
+
+V toggles a native rendered inventory overview in the combat preview, including
+over the automap. Nine fixed slots show the supported artifacts, their existing
+shortcut keys (Q/U/G/I/T/H/B/J/K), and explicit counts from zero through sixteen.
+The panel uses ARTIBOX, artifact icons, FONTA letters and SMALLIN digits from the
+bundled Blasphemer WAD. This preview overview does not implement the original
+seven-slot scrolling inventory selector.
+
+An active Tome displays the reference SPINBK animation at the top right, advancing
+every three simulation ticks and blinking during the final 128 ticks. Neither
+opening the panel nor rendering it consumes inventory, advances a timer or draws
+from gameplay randomness. The overlay clears after death or when closed, while
+expired Tome indicators disappear. The software render path is shared with the
+existing preview; no new artwork or third-party dependency is introduced.
+
+Regression checks cover all nine slots and zero/one/two-digit counts, shortcut
+artwork, animation/blink timing, read-only repeated rendering, panel closure,
+automap overlay and death. The full health/ammo/status bar, flight indicator,
+scrolling inventory selection, morphing and production Heretic integration remain
+unfinished.
