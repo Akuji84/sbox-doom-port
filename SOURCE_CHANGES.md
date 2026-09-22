@@ -674,3 +674,21 @@ smoke and normal-Claw isolation. The existing preview effect movement stops bloo
 at walls rather than reproducing every legacy cosmetic physics detail. General
 pushable actors are not yet supported. Tome pickup/duration, remaining powered
 weapons, campaign/save/multiplayer integration and editor playtesting remain open.
+
+### 2026-09-22: Powered Phoenix Rod preview
+
+Added Test Powered Phoenix (requires Test Combat; select with 6), using the native
+windup, sustained-fire and shutdown state chain. The burst counter starts at 350,
+emits up to 349 flames and charges one ammo at shutdown. Releasing or switching
+finishes shutdown; continued holding does not automatically restart a finished
+burst. Death interrupts firing and existing flame actors continue to expire.
+
+Flames use native randomized spawn offsets, pitch and inherited horizontal player
+momentum. Flame-end and impact-puff actions add upward motion, with collision,
+actor damage, animation cleanup and powered firing sound. The preview remains
+limited to registered ordinary combatants: player freezing, specialized fire death
+animations and full feet clipping are not implemented by this checkpoint.
+
+Tests cover windup, deferred ammo cost, maximum burst, release, switching, damage,
+sound, owner exclusion, cleanup and death. Tome pickup/duration, remaining powered
+weapons, campaign/save/multiplayer support and editor playtesting remain open.

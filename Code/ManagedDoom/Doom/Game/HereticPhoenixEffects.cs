@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -21,6 +22,21 @@ namespace ManagedDoom
 {
     public sealed partial class HereticWorldSession
     {
+        // Adapted 2026-09-22: A_FirePhoenixPL2 spawn offsets and inherited movement.
+        internal HereticProjectile SpawnPhoenixFlame()
+        {
+            var x = Body.X + new Fixed((world.Random.Next() - world.Random.Next()) << 9);
+            var y = Body.Y + new Fixed((world.Random.Next() - world.Random.Next()) << 9);
+            var slope = Fixed.FromInt(State.LookDirection) / 173;
+            var flame = new HereticProjectile(this, HereticActorType.MT_PHOENIXFX2, Body.Angle, slope + Fixed.One / 10);
+            world.ThingMovement.UnsetThingPosition(flame.Body);
+            flame.Body.X = x; flame.Body.Y = y; flame.Body.Z = Body.Z + Fixed.FromInt(26) + slope;
+            flame.Body.MomX += Body.MomX; flame.Body.MomY += Body.MomY;
+            world.ThingMovement.SetThingPosition(flame.Body);
+            flame.Body.FloorZ = flame.Body.Subsector.Sector.FloorHeight; flame.Body.CeilingZ = flame.Body.Subsector.Sector.CeilingHeight;
+            flame.Body.UpdateFrameInterpolationInfo(); projectiles.Add(flame); flame.Advance(true);
+            return flame;
+        }
         // Adapted 2026-09-22 from pinned PIT_RadiusAttack/A_Explode.
         // Only the player and registered Clink encounter actors are enabled here.
         internal int PhoenixBlastDamage(Mobj origin, Mobj target)

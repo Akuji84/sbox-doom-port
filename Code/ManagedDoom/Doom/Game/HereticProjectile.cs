@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
@@ -32,7 +33,7 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
@@ -50,11 +51,13 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (action == HereticAction.A_FlameEnd) { Body.MomZ += new Fixed(98304); return; }
+            if (action == HereticAction.A_FloatPuff) { Body.MomZ += new Fixed(117964); return; }
             if (action == HereticAction.A_SpawnRippers) { session.SpawnBlasterRippers(Body); return; }
             if (action == HereticAction.A_BoltSpark) { session.SpawnCrossbowSpark(Body); return; }
             if (SupportsMace(action)) { ExecuteMace(action); return; }
@@ -116,6 +119,11 @@ namespace ManagedDoom
         {
             Body.UpdateFrameInterpolationInfo();
             if (Flying) Advance();
+            else if (Type == HereticActorType.MT_PHOENIXFX2)
+            {
+                Body.Z += Body.MomZ;
+                if (Body.Z + Body.Height > Body.CeilingZ) { Body.Z = Body.CeilingZ - Body.Height; Body.MomZ = Fixed.Zero; }
+            }
             if (Flying && LowGravity && !bouncedThisTick)
                 Body.MomZ = Body.MomZ == Fixed.Zero ? -Fixed.One / 4 : Body.MomZ - Fixed.One / 8;
             if (!Animation.Removed) { Animation.Tick(); if (!Animation.Removed) Sync(); }

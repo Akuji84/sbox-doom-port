@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
 // s&Doom modification: 2026-09-22, powered Crossbow and native bolt sparks.
@@ -223,7 +224,15 @@ namespace ManagedDoom
             GrantTestBlaster(ammo); TestPoweredBlaster = true;
             if (ReadyWeapon == HereticWeapon.wp_blaster && session.State.Health > 0) SetState(Weapon.Ready);
         }
-        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) || (TestPoweredBlaster && ReadyWeapon == HereticWeapon.wp_blaster) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
+        public bool TestPoweredPhoenix { get; private set; }
+        public int PhoenixFlames { get; private set; }
+        private int flameCount;
+        public void GrantTestPoweredPhoenix(int ammo = 2)
+        {
+            GrantTestPhoenix(ammo); TestPoweredPhoenix = true;
+            if (ReadyWeapon == HereticWeapon.wp_phoenixrod && session.State.Health > 0) SetState(Weapon.Ready);
+        }
+        private HereticWeaponDefinition Weapon => ((TestPoweredStaff && ReadyWeapon == HereticWeapon.wp_staff) || (TestPoweredGauntlets && ReadyWeapon == HereticWeapon.wp_gauntlets) || (TestPoweredCrossbow && ReadyWeapon == HereticWeapon.wp_crossbow) || (TestPoweredGoldWand && ReadyWeapon == HereticWeapon.wp_goldwand) || (TestPoweredBlaster && ReadyWeapon == HereticWeapon.wp_blaster) || (TestPoweredPhoenix && ReadyWeapon == HereticWeapon.wp_phoenixrod) ? HereticDefinitions.Weapons2 : HereticDefinitions.Weapons1)[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)
         {
             if (session.State.Health <= 0 || !Visible ||
@@ -340,6 +349,16 @@ namespace ManagedDoom
                             break;
                         case HereticAction.A_FireMacePL1: FireMace(); break;
                         case HereticAction.A_FirePhoenixPL1: FirePhoenix(); break;
+                        case HereticAction.A_InitPhoenixPL2: flameCount = 350; break;
+                        case HereticAction.A_FirePhoenixPL2:
+                            if (--flameCount == 0) { SetState(HereticStateId.S_PHOENIXATK2_4); Refire = 0; }
+                            else if (session.State.Health > 0 && PhoenixAmmo > 0)
+                            {
+                                session.SpawnPhoenixFlame(); PhoenixFlames++;
+                                if (Refire == 0 || session.World.LevelTime % 38 == 0) session.RequestSound(HereticSoundId.sfx_phopow, session.Body);
+                            }
+                            break;
+                        case HereticAction.A_ShutdownPhoenixPL2: PhoenixAmmo = Math.Max(0, PhoenixAmmo - 1); break;
                         case HereticAction.A_FireSkullRodPL1: FireSkullRod(); break;
                         case HereticAction.A_FireCrossbowPL1: FireCrossbow(false); break;
                         case HereticAction.A_FireCrossbowPL2: FireCrossbow(true); break;
