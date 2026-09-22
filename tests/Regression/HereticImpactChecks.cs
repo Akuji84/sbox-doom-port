@@ -57,6 +57,42 @@ static class HereticImpactChecks
         s.DamageEnvironment(100);
         for (var i = 0; i < 40; i++) s.Tick(default);
         Check(s.ImpactEffects.Count == 0 && !Linked(wand.Body), "Effects stopped expiring after player death.");
+        var bloodSession = new HereticWorldSession(content);
+        var bloodHit = new HereticTraceHit(bloodSession.Body, null, Fixed.FromInt(48), bloodSession.Camera.ViewZ);
+        bloodSession.World.Random.Clear();
+        bloodSession.Body.Flags |= MobjFlags.NoBlood;
+        bloodSession.SpawnWeaponBlood(bloodHit, bloodSession.Body.Angle, Fixed.Zero);
+        bloodSession.SpawnWeaponBlood(null, bloodSession.Body.Angle, Fixed.Zero);
+        Check(bloodSession.ImpactEffects.Count == 0 && bloodSession.World.Random.Index == 0, "Blood spawned for immune target/miss.");
+        bloodSession.Body.Flags &= ~MobjFlags.NoBlood;
+        bloodSession.SpawnWeaponBlood(bloodHit, bloodSession.Body.Angle, Fixed.Zero);
+        var blood = bloodSession.ImpactEffects.Single();
+        Check(blood.Type == HereticActorType.MT_BLOODSPLATTER && blood.Body.Target == bloodSession.Body &&
+            blood.Body.MomZ == Fixed.FromInt(2) && bloodSession.World.Random.Index == 6,
+            "Blood spawn type, target, velocity or random sequence differs.");
+        var bloodPreview = new HereticMapPreview(content, bloodSession);
+        var withBlood = new byte[320 * 200 * 4]; bloodPreview.Render(withBlood, 0);
+        bloodSession.World.ThingMovement.UnsetThingPosition(blood.Body);
+        var withoutBlood = new byte[withBlood.Length]; bloodPreview.Render(withoutBlood, 0);
+        bloodSession.World.ThingMovement.SetThingPosition(blood.Body);
+        Check(!withBlood.SequenceEqual(withoutBlood), "Blood sprite did not render.");
+        var bloodZ = blood.Body.Z;
+        bloodSession.Tick(default);
+        Check(blood.Body.Z == bloodZ + Fixed.FromInt(2) && blood.Body.MomZ == Fixed.FromInt(2) - Fixed.One / 8,
+            "Blood low gravity differs.");
+        for (var i = 0; i < 40; i++) bloodSession.Tick(default);
+        Check(!Linked(blood.Body) && bloodSession.ImpactEffects.Count == 0, "Blood failed to expire.");
+        bloodSession.World.Random.Clear();
+        bloodSession.SpawnWeaponBlood(bloodHit, bloodSession.Body.Angle, Fixed.Zero);
+        var grounded = bloodSession.ImpactEffects.Single();
+        grounded.Body.Z = grounded.Body.FloorZ; grounded.Body.MomZ = -Fixed.One;
+        grounded.Body.MomX = grounded.Body.MomY = Fixed.Zero;
+        bloodSession.Tick(default);
+        Check(grounded.Animation.State == HereticStateId.S_BLOODSPLATTERX && grounded.Body.MomZ == Fixed.Zero,
+            "Blood floor impact failed to enter its terminal state.");
+        for (var i = 0; i < 8; i++) bloodSession.Tick(default);
+        Check(!Linked(grounded.Body), "Grounded blood remained linked.");
+        Console.WriteLine("PASS Heretic blood: eligibility, random sequence, rendered sprite, low gravity, floor impact and cleanup");
         Console.WriteLine("PASS Heretic impacts: rendered sprites, backoff, RNG, staff rise, collision isolation and cleanup after death");
     }
 }

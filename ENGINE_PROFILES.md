@@ -322,7 +322,7 @@ movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
 empty ammo lowers the wand and raises the staff. Keys 1 and 2 select staff and wand. The normal Gold Wand state/damage rules come from the
 pinned GPL p_pspr.c and starting ammo from g_game.c.
 
-This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds, blood effects, line-shoot
+This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds, line-shoot
 activation, and final weapon lighting are not connected. `ShotFired` exposes the
 shot result for later effects/audio integration. The current overlay uses the
 base palette. Do not interpret this as the full Heretic weapon system or exact
@@ -355,5 +355,19 @@ player death. Existing effects advance before newly fired weapon effects.
 
 Tests cover rendered pixels, impact placement, random use, sky suppression,
 non-blocking flags, staff rise, lifetime and removal, plus both actual weapons
-creating their respective effects. Blood splatter, impact sounds and line-shoot
+creating their respective effects. Impact sounds and line-shoot
 activation remain pending; this is not full reference attack/RNG compatibility.
+
+### 2026-09-22: hitscan blood splatter
+
+Staff and wand hits now apply the reference blood chance (random byte below 192)
+after the puff and before damage, skipping targets marked NoBlood. Blood uses
+Blasphemer sprites, the pinned spawn state, target pointer, horizontal random
+momentum and low gravity. It expires through its own Heretic state chain and
+uses the terminal splatter frame when it meets a wall, floor or ceiling.
+
+This is a cosmetic effects checkpoint. Horizontal wall clipping uses a center-line
+geometry trace, not the full radius-based Heretic missile collision model; actor
+collision and terrain/sky missile behavior remain for the projectile chunk.
+Blood cannot deal damage or activate pickups/lines. Tests cover eligibility,
+spawn random order, visible rendering, low gravity, floor impact and unlinking.

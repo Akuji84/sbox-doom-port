@@ -51,6 +51,64 @@ namespace ManagedDoom
             impactEffects.Add(new HereticMapActor(type, body, animation));
         }
 
+        // Adapted 2026-09-22: P_BloodSplatter and the hitscan blood chance.
+        internal void SpawnWeaponBlood(HereticTraceHit? result, Angle angle, Fixed slope)
+        {
+            if (result is not HereticTraceHit hit || hit.Actor == null ||
+                (hit.Actor.Flags & MobjFlags.NoBlood) != 0 || world.Random.Next() >= 192) return;
+            var def = HereticDefinitions.Actors[(int)HereticActorType.MT_BLOODSPLATTER];
+            var animation = new HereticActorState(def.SpawnState);
+            var distance = hit.Distance - Fixed.FromInt(10);
+            var body = new Mobj(world)
+            {
+                X = Body.X + distance * Trig.Cos(angle), Y = Body.Y + distance * Trig.Sin(angle),
+                Z = hit.Z - Fixed.FromInt(10) * slope,
+                Radius = def.Radius, Height = def.Height, Health = def.SpawnHealth,
+                LastLook = world.Random.Next() % 4, Target = hit.Actor,
+                Flags = MobjFlags.NoBlockMap,
+                Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame,
+                MomX = new Fixed((world.Random.Next() - world.Random.Next()) << 9),
+                MomY = new Fixed((world.Random.Next() - world.Random.Next()) << 9), MomZ = Fixed.FromInt(2)
+            };
+            world.ThingMovement.SetThingPosition(body);
+            body.FloorZ = body.Subsector.Sector.FloorHeight;
+            body.CeilingZ = body.Subsector.Sector.CeilingHeight;
+            body.UpdateFrameInterpolationInfo();
+            impactEffects.Add(new HereticMapActor(HereticActorType.MT_BLOODSPLATTER, body, animation));
+        }
+
+        private void MoveBlood(HereticMapActor effect)
+        {
+            var body = effect.Body;
+            if (effect.Animation.State == HereticStateId.S_BLOODSPLATTERX) return;
+            // Cosmetic center-line wall clipping; no actor damage, pickups or line activation.
+            var clear = world.PathTraversal.PathTraverse(body.X, body.Y, body.X + body.MomX, body.Y + body.MomY,
+                PathTraverseFlags.AddLines, intercept =>
+                {
+                    var line = intercept.Line;
+                    return line.BackSector != null &&
+                        body.Z > line.FrontSector.FloorHeight && body.Z > line.BackSector.FloorHeight &&
+                        body.Z + body.Height < line.FrontSector.CeilingHeight && body.Z + body.Height < line.BackSector.CeilingHeight;
+                });
+            if (clear)
+            {
+                world.ThingMovement.UnsetThingPosition(body);
+                body.X += body.MomX; body.Y += body.MomY;
+                world.ThingMovement.SetThingPosition(body);
+                body.FloorZ = body.Subsector.Sector.FloorHeight;
+                body.CeilingZ = body.Subsector.Sector.CeilingHeight;
+                body.Z += body.MomZ;
+            }
+            if (!clear || body.Z <= body.FloorZ || body.Z + body.Height >= body.CeilingZ)
+            {
+                if (body.Z < body.FloorZ) body.Z = body.FloorZ;
+                if (body.Z + body.Height > body.CeilingZ) body.Z = body.CeilingZ - body.Height;
+                body.MomX = body.MomY = body.MomZ = Fixed.Zero;
+                effect.Animation.SetState(HereticStateId.S_BLOODSPLATTERX);
+            }
+            else body.MomZ = body.MomZ == Fixed.Zero ? -Fixed.One / 4 : body.MomZ - Fixed.One / 8;
+        }
+
         private void TickImpactEffects()
         {
             for (var i = impactEffects.Count - 1; i >= 0; i--)
@@ -58,8 +116,9 @@ namespace ManagedDoom
                 var effect = impactEffects[i];
                 var body = effect.Body;
                 body.UpdateFrameInterpolationInfo();
-                body.Z += body.MomZ;
-                if (body.MomZ != Fixed.Zero)
+                if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
+                else body.Z += body.MomZ;
+                if (effect.Type != HereticActorType.MT_BLOODSPLATTER && body.MomZ != Fixed.Zero)
                 {
                     body.FloorZ = body.Subsector.Sector.FloorHeight;
                     body.CeilingZ = body.Subsector.Sector.CeilingHeight;

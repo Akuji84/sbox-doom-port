@@ -121,3 +121,9 @@ Adapt normal staff/Gold Wand puff placement and spawning from pinned GPL
 Heretic p_map.c and p_mobj.c. Link action-free Heretic effects to the shared
 renderer with separate lifetime management, sky suppression and no blocking
 collision. Preserve upstream notices; add impact rendering/lifetime tests.
+
+### 2026-09-22 - Native hitscan blood effects
+
+Adapt the blood chance and P_BloodSplatter spawn rules from pinned GPL Heretic
+p_map.c/p_mobj.c, plus low gravity. Keep effects in the isolated Heretic lifecycle
+with cosmetic wall clipping and terminal impact states; add regression coverage.
