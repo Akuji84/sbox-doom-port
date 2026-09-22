@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Morph Ovum pickup and preview use.
 // s&Doom modification: 2026-09-22, Tome acquisition and activation.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -23,12 +24,14 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Adapted 2026-09-22: P_GiveArtifact/P_UseArtifact, implemented healing/flight/invulnerability subset.
-        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_ARTITOMEOFPOWER || type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT || type == HereticActorType.MT_MISC5 || type == HereticActorType.MT_ARTIINVISIBILITY;
+        private static bool SupportedArtifactPickup(HereticActorType type) => type == HereticActorType.MT_ARTIEGG || type == HereticActorType.MT_ARTITOMEOFPOWER || type == HereticActorType.MT_MISC3 || type == HereticActorType.MT_ARTISUPERHEAL || type == HereticActorType.MT_ARTIFLY || type == HereticActorType.MT_ARTIINVULNERABILITY || type == HereticActorType.MT_MISC4 || type == HereticActorType.MT_ARTITELEPORT || type == HereticActorType.MT_MISC5 || type == HereticActorType.MT_ARTIINVISIBILITY;
         internal bool GiveArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.TomeOfPower) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.MorphOvum) throw new ArgumentOutOfRangeException(nameof(type));
             if (State.Health <= 0) return false;
-            if (type == HereticArtifact.TomeOfPower)
+            if (type == HereticArtifact.MorphOvum)
+            { if (State.MorphOvums >= 16) return false; State.MorphOvums++; }
+            else if (type == HereticArtifact.TomeOfPower)
             { if (State.TomesOfPower >= 16) return false; State.TomesOfPower++; }
             else if (type == HereticArtifact.Shadowsphere)
             { if (State.Shadowspheres >= 16) return false; State.Shadowspheres++; }
@@ -91,7 +94,15 @@ namespace ManagedDoom
         }
         internal bool UseArtifact(HereticArtifact type)
         {
-            if ((uint)type > (uint)HereticArtifact.TomeOfPower) throw new ArgumentOutOfRangeException(nameof(type));
+            if ((uint)type > (uint)HereticArtifact.MorphOvum) throw new ArgumentOutOfRangeException(nameof(type));
+            if (type == HereticArtifact.MorphOvum)
+            {
+                if (State.Health <= 0 || State.MorphOvums <= 0 || GoldWand == null) return false;
+                EnemyMorphEnabled = true;
+                SpawnEggVolley(); State.MorphOvums--;
+                State.Message = "Used Morph Ovum";
+                RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+            }
             if (type == HereticArtifact.TomeOfPower)
             {
                 if (State.Health <= 0 || State.TomesOfPower <= 0 || State.WeaponPowerTics > 128) return false;

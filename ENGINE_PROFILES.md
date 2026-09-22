@@ -1197,3 +1197,23 @@ actor exclusions are integrated. Tests cover replacement and stale-body flags,
 identity/target/ghost handling, timer bounds, blocked restoration/retry, egg
 integration, state ticking, single kill accounting and feather cleanup. Existing
 Doom compatibility results remain unchanged.
+
+### 2026-09-22: Morph Ovum combat-preview integration
+
+Map thing 30 (MT_ARTIEGG) is now collectible in the combat preview. Morph Ovum
+uses the sixteen-item cap, full-inventory retention, floating artwork and normal
+artifact pickup animation/audio. L consumes one collected item and fires the
+native five-egg volley. Real egg collisions enable the registered Clink chicken
+lifecycle, including timed restoration and blocked-space retry. Empty inventory,
+death and navigation-only sessions reject activation without consuming an item.
+
+The V inventory overview now has ten slots, with the licensed ARTIEGGC icon,
+L shortcut and explicit zero/one/two-digit count. Slot spacing fits the complete
+row inside the 320-pixel frame. Tests cover actual command-driven use, moving
+eggs hitting a Clink, morph/restore, item consumption/audio, cap/pickup retention,
+rejection paths and all ten HUD slots. No new external assets are introduced.
+
+This enables enemy morphing only for the registered Clink preview encounter.
+Player morphing, beak controls, Tome chicken reversal, additional monsters/bosses,
+campaign progression, saves and multiplayer remain unfinished. Production
+Heretic loading stays gated.

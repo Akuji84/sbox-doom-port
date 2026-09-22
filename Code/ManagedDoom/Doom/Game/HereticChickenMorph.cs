@@ -78,9 +78,9 @@ namespace ManagedDoom
     }
     public sealed partial class HereticWorldSession
     {
-        // Kept internal until the Morph Ovum inventory and remaining exclusions
-        // are connected. Existing preview behavior is unchanged by default.
-        internal bool TestEnemyMorphEnabled { get; set; }
+        // Enabled by Morph Ovum use in the single-player combat preview.
+        // Only registered Clink enemies participate in this lifecycle.
+        internal bool EnemyMorphEnabled { get; set; }
         internal bool MorphTestEnemy(Mobj body)
         {
             foreach (var enemy in testEnemies)

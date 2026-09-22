@@ -45,7 +45,6 @@ static class HereticEggChecks
         for (var i = 0; i < 180; i++) s.Tick(default);
         Check(s.Projectiles.Count == 0, "Egg volley leaked after impacts.");
         s.DamageEnvironment(10000); s.SpawnEggVolley(); Check(s.Projectiles.Count == 0, "Dead player spawned eggs.");
-        Check(!Enum.GetNames<HereticArtifact>().Any(n => n.Contains("Egg") || n.Contains("Ovum")), "Incomplete morph artifact exposed in inventory.");
-        Console.WriteLine("PASS egg foundation: five-shot spread, speed/aim, owner/ghost/height contact, no ordinary damage, impact cleanup and inventory gate");
+        Console.WriteLine("PASS egg foundation: five-shot spread, speed/aim, owner/ghost/height contact, no ordinary damage, impact cleanup");
     }
 }

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, tenth artifact slot for Morph Ovum.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -21,17 +22,17 @@ using System.Linq;
 using ManagedDoom.Video;
 namespace ManagedDoom
 {
-    // The preview exposes its nine supported artifacts as fixed shortcut slots.
+    // The preview exposes its ten supported artifacts as fixed shortcut slots.
     // This is an overview, not the reference's scrolling seven-slot selector.
     internal sealed class HereticArtifactHud
     {
         private readonly Patch box;
         private readonly Patch[] icons, digits, keys, books;
-        private const string Shortcuts = "QUGITHBJK";
+        private const string Shortcuts = "QUGITHBJKL";
         private static readonly string[] IconNames =
         {
             "ARTIPTN2", "ARTISPHL", "ARTISOAR", "ARTIINVU", "ARTITRCH",
-            "ARTIATLP", "ARTIFBMB", "ARTIINVS", "ARTIPWBK"
+            "ARTIATLP", "ARTIFBMB", "ARTIINVS", "ARTIPWBK", "ARTIEGGC"
         };
         internal HereticArtifactHud(Wad wad)
         {
@@ -50,10 +51,10 @@ namespace ManagedDoom
             if (!inventoryVisible) return;
             var counts = new[] { state.QuartzFlasks, state.MysticUrns, state.WingsOfWrath,
                 state.RingsOfInvincibility, state.Torches, state.ChaosDevices, state.TimeBombs,
-                state.Shadowspheres, state.TomesOfPower };
+                state.Shadowspheres, state.TomesOfPower, state.MorphOvums };
             for (var i = 0; i < icons.Length; i++)
             {
-                var x = 20 + 31 * i;
+                var x = 5 + 31 * i;
                 screen.DrawPatch(keys[i], x + 11, 157, 1);
                 screen.DrawPatch(box, x, 168, 1);
                 screen.DrawPatch(icons[i], x, 168, 1);

@@ -30,7 +30,7 @@ static class HereticChickenChecks
 
         // Egg dispatch stays opt-in, but performs replacement when enabled.
         var eggSession = new HereticWorldSession(content); var eggEnemy = eggSession.StartClinkTest();
-        eggSession.TestEnemyMorphEnabled = true;
+        eggSession.EnemyMorphEnabled = true;
         var egg = eggSession.SpawnAimedProjectile(HereticActorType.MT_EGGFX, eggSession.Body.Angle, Fixed.Zero);
         Check(!egg.Contact(eggEnemy.Body) && eggEnemy.IsChicken && eggSession.TestKills == 0, "Enabled egg did not morph its target.");
         var before = eggEnemy.ChickenTics;

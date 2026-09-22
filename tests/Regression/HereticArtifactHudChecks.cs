@@ -17,17 +17,17 @@ static class HereticArtifactHudChecks
         }
         var empty = Draw(false); var zeroCounts = Draw(true);
         Check(!empty.SequenceEqual(zeroCounts), "Artifact inventory did not draw.");
-        for (var slot = 0; slot < 9; slot++)
+        for (var slot = 0; slot < 10; slot++)
         {
-            Check(Enumerable.Range(20 + slot * 31, 30).Any(x => Enumerable.Range(157, 41).Any(y => zeroCounts[x * 200 + y] != 103)), "Missing artifact slot/key artwork.");
+            Check(Enumerable.Range(5 + slot * 31, 30).Any(x => Enumerable.Range(157, 41).Any(y => zeroCounts[x * 200 + y] != 103)), "Missing artifact slot/key artwork.");
         }
         foreach (HereticArtifact artifact in Enum.GetValues<HereticArtifact>()) session.GiveArtifact(artifact);
         var ones = Draw(true); Check(!ones.SequenceEqual(zeroCounts), "One-count inventory matches zero.");
         foreach (HereticArtifact artifact in Enum.GetValues<HereticArtifact>())
             for (var i = 1; i < 16; i++) session.GiveArtifact(artifact);
         var full = Draw(true); Check(!full.SequenceEqual(ones), "Two-digit counts did not render.");
-        for (var slot = 0; slot < 9; slot++)
-            Check(Enumerable.Range(20 + slot * 31 + 18, 9).Any(x => Enumerable.Range(190, 5).Any(y => full[x * 200 + y] != ones[x * 200 + y])), "Count not updated in artifact slot.");
+        for (var slot = 0; slot < 10; slot++)
+            Check(Enumerable.Range(5 + slot * 31 + 18, 9).Any(x => Enumerable.Range(190, 5).Any(y => full[x * 200 + y] != ones[x * 200 + y])), "Count not updated in artifact slot.");
         var rng = session.World.Random.Index; var time = session.World.LevelTime;
         Check(Draw(true).SequenceEqual(full) && session.World.Random.Index == rng && session.World.LevelTime == time && session.State.TomesOfPower == 16, "Drawing mutated gameplay or was unstable.");
         session.State.WeaponPowerTics = 1400;
@@ -55,6 +55,6 @@ static class HereticArtifactHudChecks
         view.AutomapVisible = true; view.Render(pixels, 0); var map = (byte[])pixels.Clone();
         view.InventoryVisible = true; view.Render(pixels, 0);
         Check(!pixels.SequenceEqual(map), "Inventory did not overlay automap.");
-        Console.WriteLine("PASS artifact HUD: licensed artwork, all nine counts/keys, Tome animation/blink, stable read-only rendering, toggling, automap and death");
+        Console.WriteLine("PASS artifact HUD: licensed artwork, all ten counts/keys, Tome animation/blink, stable read-only rendering, toggling, automap and death");
     }
 }

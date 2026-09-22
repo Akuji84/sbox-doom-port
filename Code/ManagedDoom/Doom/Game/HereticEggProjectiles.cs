@@ -22,13 +22,12 @@ namespace ManagedDoom
 {
     public sealed partial class HereticWorldSession
     {
-        // Internal foundation only: inventory activation stays gated until the
-        // morph handler implements actor replacement, restoration and retries.
+        // Five-shot Morph Ovum volley used by the combat-preview inventory.
         internal event Action<Mobj> EggMorphRequested;
         internal void RequestEggMorph(Mobj target)
         {
             EggMorphRequested?.Invoke(target);
-            if (TestEnemyMorphEnabled) MorphTestEnemy(target);
+            if (EnemyMorphEnabled) MorphTestEnemy(target);
         }
         internal void SpawnEggVolley()
         {
