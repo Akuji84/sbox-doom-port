@@ -38,6 +38,20 @@ namespace ManagedDoom
             if (ammo < 1 || ammo > 200) throw new ArgumentOutOfRangeException(nameof(ammo));
             HasBlaster = true; BlasterAmmo = ammo;
         }
+        // Adapted 2026-09-22 from pinned p_inter.c P_GiveAmmo (implemented ammo types).
+        internal bool GiveAmmo(bool blaster, int amount, bool bonus)
+        {
+            if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            var previous = blaster ? BlasterAmmo : Ammo;
+            var maximum = blaster ? 200 : 100;
+            if (previous >= maximum || session.State.Health <= 0) return false;
+            if (bonus) amount += amount >> 1;
+            var total = (int)Math.Min(maximum, (long)previous + amount);
+            if (blaster) BlasterAmmo = total; else Ammo = total;
+            if (previous == 0 && ReadyWeapon == HereticWeapon.wp_staff && (!blaster || HasBlaster))
+                PendingWeapon = blaster ? HereticWeapon.wp_blaster : HereticWeapon.wp_goldwand;
+            return true;
+        }
         public int StaffSwings { get; private set; }
         private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
         public bool SelectWeapon(HereticWeapon weapon)

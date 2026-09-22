@@ -55,7 +55,7 @@ static class HereticClinkChecks
         var a = new HereticWorldSession(content); var b = new HereticWorldSession(content);
         var ea = a.StartClinkTest(); var eb = b.StartClinkTest();
         Check(ea != null && eb != null, "Replay placement failed.");
-        for (var i = 0; i < 180; i++)
+        for (var i = 0; i < 300; i++)
         {
             a.Body.Angle = Geometry.PointToAngle(a.Body.X, a.Body.Y, ea.Body.X, ea.Body.Y);
             b.Body.Angle = Geometry.PointToAngle(b.Body.X, b.Body.Y, eb.Body.X, eb.Body.Y);

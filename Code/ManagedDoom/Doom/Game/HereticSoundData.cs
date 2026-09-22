@@ -7,6 +7,7 @@ namespace ManagedDoom
         // Names for the currently enabled encounter, checked against pinned Heretic sounds.c.
         public static string LumpName(HereticSoundId sound) => sound switch
         {
+            HereticSoundId.sfx_itemup => "ITEMUP",
             HereticSoundId.sfx_gldhit => "GLDHIT",
             HereticSoundId.sfx_blssht => "BLSSHT",
             HereticSoundId.sfx_blshit => "BLSHIT",

@@ -137,7 +137,7 @@ namespace ManagedDoom
             {
                 var angle = Body.Angle + Angle.FromDegree(offset);
                 var enemy = TrySpawnClinkTest(Body.X + distance * Trig.Cos(angle), Body.Y + distance * Trig.Sin(angle));
-                if (enemy != null) { GoldWand ??= new HereticGoldWand(this); return enemy; }
+                if (enemy != null) { GoldWand ??= new HereticGoldWand(this); EnableCombatAmmo(); return enemy; }
             }
             return null;
         }

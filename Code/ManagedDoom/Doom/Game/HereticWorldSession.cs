@@ -31,6 +31,8 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         private readonly World world;
+        private readonly GameSkill skill;
+        private bool combatAmmoEnabled;
         private readonly List<HereticMapActor> actors = new();
         public IReadOnlyList<HereticMapActor> Actors { get; }
         public int UnsupportedMapThings { get; private set; }
@@ -47,6 +49,7 @@ namespace ManagedDoom
         public HereticWorldSession(GameContent content, int episode = 1, int map = 1, GameSkill skill = GameSkill.Medium)
         {
             if ((uint)skill > (uint)GameSkill.Nightmare) throw new ArgumentOutOfRangeException(nameof(skill));
+            this.skill = skill;
             Actors = actors.AsReadOnly();
             world = World.CreateGeometryPreview(content, episode, map);
             world.EnableHereticGeometryInteractions();
@@ -290,15 +293,42 @@ namespace ManagedDoom
                 (Body.FloorZ + Fixed.FromInt(4)).Data, (Body.CeilingZ - Fixed.FromInt(4)).Data));
             tic++;
         }
+        private static (bool blaster, int amount) AmmoPickup(HereticActorType type) => type switch
+        {
+            HereticActorType.MT_AMGWNDWIMPY => (false, 10),
+            HereticActorType.MT_AMGWNDHEFTY => (false, 50),
+            HereticActorType.MT_AMBLSRWIMPY => (true, 10),
+            HereticActorType.MT_AMBLSRHEFTY => (true, 25),
+            _ => (false, 0)
+        };
+        private void EnableCombatAmmo()
+        {
+            if (combatAmmoEnabled) return;
+            combatAmmoEnabled = true;
+            foreach (var thing in world.Map.Things)
+            {
+                var decision = HereticMapSpawns.Decide(thing, skill);
+                if (decision.Disposition != HereticSpawnDisposition.Unsupported || AmmoPickup(decision.Type).amount == 0) continue;
+                SpawnMapActor(thing, decision.Type);
+                UnsupportedMapThings--;
+            }
+        }
         private void PickupKeys()
         {
             for (var i = actors.Count - 1; i >= 0; i--)
             {
                 var actor = actors[i];
-                if (actor.Key == HereticKeys.None) continue;
+                var ammo = AmmoPickup(actor.Type);
+                if (actor.Key == HereticKeys.None && (GoldWand == null || ammo.amount == 0)) continue;
                 var body = actor.Body; var dz = body.Z - Body.Z;
                 if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
-                State.Keys |= actor.Key; State.Message = actor.Key + " key";
+                if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
+                else
+                {
+                    if (!GoldWand.GiveAmmo(ammo.blaster, ammo.amount, skill == GameSkill.Baby || skill == GameSkill.Nightmare)) continue;
+                    State.Message = ammo.blaster ? "Dragon Claw ammo" : "Gold Wand ammo";
+                    RequestSound(HereticSoundId.sfx_itemup, Body);
+                }
                 world.ThingMovement.UnsetThingPosition(body);
                 actor.Animation.SetState(HereticStateId.S_NULL);
                 actors.RemoveAt(i);

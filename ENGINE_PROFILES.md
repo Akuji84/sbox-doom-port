@@ -438,3 +438,17 @@ Physical staff traces now pass through MF_SHADOW actors, while ranged weapons
 and read-only aiming still target them. This adds the interaction rule without
 enabling ghost enemy AI or new map spawns. Tests cover reserve boundaries,
 manual last-round selection and separate physical/ranged/aim trace behavior.
+
+### 2026-09-22: implemented weapon ammo pickups
+
+Starting Test Combat now spawns the map's small/large Gold Wand and Dragon Claw
+ammo pickups after applying the existing skill and single-player filters. They
+render and animate as Heretic actors; touch collection checks horizontal and
+vertical overlap, removes accepted pickups and plays ITEMUP. Navigation-only
+spawns stay unchanged, and starting another encounter does not duplicate ammo.
+
+Gold Wand pickups give 10/50 rounds (cap 100); Dragon Claw gives 10/25 (cap 200).
+Baby/Nightmare increase the grant by half, rounding down. Full-ammo pickups remain
+in the map. Replenishing an empty owned weapon from staff selects it; collecting
+ammo never grants weapon ownership. Backpacks, other ammo, collectible enemy
+drops, multiplayer pickup rules and in-editor testing remain pending.

@@ -156,3 +156,9 @@ small/large effects and licensed sound samples; retain powered-mode gating.
 
 Apply pinned GPL P_CheckAmmo priority/reserve rules to implemented weapons and
 p_map.c staff ghost pass-through. Add targeted selection and trace regressions.
+
+### 2026-09-22 - Gold Wand and Dragon Claw ammo collection
+
+Adapt implemented ammo types from pinned GPL p_inter.c P_GiveAmmo and the actor
+pickup values. Add opt-in filtered map spawning, collection, caps, difficulty
+bonus and pickup sound with regression coverage; preserve navigation-only spawns.
