@@ -1155,3 +1155,20 @@ artwork, animation/blink timing, read-only repeated rendering, panel closure,
 automap overlay and death. The full health/ammo/status bar, flight indicator,
 scrolling inventory selection, morphing and production Heretic integration remain
 unfinished.
+
+### 2026-09-22: Morph Ovum projectile foundation
+
+Added an internal five-egg volley using native MT_EGGFX animation, speed and
+per-shot autoaim. The center shot is followed by pairs at plus/minus ANG45/6 and
+ANG45/3, matching P_UseArtifact/P_SPMAngle. Eggs preserve firing ownership, collide
+with ghosts, respect vertical separation, and run their finite impact animation.
+An egg hit consumes the reference missile damage roll and dispatches a morph
+request without ordinary damage, thrust or kill accounting.
+
+This checkpoint deliberately does not expose Morph Ovum pickups or activation.
+The request hook awaits native actor replacement, chicken behavior, timed
+restoration, blocked-restoration retry and player/boss rules. No normal game or
+preview control can fire eggs until that work is integrated. Tests exercise the
+internal volley, spread/speed/aim, owner/ghost/height handling, random ordering,
+absence of ordinary damage, floor impacts and cleanup. Existing Doom behavior
+remains protected by the five WAD compatibility fixtures.

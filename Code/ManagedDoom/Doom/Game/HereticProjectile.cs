@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, gated Morph Ovum projectile foundation.
 // s&Doom modification: 2026-09-22, powered Hellstaff and rain lifecycle.
 // s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
@@ -35,7 +36,7 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (type != HereticActorType.MT_EGGFX && type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
@@ -83,6 +84,9 @@ namespace ManagedDoom
                 return true;
             }
             var damage = (session.World.Random.Next() % 8 + 1) * def.Damage;
+            // The reference consumes the missile damage roll, then always
+            // returns from egg handling without ordinary damage or thrust.
+            if (Type == HereticActorType.MT_EGGFX) { session.RequestEggMorph(target); return false; }
             if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target)) damage = 10000;
             session.DamageTestEnemy(target, damage, inflictor: Body);
             return false;
