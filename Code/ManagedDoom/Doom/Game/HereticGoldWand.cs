@@ -20,13 +20,32 @@ using System;
 namespace ManagedDoom
 {
     public readonly record struct HereticWandShot(int Damage, Angle Angle, Fixed Slope, HereticTraceHit? Hit);
-    /// <summary>Normal Gold Wand in the opt-in encounter; other weapons/powers are not enabled.</summary>
+    /// <summary>Normal staff and Gold Wand controller for the opt-in encounter.</summary>
     public sealed class HereticGoldWand
     {
         private readonly HereticWorldSession session;
         private readonly Hitscan aiming;
         private bool attack;
         private int depth;
+        public HereticWeapon ReadyWeapon { get; private set; } = HereticWeapon.wp_goldwand;
+        public HereticWeapon? PendingWeapon { get; private set; }
+        public int StaffSwings { get; private set; }
+        private HereticWeaponDefinition Weapon => HereticDefinitions.Weapons1[(int)ReadyWeapon];
+        public bool SelectWeapon(HereticWeapon weapon)
+        {
+            if (session.State.Health <= 0 || !Visible ||
+                (weapon != HereticWeapon.wp_staff && weapon != HereticWeapon.wp_goldwand) ||
+                (weapon == HereticWeapon.wp_goldwand && Ammo <= 0)) return false;
+            if (weapon != ReadyWeapon) PendingWeapon = weapon;
+            return true;
+        }
+        private bool HasAmmo()
+        {
+            if (ReadyWeapon == HereticWeapon.wp_staff || Ammo > 0) return true;
+            PendingWeapon = HereticWeapon.wp_staff;
+            SetState(Weapon.Down);
+            return false;
+        }
         public int Ammo { get; internal set; } = 50;
         public int Refire { get; private set; }
         public int ShotsFired { get; private set; }
@@ -47,8 +66,8 @@ namespace ManagedDoom
         {
             attack = attackHeld && session.State.Health > 0;
             if (!Visible) return;
-            if (session.State.Health <= 0 && State != HereticStateId.S_GOLDWANDDOWN)
-                SetState(HereticStateId.S_GOLDWANDDOWN);
+            if (session.State.Health <= 0 && State != Weapon.Down)
+                SetState(Weapon.Down);
             if (Tics != -1 && --Tics == 0) SetState(Definition.Next);
         }
         private void SetState(HereticStateId next)
@@ -70,14 +89,26 @@ namespace ManagedDoom
                         case HereticAction.None: break;
                         case HereticAction.A_Raise:
                             Y -= Fixed.FromInt(6);
-                            if (Y <= Fixed.FromInt(32)) { Y = Fixed.FromInt(32); SetState(HereticStateId.S_GOLDWANDREADY); }
+                            if (Y <= Fixed.FromInt(32)) { Y = Fixed.FromInt(32); SetState(Weapon.Ready); }
                             break;
                         case HereticAction.A_Lower:
                             Y += Fixed.FromInt(6);
-                            if (Y >= Fixed.FromInt(128)) { Y = Fixed.FromInt(128); SetState(HereticStateId.S_NULL); }
+                            if (Y >= Fixed.FromInt(128))
+                            {
+                                Y = Fixed.FromInt(128);
+                                if (session.State.Health <= 0) SetState(HereticStateId.S_NULL);
+                                else
+                                {
+                                    ReadyWeapon = PendingWeapon ?? ReadyWeapon;
+                                    PendingWeapon = null;
+                                    Refire = 0;
+                                    SetState(Weapon.Up);
+                                }
+                            }
                             break;
                         case HereticAction.A_WeaponReady:
-                            if (attack && Ammo > 0) SetState(HereticStateId.S_GOLDWANDATK1_1);
+                            if (PendingWeapon != null) SetState(Weapon.Down);
+                            else if (attack) { if (HasAmmo()) SetState(Weapon.Attack); }
                             else
                             {
                                 var body = session.Body;
@@ -89,9 +120,10 @@ namespace ManagedDoom
                             }
                             break;
                         case HereticAction.A_ReFire:
-                            if (attack && Ammo > 0) { Refire++; SetState(HereticStateId.S_GOLDWANDATK1_1); }
-                            else Refire = 0;
+                            if (attack && PendingWeapon == null && HasAmmo()) { Refire++; SetState(Weapon.Attack); }
+                            else { Refire = 0; if (PendingWeapon == null) HasAmmo(); }
                             break;
+                        case HereticAction.A_StaffAttackPL1: SwingStaff(); break;
                         case HereticAction.A_FireGoldWandPL1: Fire(); break;
                         default: throw new NotSupportedException("Gold Wand action: " + state.Action);
                     }
@@ -100,6 +132,25 @@ namespace ManagedDoom
                 } while (Tics == 0);
             }
             finally { depth--; }
+        }
+        // Adapted 2026-09-22 from the pinned p_pspr.c A_StaffAttackPL1.
+        private void SwingStaff()
+        {
+            if (session.State.Health <= 0) return;
+            var random = session.World.Random;
+            var damage = 5 + (random.Next() & 15);
+            var body = session.Body;
+            var angle = body.Angle + new Angle(unchecked((uint)((random.Next() - random.Next()) << 18)));
+            var range = Fixed.FromInt(64);
+            var slope = aiming.AimLineAttack(body, angle, range);
+            var hit = session.TraceAim(angle, range, slope, body.Z + (body.Height >> 1) + Fixed.FromInt(8), shootableOnly: true);
+            if (hit?.Actor != null)
+            {
+                var target = hit.Value.Actor;
+                session.DamageTestEnemy(target, damage);
+                body.Angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
+            }
+            StaffSwings++;
         }
         private void Fire()
         {

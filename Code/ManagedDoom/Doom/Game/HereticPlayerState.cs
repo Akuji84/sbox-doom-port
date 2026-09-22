@@ -28,6 +28,7 @@ namespace ManagedDoom
         public sbyte Forward, Side, Look, Fly;
         public short Turn;
         public bool Use, CenterLook, Land, TestAttack;
+        public HereticWeapon? SelectWeapon;
     }
     public sealed class HereticPlayerState
     {

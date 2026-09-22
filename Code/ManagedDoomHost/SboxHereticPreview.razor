@@ -74,6 +74,7 @@
                     Turn = (short)((Input.Keyboard.Down("LEFT") ? 640 : 0) - (Input.Keyboard.Down("RIGHT") ? 640 : 0)),
                     Look = (sbyte)((Input.Keyboard.Down("UP") ? 1 : 0) - (Input.Keyboard.Down("DOWN") ? 1 : 0)),
                     Fly = (sbyte)((Input.Keyboard.Down("R") ? 1 : 0) - (Input.Keyboard.Down("F") ? 1 : 0)),
+                    SelectWeapon = TestCombat && Input.Keyboard.Pressed("1") ? HereticWeapon.wp_staff : TestCombat && Input.Keyboard.Pressed("2") ? HereticWeapon.wp_goldwand : null,
                     TestAttack = TestCombat && Input.Keyboard.Down("SPACE"),
                     Use = Input.Keyboard.Down("E"), CenterLook = Input.Keyboard.Down("HOME"), Land = Input.Keyboard.Down("END")
                 };
@@ -81,7 +82,7 @@
                 tic = _stepper.TickCount;
                 _message = "Navigation test: WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; keys " + _session.State.Keys + ". " + _session.State.Message +
-                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: Space fires the normal Gold Wand; ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Audio/drop playback is not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
+                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Clink test: 1 selects staff, 2 Gold Wand; Space attacks; wand ammo " + _session.GoldWand?.Ammo + "; kills " + _session.TestKills + ". Audio/drop playback is not connected. " : "Combat is disabled. ") + "Other weapons, inventory, campaign, saves and multiplayer are not active.";
                 StateHasChanged();
             }
             if (tic == _lastTic && Yaw == _lastYaw) return;

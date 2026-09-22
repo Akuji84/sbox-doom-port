@@ -106,3 +106,11 @@ Adapt normal Gold Wand weapon-state timing, damage, spread, aiming and starting
 ammo from pinned GPL p_pspr.c/g_game.c. Replace the opt-in encounter test ray with
 this weapon and render Blasphemer weapon frames. Keep weapon states separate from
 Doom, expose shot results for later effects, and add ammo/timing/rendering tests.
+
+### 2026-09-22 - Staff and weapon switching checkpoint
+
+Adapt normal staff damage, spread and weapon state transitions from the pinned
+Chocolate Doom Heretic p_pspr.c. Add staff/wand selection, lowering/raising,
+empty-ammo fallback and retained selection input to the opt-in encounter.
+Regression coverage includes actual melee damage, ammo conservation, switching,
+rejected unavailable weapons and selection taps between simulation ticks.

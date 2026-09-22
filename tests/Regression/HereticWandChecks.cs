@@ -19,12 +19,36 @@ static class HereticWandChecks
         wand.Ammo = 0;
         for (var i = 0; i < 30; i++) wand.Tick(true);
         Check(shots.Count == count && wand.Ammo == 0, "Empty wand fired or ammo went negative.");
+        for (var i = 0; i < 60; i++) wand.Tick(true);
+        Check(wand.ReadyWeapon == HereticWeapon.wp_staff && wand.StaffSwings > 0, "Empty wand did not switch to usable staff.");
+        Check(!wand.SelectWeapon(HereticWeapon.wp_goldwand), "Selected empty wand.");
+        Check(!wand.SelectWeapon(HereticWeapon.wp_blaster), "Selected unsupported weapon.");
         wand.Ammo = 1;
-        for (var i = 0; i < 30; i++) wand.Tick(true);
+        Check(wand.SelectWeapon(HereticWeapon.wp_goldwand), "Could not switch back to loaded wand.");
+        for (var i = 0; i < 90; i++) wand.Tick(true);
         Check(shots.Count == count + 1 && wand.Ammo == 0, "Last round did not fire exactly once.");
         s.DamageEnvironment(100);
         for (var i = 0; i < 30; i++) wand.Tick(true);
         Check(!wand.Visible && shots.Count == count + 1, "Dead player fired or weapon failed to lower.");
+        var melee = new HereticWorldSession(content);
+        var enemy = melee.StartClinkTest();
+        Check(enemy != null, "Staff target fixture failed.");
+        melee.GoldWand.SelectWeapon(HereticWeapon.wp_staff);
+        for (var i = 0; i < 100 && melee.State.Health == 100; i++) melee.Tick(default);
+        Check(melee.State.Health < 100, "Staff target did not approach melee range.");
+        for (var i = 0; i < 40; i++) melee.GoldWand.Tick(false);
+        Check(melee.GoldWand.State == HereticStateId.S_STAFFREADY, "Staff failed to finish raising.");
+        melee.Body.Angle = Geometry.PointToAngle(melee.Body.X, melee.Body.Y, enemy.Body.X, enemy.Body.Y);
+        var hp = enemy.Body.Health;
+        for (var i = 0; i < 7; i++) melee.GoldWand.Tick(true);
+        Check(melee.GoldWand.StaffSwings == 1 && hp - enemy.Body.Health >= 5 && hp - enemy.Body.Health <= 20,
+            $"Staff failed to hit linked melee target: swings={melee.GoldWand.StaffSwings}, damage={hp - enemy.Body.Health}, state={melee.GoldWand.State}.");
+        Check(melee.GoldWand.Ammo == 50, "Staff consumed wand ammo.");
+        var stepper = new HereticFrameStepper(); var selections = new List<HereticWeapon?>();
+        stepper.Advance(0.001, new HereticCommand { SelectWeapon = HereticWeapon.wp_staff }, c => selections.Add(c.SelectWeapon));
+        stepper.Advance(0.06, default, c => selections.Add(c.SelectWeapon));
+        Check(selections.Count == 2 && selections[0] == HereticWeapon.wp_staff && selections[1] == null,
+            "Short weapon selection was lost or repeated across ticks.");
         var renderSession = new HereticWorldSession(content);
         Check(renderSession.StartClinkTest() != null, "Wand rendering fixture spawn failed.");
         var preview = new HereticMapPreview(content, renderSession);

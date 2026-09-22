@@ -8,6 +8,7 @@ namespace ManagedDoom
     public sealed class HereticFrameStepper
     {
         private double remainder;
+        private HereticWeapon? pendingWeapon;
         private bool observedUse, sentUse, pendingUse, pendingCenter, pendingLand, pendingTestAttack;
         public int TickCount { get; private set; }
         public void Advance(double elapsedSeconds, HereticCommand sampled, Action<HereticCommand> tick)
@@ -20,6 +21,7 @@ namespace ManagedDoom
             pendingCenter |= sampled.CenterLook;
             pendingLand |= sampled.Land;
             pendingTestAttack |= sampled.TestAttack;
+            pendingWeapon = sampled.SelectWeapon ?? pendingWeapon;
             // Bound recovery after a paused/stalled editor frame. Retain the fractional tick.
             remainder += Math.Min(elapsedSeconds, 0.25) * 35;
             while (remainder >= 1 - 1e-9)
@@ -35,7 +37,9 @@ namespace ManagedDoom
                 command.CenterLook |= pendingCenter;
                 command.Land |= pendingLand;
                 command.TestAttack |= pendingTestAttack;
+                command.SelectWeapon = pendingWeapon;
                 tick(command);
+                pendingWeapon = null;
                 sentUse = command.Use;
                 pendingCenter = pendingLand = pendingTestAttack = false;
                 remainder = Math.Max(0, remainder - 1);

@@ -319,11 +319,10 @@ the Heretic enemy path. Non-shootable scenery is ignored by the bullet query.
 
 The bundled Blasphemer weapon sprites are drawn over the shared preview with
 movement bobbing. Ammo is shown in the preview message. Death lowers the weapon;
-empty ammo stops firing. The normal Gold Wand state/damage rules come from the
+empty ammo lowers the wand and raises the staff. Keys 1 and 2 select staff and wand. The normal Gold Wand state/damage rules come from the
 pinned GPL p_pspr.c and starting ammo from g_game.c.
 
-This is still a limited weapon checkpoint. Powered mode, weapon switching and
-staff fallback, inventory/ammo pickups, attack sounds, impact puffs, line-shoot
+This is still a limited weapon checkpoint. Powered mode, the remaining weapons, inventory/ammo pickups, attack sounds, impact puffs, line-shoot
 activation, and final weapon lighting are not connected. `ShotFired` exposes the
 shot result for later effects/audio integration. The current overlay uses the
 base palette. Do not interpret this as the full Heretic weapon system or exact
@@ -333,3 +332,13 @@ Tests verify first-shot and 11-tick refire cadence, damage/ammo, release, last
 round and empty ammo, death lowering, pitch fallback, real Clink hits/replay and
 raised/firing sprite rendering. A generated 320x200 firing frame was visually
 inspected. In-editor playtesting remains outstanding.
+
+### 2026-09-22: staff and weapon switching
+
+The test encounter now supports the normal staff using the pinned GPL weapon
+states and melee damage/spread rules. It consumes no ammo, deals 5-20 damage to
+linked test enemies in melee reach, and turns toward a struck target. Selection
+waits for the current attack, lowers the old weapon and raises the selected one.
+Empty wand ammo falls back to the staff. Unsupported weapons and an empty wand
+cannot be selected. Selection taps survive frames shorter than one simulation tick.
+Staff sprites use the existing weapon overlay. Sounds and impact puffs remain pending.

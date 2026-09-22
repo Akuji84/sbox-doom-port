@@ -118,6 +118,7 @@ namespace ManagedDoom
             useDown = command.Use;
             PickupKeys();
             foreach (var actor in actors) actor.Tick();
+            if (command.SelectWeapon is HereticWeapon selected) GoldWand?.SelectWeapon(selected);
             TickClinkTest(State.Health > 0 && command.TestAttack);
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
