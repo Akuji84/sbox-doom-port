@@ -118,10 +118,11 @@ namespace ManagedDoom
                 var effect = impactEffects[i];
                 var body = effect.Body;
                 body.UpdateFrameInterpolationInfo();
-                if (effect.Type == HereticActorType.MT_PHOENIXPUFF) MovePhoenixTrail(body);
+                if (IsLiquidChunk(effect.Type)) MoveLiquidChunk(effect);
+                else if (effect.Type == HereticActorType.MT_PHOENIXPUFF) MovePhoenixTrail(body);
                 else if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
                 else body.Z += body.MomZ;
-                if (effect.Type != HereticActorType.MT_BLOODSPLATTER && body.MomZ != Fixed.Zero)
+                if (!IsLiquidChunk(effect.Type) && effect.Type != HereticActorType.MT_BLOODSPLATTER && body.MomZ != Fixed.Zero)
                 {
                     body.FloorZ = body.Subsector.Sector.FloorHeight;
                     body.CeilingZ = body.Subsector.Sector.CeilingHeight;

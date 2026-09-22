@@ -52,7 +52,7 @@ namespace ManagedDoom
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
             if (action == HereticAction.A_PhoenixPuff) session.SpawnPhoenixTrail(Body);
-            else session.PhoenixRadiusAttack(Body);
+            else { session.PhoenixRadiusAttack(Body); session.HitLiquidFloor(Body); }
         }
         internal void SetFlightState(HereticStateId state) { Animation.SetState(state); Sync(); }
         private void Sync() { Body.Sprite = (Sprite)Animation.Definition.Sprite; Body.Frame = Animation.Definition.Frame; }

@@ -642,3 +642,25 @@ The five existing Doom simulation/render baselines remain required. Cosmetic
 trail clipping uses shared path traversal; exact legacy trail physics and liquid
 floor splash effects are not implemented. Full enemy behavior, campaign, saves,
 multiplayer and in-editor playtesting remain outstanding.
+
+### 2026-09-22: liquid-floor impact support
+
+Added shared Heretic solid/water/lava/sludge classification using the five pinned
+terrain flat names. Floor impacts above a liquid sector's actual floor return
+solid without emitting particles or consuming RNG. Water and sludge produce a
+base splash plus a low-gravity particle; lava produces a splash and rising smoke.
+Water/lava sounds use licensed WAD samples. Particle launch randomness follows
+the pinned P_HitFloor order and effects expire through Heretic actor states.
+
+Phoenix explosions now invoke this floor-effect path after radius damage, closing
+the previous missing liquid-splash checkpoint. As in the reference A_Explode,
+the splash is emitted on the sector floor even for an explosion above it.
+Cosmetic horizontal clipping uses the existing preview effect path; it is not
+bit-identical legacy particle collision. Liquid effects do not damage actors or
+activate lines. Firemace bounce/sink logic can use the returned floor type but
+Firemace firing is not enabled by this checkpoint.
+
+Tests cover all five terrain names, raised-edge exclusion without RNG changes,
+spawn RNG counts, sound counts, chunk landing states, rendering, cleanup and
+actual Phoenix impact integration. Existing Doom compatibility hashes remain
+required. In-editor visual/audio testing remains outstanding.
