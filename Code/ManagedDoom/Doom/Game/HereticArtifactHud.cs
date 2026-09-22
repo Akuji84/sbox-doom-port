@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, suppress Tome icon for super-chicken power.
 // s&Doom modification: 2026-09-22, tenth artifact slot for Morph Ovum.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -46,7 +47,7 @@ namespace ManagedDoom
         {
             var state = session.State;
             if (state.Health <= 0) return;
-            if (state.WeaponPowerTics > 0 && (state.WeaponPowerTics > 128 || (state.WeaponPowerTics & 16) == 0))
+            if (state.ChickenTics == 0 && state.WeaponPowerTics > 0 && (state.WeaponPowerTics > 128 || (state.WeaponPowerTics & 16) == 0))
                 screen.DrawPatch(books[(session.World.LevelTime / 3) & 15], 300, 17, 1);
             if (!inventoryVisible) return;
             var counts = new[] { state.QuartzFlasks, state.MysticUrns, state.WingsOfWrath,

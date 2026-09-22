@@ -875,3 +875,33 @@ body animation, camera height or movement. Existing Doom weapon paths are
 unchanged. Regression checks cover activation/switch restrictions, both damage
 ranges, ghost contacts, melee distance, timing, peck motion, sounds/puffs,
 release, expiry and death.
+
+### 2026-09-22: First-person player chicken lifecycle
+
+Test Player Chicken (with Test Combat) starts the preview in chicken form.
+Transformation replaces the linked player body, equips the beak, sets thirty
+health and a 24-unit body height, removes armor/invisibility/Tome power, and
+preserves flight. The viewpoint is twenty units lower and movement uses the
+reference chicken thrust. Idle twitch/hop/noise behavior uses gameplay ticks.
+The previous weapon is retained for restoration.
+
+The forty-second timer attempts restoration to a normal 56-unit body and full
+health. Successful restoration reapplies flight, restores the prior weapon and
+adds the reference reaction delay/fog. A blocked fit retains the current chicken
+body and retries after two seconds. Like the enemy path, failed-fit checks are
+atomic and do not recreate the chicken or consume failed-spawn RNG. Invulnerability
+prevents the initial morph; a repeat hit after the first second can grant powered
+beak attacks. Healing is capped at thirty while transformed and Baby automatic
+healing is disabled, following the reference rules.
+
+A Tome reverses chicken form instead of starting its normal weapon-power timer.
+If the normal body cannot fit, Tome use consumes the artifact and applies the
+reference fatal-damage rule. Dead chickens do not restore themselves. The Tome
+indicator is hidden for super-chicken power. Tests cover body/camera ownership,
+health/armor/powers, flight, weapon restoration, exact timer expiry, blocked fits,
+invulnerability and successful/fatal Tome reversal. Existing Doom compatibility
+checks remain unchanged.
+
+This is first-person preview integration. Network player targeting/color and
+third-person player animation, full campaign transitions, saves and multiplayer
+remain unfinished. Production Heretic loading remains gated.

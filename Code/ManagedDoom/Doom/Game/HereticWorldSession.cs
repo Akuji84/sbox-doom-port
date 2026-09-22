@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, chicken movement, camera, healing and timer.
 // s&Doom modification: 2026-09-22, Morph Ovum map pickup.
 // s&Doom modification: 2026-09-22, Tome pickup, timing and death cleanup.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
@@ -101,6 +102,7 @@ namespace ManagedDoom
             if (State.DamageFlash > 0) State.DamageFlash--;
             if (State.PickupFlash > 0) State.PickupFlash--;
             if (State.Health <= 0) { TickDead(); return; }
+            ThinkPlayerChicken();
             if ((Body.Flags & MobjFlags.JustAttacked) != 0)
             {
                 command.Turn = 0; command.Forward = 100; command.Side = 0;
@@ -118,8 +120,8 @@ namespace ManagedDoom
                 Body.Angle += new Angle(unchecked((uint)(command.Turn << 16)));
                 if (onGround || StandingOnActor || State.Flying)
                 {
-                    Thrust(Body.Angle, new Fixed(Math.Clamp((int)command.Forward, -50, 50) * 2048));
-                    Thrust(Body.Angle - Angle.Ang90, new Fixed(Math.Clamp((int)command.Side, -40, 40) * 2048));
+                    Thrust(Body.Angle, new Fixed(Math.Clamp((int)command.Forward, -50, 50) * (State.ChickenTics > 0 ? 2500 : 2048)));
+                    Thrust(Body.Angle - Angle.Ang90, new Fixed(Math.Clamp((int)command.Side, -40, 40) * (State.ChickenTics > 0 ? 2500 : 2048)));
                 }
                 LookAndFly(command);
             }
@@ -132,6 +134,11 @@ namespace ManagedDoom
             PickupKeys();
             foreach (var actor in actors) { TickDroppedItem(actor); actor.Tick(); }
             if (command.SelectWeapon is HereticWeapon selected) GoldWand?.SelectWeapon(selected);
+            if (State.ChickenTics > 0 && --State.ChickenTics == 0)
+            {
+                State.ChickenTics = 1; // Keep morph identity until restoration commits.
+                UndoPlayerChicken();
+            }
             TickClinkTest(State.Health > 0 && command.TestAttack);
             world.Thinkers.Run();
             UpdateSwitchesAndScroll();
@@ -256,7 +263,7 @@ namespace ManagedDoom
             var bob = (Body.MomX * Body.MomX + Body.MomY * Body.MomY) / 4;
             if (bob > Fixed.FromInt(16)) bob = Fixed.FromInt(16);
             if (State.Flying && Body.Z > Body.FloorZ) bob = Fixed.One / 2;
-            Camera.ViewZ = Body.Z + Camera.ViewHeight + bob / 2 * Trig.Sin(new Angle((uint)((409L * tic & 8191) << 19)));
+            Camera.ViewZ = Body.Z + Camera.ViewHeight + (State.ChickenTics > 0 ? -Fixed.FromInt(20) : bob / 2 * Trig.Sin(new Angle((uint)((409L * tic & 8191) << 19))));
             var flat = world.Map.Flats[Body.Subsector.Sector.FloorFlat].Name;
             if (Body.Z <= Body.FloorZ && (flat == "FLTWAWA1" || flat == "FLTFLWW1" || flat == "FLTLAVA1" || flat == "FLATHUH1" || flat == "FLTSLUD1")) Camera.ViewZ -= Fixed.FromInt(10);
             Camera.ViewZ = new Fixed(Math.Clamp(Camera.ViewZ.Data, (Body.FloorZ + Fixed.FromInt(4)).Data, (Body.CeilingZ - Fixed.FromInt(4)).Data));
@@ -325,7 +332,7 @@ namespace ManagedDoom
             Camera.DeltaViewHeight = Fixed.Zero;
             Camera.ViewHeight = new Fixed(Math.Max(Fixed.FromInt(6).Data, (Camera.ViewHeight - Fixed.One).Data));
             State.LookDirection -= Math.Sign(State.LookDirection) * Math.Min(6, Math.Abs(State.LookDirection));
-            Camera.ViewZ = new Fixed(Math.Clamp((Body.Z + Camera.ViewHeight).Data,
+            Camera.ViewZ = new Fixed(Math.Clamp((Body.Z + Camera.ViewHeight - (State.ChickenTics > 0 ? Fixed.FromInt(20) : Fixed.Zero)).Data,
                 (Body.FloorZ + Fixed.FromInt(4)).Data, (Body.CeilingZ - Fixed.FromInt(4)).Data));
             tic++;
         }
@@ -366,8 +373,9 @@ namespace ManagedDoom
         internal bool GiveHealth(int amount)
         {
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
-            if (State.Health <= 0 || State.Health >= 100) return false;
-            State.Health = (int)Math.Min(100, (long)State.Health + amount);
+            var maximum = State.ChickenTics > 0 ? 30 : 100;
+            if (State.Health <= 0 || State.Health >= maximum) return false;
+            State.Health = (int)Math.Min(maximum, (long)State.Health + amount);
             Body.Health = State.Health;
             return true;
         }

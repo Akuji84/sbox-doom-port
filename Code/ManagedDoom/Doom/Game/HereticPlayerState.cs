@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, player chicken duration.
 // s&Doom modification: 2026-09-22, Morph Ovum inventory.
 // s&Doom modification: 2026-09-22, Tome inventory and power timer.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
@@ -37,6 +38,7 @@ namespace ManagedDoom
     public sealed class HereticPlayerState
     {
         public bool HasMapScroll { get; internal set; }
+        public int ChickenTics { get; internal set; }
         public int MorphOvums { get; internal set; }
         public int TomesOfPower { get; internal set; }
         public int WeaponPowerTics { get; internal set; }

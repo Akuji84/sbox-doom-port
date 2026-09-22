@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, Tome chicken reversal and healing rules.
 // s&Doom modification: 2026-09-22, Morph Ovum pickup and preview use.
 // s&Doom modification: 2026-09-22, Tome acquisition and activation.
 //
@@ -55,7 +56,7 @@ namespace ManagedDoom
         // only owned quantities, and remove urns from their own inventory count.
         private void AutoUseHealingArtifacts(int damage)
         {
-            if (skill != GameSkill.Baby || State.Health <= 0 || damage < State.Health) return;
+            if (State.ChickenTics > 0 || skill != GameSkill.Baby || State.Health <= 0 || damage < State.Health) return;
             var needed = (long)damage - State.Health + 1;
             var flaskHealing = State.QuartzFlasks * 25;
             var urnHealing = State.MysticUrns * 100;
@@ -105,6 +106,13 @@ namespace ManagedDoom
             }
             if (type == HereticArtifact.TomeOfPower)
             {
+                if (State.Health > 0 && State.TomesOfPower > 0 && State.ChickenTics > 0)
+                {
+                    if (!UndoPlayerChicken()) DamageEnvironment(10000);
+                    else RequestSound(HereticSoundId.sfx_wpnup, Body);
+                    State.TomesOfPower--; if (State.Health > 0) State.Message = "Used Tome of Power";
+                    RequestSound(HereticSoundId.sfx_artiuse, Body); return true;
+                }
                 if (State.Health <= 0 || State.TomesOfPower <= 0 || State.WeaponPowerTics > 128) return false;
                 State.TomesOfPower--; State.WeaponPowerTics = 40 * 35;
                 GoldWand?.ActivateTome();

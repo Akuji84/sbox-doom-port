@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, restore the pre-morph weapon.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -30,6 +31,12 @@ namespace ManagedDoom
             PendingWeapon = null; ReadyWeapon = HereticWeapon.wp_beak;
             Y = Fixed.FromInt(32); BeakPeck = 0;
             SetState(HereticStateId.S_BEAKREADY);
+        }
+        internal void RestoreAfterChicken(HereticWeapon weapon)
+        {
+            PendingWeapon = null; ReadyWeapon = weapon == HereticWeapon.wp_beak ? HereticWeapon.wp_staff : weapon;
+            Y = Fixed.FromInt(128); BeakPeck = 0; Refire = 0;
+            SetState(HereticDefinitions.Weapons1[(int)ReadyWeapon].Up);
         }
         private void AttackBeak(bool powered)
         {
