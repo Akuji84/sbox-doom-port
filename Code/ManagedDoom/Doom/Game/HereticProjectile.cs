@@ -14,7 +14,7 @@
 // GNU General Public License for more details.
 //
 
-// Adapted 2026-09-22: normal crossbow missiles from pinned p_mobj.c/p_map.c.
+// Adapted 2026-09-22: normal crossbow and Hellstaff missiles from pinned p_mobj.c/p_map.c.
 // Chocolate Doom 895f581c5d91497bdda0516612da803fe5843e28.
 using System;
 using System.Collections.Generic;
@@ -29,8 +29,8 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
         {
-            if (type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3)
-                throw new NotSupportedException("Only normal crossbow bolts are enabled.");
+            if (type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1)
+                throw new NotSupportedException("Only normal crossbow and Hellstaff projectiles are enabled.");
             this.session = session; Type = type;
             var def = HereticDefinitions.Actors[(int)type];
             Animation = new HereticActorState(def.SpawnState);
@@ -46,6 +46,7 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
+        internal void SetFlightState(HereticStateId state) { Animation.SetState(state); Sync(); }
         private void Sync() { Body.Sprite = (Sprite)Animation.Definition.Sprite; Body.Frame = Animation.Definition.Frame; }
         internal bool Contact(Mobj target)
         {
@@ -94,7 +95,8 @@ namespace ManagedDoom
         private readonly List<HereticProjectile> projectiles = new();
         public IReadOnlyList<HereticProjectile> Projectiles => projectiles.AsReadOnly();
         internal HereticProjectile FindProjectile(Mobj body) => projectiles.Find(p => p.Body == body);
-        internal HereticProjectile SpawnCrossbowBolt(HereticActorType type, Angle angle)
+        internal HereticProjectile SpawnCrossbowBolt(HereticActorType type, Angle angle) => SpawnPlayerProjectile(type, angle);
+        internal HereticProjectile SpawnPlayerProjectile(HereticActorType type, Angle angle)
         {
             var aiming = new Hitscan(world); var original = angle;
             var slope = aiming.AimLineAttack(Body, angle, Fixed.FromInt(1024));

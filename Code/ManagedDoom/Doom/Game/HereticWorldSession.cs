@@ -330,6 +330,7 @@ namespace ManagedDoom
             State.ArmorType = type; State.ArmorPoints = type * 100;
             return true;
         }
+        private static bool SkullRodPickup(HereticActorType type) => type == HereticActorType.MT_WSKULLROD || type == HereticActorType.MT_AMSKRDWIMPY || type == HereticActorType.MT_AMSKRDHEFTY;
         private static bool CrossbowPickup(HereticActorType type) => type == HereticActorType.MT_MISC15 || type == HereticActorType.MT_AMCBOWWIMPY || type == HereticActorType.MT_AMCBOWHEFTY;
         private void EnableCombatAmmo()
         {
@@ -338,7 +339,7 @@ namespace ManagedDoom
             foreach (var thing in world.Map.Things)
             {
                 var decision = HereticMapSpawns.Decide(thing, skill);
-                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC13 && decision.Type != HereticActorType.MT_MISC0 && ArmorPickup(decision.Type) == 0 && !CrossbowPickup(decision.Type))) continue;
+                if (decision.Disposition != HereticSpawnDisposition.Unsupported || (AmmoPickup(decision.Type).amount == 0 && decision.Type != HereticActorType.MT_MISC14 && decision.Type != HereticActorType.MT_MISC13 && decision.Type != HereticActorType.MT_MISC0 && ArmorPickup(decision.Type) == 0 && !CrossbowPickup(decision.Type) && !SkullRodPickup(decision.Type))) continue;
                 SpawnMapActor(thing, decision.Type);
                 UnsupportedMapThings--;
             }
@@ -358,10 +359,18 @@ namespace ManagedDoom
             {
                 var actor = actors[i];
                 var ammo = AmmoPickup(actor.Type);
-                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC13 && actor.Type != HereticActorType.MT_MISC0 && ArmorPickup(actor.Type) == 0 && !CrossbowPickup(actor.Type)))) continue;
+                if (actor.Key == HereticKeys.None && (GoldWand == null || (ammo.amount == 0 && actor.Type != HereticActorType.MT_MISC14 && actor.Type != HereticActorType.MT_MISC13 && actor.Type != HereticActorType.MT_MISC0 && ArmorPickup(actor.Type) == 0 && !CrossbowPickup(actor.Type) && !SkullRodPickup(actor.Type)))) continue;
                 var body = actor.Body; var dz = body.Z - Body.Z;
                 if (Math.Abs((body.X - Body.X).Data) >= (body.Radius + Body.Radius).Data || Math.Abs((body.Y - Body.Y).Data) >= (body.Radius + Body.Radius).Data || dz > Body.Height || dz < Fixed.FromInt(-32)) continue;
                 if (actor.Key != HereticKeys.None) { State.Keys |= actor.Key; State.Message = actor.Key + " key"; }
+                else if (SkullRodPickup(actor.Type))
+                {
+                    var weapon = actor.Type == HereticActorType.MT_WSKULLROD;
+                    var bonus = skill == GameSkill.Baby || skill == GameSkill.Nightmare;
+                    if (!(weapon ? GoldWand.GiveSkullRod(bonus) : GoldWand.GiveSkullRodAmmo(actor.Type == HereticActorType.MT_AMSKRDWIMPY ? 20 : 100, bonus))) continue;
+                    State.Message = weapon ? "Hellstaff" : "Hellstaff ammo";
+                    RequestSound(weapon ? HereticSoundId.sfx_wpnup : HereticSoundId.sfx_itemup, Body);
+                }
                 else if (CrossbowPickup(actor.Type))
                 {
                     var weapon = actor.Type == HereticActorType.MT_MISC15;

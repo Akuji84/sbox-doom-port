@@ -597,3 +597,26 @@ Regression coverage exercises three-bolt firing, actual Clink damage, rendering,
 replay determinism, ammo/fallback, map weapon collection, bonuses/caps, owner and
 ghost exclusion, vertical separation and sky/floor impact cleanup. The unchanged
 five-WAD Doom simulation/render baselines remain required.
+
+### 2026-09-22: normal Hellstaff
+
+The combat preview adds the normal Hellstaff (Skull Rod in the engine tables)
+through the existing native projectile layer. It consumes one ammo per shot,
+fires every four ticks during its attack animation, and randomizes the initial
+projectile frame after a successful spawn using the simulation RNG. Releasing
+attack still completes the second shot of the current animation when ammo permits.
+Normal projectile states include flight, direct-hit damage and impact cleanup;
+no powered rain or explosive damage is enabled.
+
+Map weapon pickups grant 50 ammo; small/large ammo grant 20/100, capped at 200,
+with existing difficulty bonuses. Selection and fallback respect the reference
+ranking without lower-ranked pickups replacing the selected Hellstaff. Enable
+TestCombat and collect it, or enable TestSkullRod to grant it, then press 5.
+Shot and impact sounds use licensed bundled WAD samples.
+
+Regression checks cover actual Clink damage, replay RNG/positions/states,
+firing cadence and release, last-shot fallback, map weapon and both ammo pickups,
+capacity, difficulty bonuses, selection ranking and projectile cleanup. Existing
+Doom baselines remain required. Powered Hellstaff, other remaining weapons,
+full enemy behavior, campaign integration, saves and multiplayer remain gated;
+in-editor playtesting is outstanding.
