@@ -905,3 +905,18 @@ checks remain unchanged.
 This is first-person preview integration. Network player targeting/color and
 third-person player animation, full campaign transitions, saves and multiplayer
 remain unfinished. Production Heretic loading remains gated.
+
+
+## 2026-09-22: combat status HUD
+
+The native Heretic combat preview now draws health, armor and current-weapon
+ammo using Blasphemer's bundled font. Staff/Gauntlets show a dash for ammo;
+chicken form shows BEAK. Death health is clamped to zero. The compact readout
+sits above the artifact shortcuts and remains visible on the automap. It reads
+simulation state without changing RNG or advancing time. This is a preview
+layout, not a recreation of the original Heretic status bar.
+
+Regression checks cover all six ammo pools, melee/chicken state, health/armor,
+death, inventory spacing and read-only rendering. Production Doom remains
+unchanged. Full monster/campaign, save and multiplayer integration is unfinished;
+production Heretic loading remains gated.

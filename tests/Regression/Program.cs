@@ -248,6 +248,7 @@ HereticSeekerChecks.Verify(root);
 HereticPoweredSkullRodChecks.Verify(root);
 HereticTomeChecks.Verify(root);
 HereticArtifactHudChecks.Verify(root);
+HereticStatusHudChecks.Verify(root);
 HereticEggChecks.Verify(root);
 HereticChickenChecks.Verify(root);
 HereticOvumChecks.Verify(root);

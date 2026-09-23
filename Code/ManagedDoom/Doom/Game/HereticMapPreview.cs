@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-22, combat health, armor and ammo HUD.
 // s&Doom modification: 2026-09-22, artifact overview and Tome HUD indicator.
 // s&Doom modification: 2026-09-22, sector lighting and full-bright Heretic weapon frames.
 // Copyright (C) 2026 s&Doom contributors
@@ -23,6 +24,7 @@ namespace ManagedDoom
         public HereticAutomapView Automap { get; }
         private readonly Patch[] markDigits;
         private readonly HereticArtifactHud artifactHud;
+        private readonly HereticStatusHud statusHud;
         public bool InventoryVisible { get; set; }
         public void ZoomAutomap(bool closer) => Automap?.ChangeZoom(closer);
         public HereticMapPreview(GameContent content, int episode = 1, int map = 1)
@@ -37,6 +39,7 @@ namespace ManagedDoom
             {
                 Automap = new HereticAutomapView(world.HereticSession);
                 artifactHud = new HereticArtifactHud(content.Wad);
+                statusHud = new HereticStatusHud(content.Wad);
                 markDigits = Enumerable.Range(0, 10).Select(i => Patch.FromWad(content.Wad, "IN" + i)).ToArray();
             }
             tintTable = content.Wad.ReadLump(content.Wad.GetLumpNumber("TINTTAB"));
@@ -79,6 +82,7 @@ namespace ManagedDoom
                     else screen.DrawPatch(frame.Patches[0], wand.X.ToIntFloor(), wand.Y.ToIntFloor(), 1, map, tint);
                 }
             }
+            if (world.HereticSession?.GoldWand != null) statusHud.Render(world.HereticSession, screen);
             if (world.HereticSession?.GoldWand != null) artifactHud.Render(world.HereticSession, screen, InventoryVisible);
             var palette = content.Palette[world.HereticSession?.State.PaletteIndex ?? 0];
             for (var y = 0; y < Height; y++)
