@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
@@ -83,7 +84,7 @@ namespace ManagedDoom
         /// <summary>Call after attack-specific effects have been resolved. Does not implement
         /// morphing, death balls, rain scaling or player armor/inventory protections.</summary>
         public HereticDamageResult ApplyOrdinaryDamage(int damage, Mobj inflictor = null, Mobj source = null,
-            HereticDamageThrust thrustMode = HereticDamageThrust.Normal, bool sourceIsBoss = false)
+            HereticDamageThrust thrustMode = HereticDamageThrust.Normal, bool sourceIsBoss = false, bool sourceIsDisciple = false)
         {
             if (damage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
             if ((uint)thrustMode > (uint)HereticDamageThrust.PoweredStaff) throw new ArgumentOutOfRangeException(nameof(thrustMode));
@@ -136,7 +137,7 @@ namespace ManagedDoom
                 result = HereticDamageResult.Pain;
             }
             Body.ReactionTime = 0;
-            if (Body.Threshold == 0 && source != null && !sourceIsBoss)
+            if (Body.Threshold == 0 && source != null && !sourceIsBoss && !(Type == HereticActorType.MT_SORCERER2 && sourceIsDisciple))
             {
                 Body.Target = source;
                 Body.Threshold = 100;

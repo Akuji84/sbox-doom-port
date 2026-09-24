@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, mounted Sorcerer action dispatch.
 // s&Doom modification: 2026-09-24, validated explicit-height monster spawning.
@@ -283,7 +284,7 @@ namespace ManagedDoom
             foreach (var enemy in testEnemies)
                 if (enemy.Body == body)
                 {
-                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : source ?? Body, thrust, sourceIsBoss: !environment && IsBoss(source ?? Body));
+                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : source ?? Body, thrust, sourceIsBoss: !environment && IsBoss(source ?? Body), sourceIsDisciple: !environment && SameMonsterType(source ?? Body, HereticActorType.MT_WIZARD));
                     if (result == HereticDamageResult.Killed) TestKills++;
                     return result;
                 }

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -100,6 +101,24 @@ namespace ManagedDoom
             if(spots.Length==0)return;
             var chances=new[]{192,120,120,120,64,64,32,16,0};
             if(world.Random.Next()>=chances[Math.Clamp(enemy.Body.Health/(3500/8),0,8)])return;
+            TeleportSorcerer(enemy);
+        }
+        internal bool TrySorcererDamageEscape(Mobj target)
+        {
+            foreach (var enemy in testEnemies)
+                if (enemy.Body == target && enemy.Combatant.Type == HereticActorType.MT_SORCERER2 && target.Health > 0)
+                {
+                    if (world.Random.Next() >= 96) return false;
+                    // Native damage is skipped even if no teleport spot exists or it is blocked.
+                    TeleportSorcerer(enemy);
+                    return true;
+                }
+            return false;
+        }
+        private void TeleportSorcerer(HereticClinkTestEnemy enemy)
+        {
+            var spots=world.Map.Things.Where(t=>t.Type==56).ToArray();
+            if(spots.Length==0)return;
             var index=world.Random.Next();
             // Bound malformed maps with no sufficiently distant spot instead of looping forever.
             for(var attempt=0;attempt<spots.Length;attempt++)

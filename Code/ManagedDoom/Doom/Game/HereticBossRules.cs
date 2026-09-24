@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, native supported-boss rules and episode death triggers.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -36,10 +37,11 @@ namespace ManagedDoom
             {
                 1 or 4 => HereticActorType.MT_HEAD,
                 2 or 5 => HereticActorType.MT_MINOTAUR,
+                3 => HereticActorType.MT_SORCERER2,
                 _ => null
             };
             if (source.Combatant.Type != type || source.Body.Health > 0 || EpisodeBossTriggered || world.Options.Map != 8) return;
-            if (type == HereticActorType.MT_HEAD ? blockedIronLiches != 0 : blockedMaulotaurs != 0) return;
+            if ((type == HereticActorType.MT_HEAD && blockedIronLiches != 0) || (type == HereticActorType.MT_MINOTAUR && blockedMaulotaurs != 0)) return;
             foreach (var enemy in testEnemies)
                 if (enemy.Combatant.Type == type && enemy.Body.Health > 0) return;
             EpisodeBossTriggered = true;

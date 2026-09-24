@@ -1391,3 +1391,30 @@ Validation: full regression suite passes, including unchanged simulation and
 rendered-frame hashes for all five production Doom WADs. The game builds with
 zero errors and seven existing warnings. Licensed asset inventory and pinned
 Heretic definition checks pass.
+
+## 2026-09-24: D'Sparil damage rules and E3M8 completion
+
+Both Sorcerer forms now ignore radius damage, matching the native boss exclusions.
+The second form rolls its native 96/256 escape chance when hit by normal Phoenix
+or powered Hellstaff missiles, before ordinary damage/thrust. A successful roll
+attempts a boss-spot teleport and skips the hit even if no usable destination
+exists. This damage reaction bypasses the separate health-based attack-decision
+roll. Projectile impact still occurs. The second form does not retarget a Disciple
+that damages it; the mounted form retains ordinary retaliation.
+
+The shared episode-death handler recognizes the second form on E3M8, waits for
+other living second-form bosses, and schedules tag-666 floor lowering once.
+The existing seven-loop death animation now reaches that completion handler.
+Regression tests cover splash immunity, death-ball/rain resistance, phase-specific
+Disciple retaliation, both damage-escape outcomes, absent spots, living-boss and
+episode/map gates, repeated completion, and completion through the real death
+animation. Other supported boss episodes retain their existing guards.
+
+Automatic Sorcerer map spawning remains disabled pending map-placement and
+boss-spot integration testing. These are isolated preview encounters; production
+Heretic loading, campaign, saves and multiplayer remain gated. No editor playtest
+is claimed.
+
+Validation: focused and full regression suites pass; all five production Doom
+simulation/render hashes remain unchanged. Build: zero errors, seven existing
+warnings. Licensed asset inventory and pinned definition checks pass.

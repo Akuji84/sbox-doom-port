@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
@@ -116,6 +117,7 @@ namespace ManagedDoom
             if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target) && !session.IsBoss(target) && !session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = 10000;
             if (Type == HereticActorType.MT_BLASTERFX1 && session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = session.World.Random.Next() & 1;
             if (Type == HereticActorType.MT_RAINPLR3 && session.IsBoss(target) && !session.IsChargingBoss(target)) damage = (session.World.Random.Next() & 7) + 1;
+            if (Type is HereticActorType.MT_PHOENIXFX1 or HereticActorType.MT_HORNRODFX2 && session.TrySorcererDamageEscape(target)) return false;
             session.DamageTestEnemy(target, damage, inflictor: Body);
             return false;
         }
