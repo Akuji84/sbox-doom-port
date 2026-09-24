@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native whirlwind dispatch and distance-based attack selection.
 // s&Doom modification: 2026-09-24, Iron Lich ice bursts and growing fire columns.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -24,6 +25,7 @@ namespace ManagedDoom
     {
         internal int? ContactDamageOverride { get; private set; }
         private bool SupportsIronLich(HereticAction action) =>
+            (Type == HereticActorType.MT_WHIRLWIND && action == HereticAction.A_WhirlwindSeek) ||
             (Type == HereticActorType.MT_HEADFX1 && action == HereticAction.A_HeadIceImpact) ||
             (Type == HereticActorType.MT_HEADFX3 && action == HereticAction.A_HeadFireGrow);
         internal void BeginFireGrowth(int steps)
@@ -33,6 +35,7 @@ namespace ManagedDoom
         }
         private void ExecuteIronLich(HereticAction action)
         {
+            if (action == HereticAction.A_WhirlwindSeek) { SeekWhirlwind(); return; }
             if (action == HereticAction.A_HeadIceImpact) session.SpawnIronLichShards(this);
             else
             {
@@ -48,6 +51,21 @@ namespace ManagedDoom
     }
     public sealed partial class HereticWorldSession
     {
+        internal void AttackIronLich(HereticClinkTestEnemy enemy)
+        {
+            if (enemy.Body.Target == null) return;
+            var body = enemy.Body;
+            body.Angle = Geometry.PointToAngle(body.X, body.Y, Body.X, Body.Y);
+            var distance = Geometry.AproxDistance(body.X - Body.X, body.Y - Body.Y);
+            if (distance < Fixed.FromInt(64) && body.Z <= Body.Z + Body.Height && Body.Z <= body.Z + body.Height &&
+                new VisibilityCheck(world).CheckSight(body, Body))
+            { DamageEnvironment((world.Random.Next() % 8 + 1) * 6); return; }
+            var far = distance > Fixed.FromInt(512);
+            var roll = world.Random.Next();
+            if (roll < (far ? 150 : 50)) SpawnIronLichIce(enemy);
+            else if (roll < (far ? 200 : 150)) SpawnIronLichFire(enemy);
+            else SpawnIronLichWhirlwind(enemy);
+        }
         // Kept separate from roster registration until whirlwind and boss death are implemented.
         internal HereticProjectile SpawnIronLichIce(HereticClinkTestEnemy enemy)
         {

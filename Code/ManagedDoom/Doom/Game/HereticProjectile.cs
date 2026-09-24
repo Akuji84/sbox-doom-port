@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, whirlwind contacts and delayed impact termination.
 // s&Doom modification: 2026-09-24, Iron Lich ice/fire actions and dormant fire damage.
 // s&Doom modification: 2026-09-24, Undead Warrior axes.
 // s&Doom modification: 2026-09-24, Beast fireball lifecycle.
@@ -93,6 +94,8 @@ namespace ManagedDoom
                 return true;
             }
             if (IsMonsterMissile(Type) && session.SameMonsterType(target, MonsterOwnerType)) return false;
+            if (Type == HereticActorType.MT_WHIRLWIND)
+            { session.World.Random.Next(); session.TouchWhirlwind(target); return false; }
             var damage = (session.World.Random.Next() % 8 + 1) * (ContactDamageOverride ?? def.Damage);
             if (IsMonsterMissile(Type))
             {
@@ -128,7 +131,10 @@ namespace ManagedDoom
                     Body.Z = Body.FloorZ; Body.MomZ = -Body.MomZ; bouncedThisTick = true;
                     Animation.SetState(HereticDefinitions.Actors[(int)Type].DeathState); if (!Animation.Removed) Sync(); return;
                 }
-                if (Body.Z <= Body.FloorZ || Body.Z + Body.Height > Body.CeilingZ)
+                // A whirlwind resting exactly on the floor has no vertical collision;
+                // native P_ZMovement is not called for zero Z momentum at floor height.
+                var floorImpact = Body.Z <= Body.FloorZ && !(Type == HereticActorType.MT_WHIRLWIND && Body.Z == Body.FloorZ && dz == Fixed.Zero);
+                if (floorImpact || Body.Z + Body.Height > Body.CeilingZ)
                 {
                     // Rain impacts choose floor versus airborne animation by Z.
                     if (Type == HereticActorType.MT_RAINPLR3 && Body.Z <= Body.FloorZ) Body.Z = Body.FloorZ;
@@ -138,6 +144,7 @@ namespace ManagedDoom
         }
         private void Explode(bool sky)
         {
+            if (!sky && DeferWhirlwindImpact()) return;
             Flying = false; Body.MomX = Body.MomY = Body.MomZ = Fixed.Zero; Body.Flags &= ~MobjFlags.Missile;
             var def = HereticDefinitions.Actors[(int)Type];
             Animation.SetState(sky ? HereticStateId.S_NULL : def.DeathState);

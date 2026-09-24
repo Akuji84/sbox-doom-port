@@ -1535,3 +1535,26 @@ This is an attack-system checkpoint, not Iron Lich roster activation. MT_HEAD
 remains gated until whirlwind, attack selection and death behavior are ready.
 The preview roster and production launcher are unchanged. General pursuit,
 remaining monsters/bosses, campaign, saves and multiplayer remain unfinished.
+
+## 2026-09-24: Iron Lich whirlwind and attack selection
+
+Added native MT_WHIRLWIND spawning, speed-10 bounded seeking, invisible-target
+tracking suppression, dead-target release, active sound timing and duration
+expiry. Contacts spin/push targets, apply capped lift during the native time
+window and deal three damage every eight simulation ticks through the existing
+protection/armor path. The effects use the Heretic session clock. Repeated
+impacts share the native sound/impact counter; resting at floor height with no
+vertical motion is not treated as an impact. Expiry always ends the missile.
+
+Iron Lich attack selection now chooses ice, fire or whirlwind using the native
+close/far probabilities and 512-unit threshold, with a separate melee branch.
+These routines are tested through controlled combat fixtures. Tests cover
+owner exclusion, ghost/dead-target seeking, damage/protection, lift cap,
+lifetime/sound cleanup, repeated impacts, floor resting and all six ranged
+selection branches.
+
+MT_HEAD remains gated. Its damage exceptions (including morph/death-ball
+immunity and Dragon Claw resistance), drops and episode-specific death trigger
+must be completed before map spawning is enabled. Existing map roster and
+production loading are unchanged; campaign, saves and multiplayer remain
+unfinished. No editor playtest is claimed by this checkpoint.
