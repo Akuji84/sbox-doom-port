@@ -937,3 +937,20 @@ Checks cover individual key slots and removal, airborne frame rendering, landed 
 expiry blinking, inventory/automap overlays and existing Doom compatibility.
 Production Heretic remains gated; full monster/campaign, saves and multiplayer
 integration are still unfinished.
+
+
+## 2026-09-24: base-content Heretic profile detection
+
+Renamed classic Heretic base WADs can now select the Heretic profile from the
+combined E1M1, MUS_E1M1, M_HTIC, ARTIBOX and SPFLY0 markers. Only the first
+WAD contributes to this signature: add-ons cannot change a Doom base into
+Heretic, even when they supply a missing marker or the base is empty. Known
+filenames remain a fallback and explicit Heretic selection remains available
+for unusual compatible content. The signature is a conservative heuristic,
+not validation of every map, asset, or mod feature.
+
+Tests cover each incomplete signature, split-file signatures, explicit Doom
+rejection, a renamed copy of the bundled IWAD, preview loading with an add-on,
+and a real Doom base with Heretic markers in an add-on. The existing production
+Heretic gate remains in place. General Heretic gameplay compatibility is not
+complete; extended map formats and advanced mod features remain unsupported.

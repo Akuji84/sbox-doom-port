@@ -205,7 +205,7 @@ foreach (var name in new[] { "fsfc1", "fssc1" })
         "switching from " + name + " back to Freedoom restores original simulation behavior");
 }
 CompatibilitySnapshots.Verify(root, args.Contains("--record-compatibility"));
-GameProfileChecks.Verify();
+GameProfileChecks.Verify(root);
 HereticPreviewChecks.Verify(root);
 HereticMovementChecks.Verify(root);
 HereticActorChecks.Verify(root);

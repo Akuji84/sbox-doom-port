@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, base-only content signatures for game profiles.
 // Additional modification: 2026-09-18, game-profile selection before content initialization.
 // Additional modification: 2026-09-18, Freedom Scoops five-map campaign support.
 // s&Doom modification notice (added 2026-09-16).
@@ -126,6 +127,10 @@ namespace ManagedDoom
                 }
             }
         }
+
+        // Never let add-on lumps select the base game's family, including an empty base.
+        internal bool BaseContainsLump(string name) => streams.Count > 0 &&
+            lumpInfos.Any(lump => ReferenceEquals(lump.Stream, streams[0]) && lump.Name == name);
 
         public int GetLumpNumber(string name)
         {
