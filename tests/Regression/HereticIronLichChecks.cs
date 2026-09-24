@@ -57,7 +57,7 @@ static class HereticIronLichChecks
         s.DamageTestEnemy(owner.Body,10000); f.DamageTestEnemy(caster.Body,10000);
         for(var i=0;i<500;i++){s.Tick(default);f.Tick(default);}
         Check(s.Projectiles.Count==0 && f.Projectiles.Count==0,"Ice/fire projectiles leaked after impacts.");
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_HEAD),"Iron Lich enabled before full attack/death support.");
-        Console.WriteLine("PASS Iron Lich ice/fire: native speeds, owner/ghost handling, impact shards, fire growth/damage, sounds, rendering and cleanup; actor remains gated");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_HEAD),"Iron Lich roster registration missing.");
+        Console.WriteLine("PASS Iron Lich ice/fire: native speeds, owner/ghost handling, impact shards, fire growth/damage, sounds, rendering and cleanup; actor enabled");
     }
 }

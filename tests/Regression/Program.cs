@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using static Sandbox.SboxManagedDoomShellBridgeService;
 
 var root = Path.GetFullPath(args.Length > 0 ? args[0] : ".");
+if (args.Contains("--iron-lich")) { HereticIronLichCombatChecks.Verify(root); return; }
 foreach (var length in new[] {0,1,55,56,63,64,65,127,128,1024})
 {
     var bytes = new byte[length]; new Random(length).NextBytes(bytes);
@@ -222,6 +223,7 @@ HereticWizardChecks.Verify(root);
 HereticGargoyleChecks.Verify(root);
 HereticIronLichChecks.Verify(root);
 HereticWhirlwindChecks.Verify(root);
+HereticIronLichCombatChecks.Verify(root);
 HereticWandChecks.Verify(root);
 HereticImpactChecks.Verify(root);
 HereticShootChecks.Verify(root);

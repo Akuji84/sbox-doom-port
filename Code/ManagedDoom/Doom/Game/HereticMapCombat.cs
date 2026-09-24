@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, normal Gargoyle map spawning.
 // s&Doom modification: 2026-09-24, Fire Gargoyle map spawning.
 // s&Doom modification: 2026-09-24, Disciple map spawning.
@@ -32,10 +33,11 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         private bool mapCombatEnabled;
+        private int blockedIronLiches;
         public int BlockedMapEnemies { get; private set; }
         public IReadOnlyList<HereticClinkTestEnemy> CombatEnemies => testEnemies.AsReadOnly();
         public static bool SupportsMapEnemy(HereticActorType type) => type is
-            HereticActorType.MT_IMP or HereticActorType.MT_IMPLEADER or HereticActorType.MT_WIZARD or HereticActorType.MT_SNAKE or HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST or HereticActorType.MT_BEAST or HereticActorType.MT_CLINK or HereticActorType.MT_MUMMY or HereticActorType.MT_MUMMYGHOST or
+            HereticActorType.MT_HEAD or HereticActorType.MT_IMP or HereticActorType.MT_IMPLEADER or HereticActorType.MT_WIZARD or HereticActorType.MT_SNAKE or HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST or HereticActorType.MT_BEAST or HereticActorType.MT_CLINK or HereticActorType.MT_MUMMY or HereticActorType.MT_MUMMYGHOST or
             HereticActorType.MT_MUMMYLEADER or HereticActorType.MT_MUMMYLEADERGHOST;
         // Opt-in until the complete roster, campaign and multiplayer are implemented.
         public void StartMapCombat()
@@ -49,7 +51,7 @@ namespace ManagedDoom
                 var decision = HereticMapSpawns.Decide(thing, skill);
                 if (decision.Disposition != HereticSpawnDisposition.Unsupported || !SupportsMapEnemy(decision.Type)) continue;
                 var enemy = TrySpawnSupportedEnemy(decision.Type, thing.X, thing.Y);
-                if (enemy == null) { BlockedMapEnemies++; continue; }
+                if (enemy == null) { BlockedMapEnemies++; if (decision.Type == HereticActorType.MT_HEAD) blockedIronLiches++; continue; }
                 enemy.Body.Angle = thing.Angle;
                 if (((int)thing.Flags & 8) != 0) enemy.Body.Flags |= MobjFlags.Ambush;
                 enemy.Body.UpdateFrameInterpolationInfo();

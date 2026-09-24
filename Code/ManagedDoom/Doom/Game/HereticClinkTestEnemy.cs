@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, preserve Gargoyle charge momentum and recover after wall contact.
 // s&Doom modification: 2026-09-24, Fire Gargoyle actions and landing crashes.
 // s&Doom modification: 2026-09-24, Disciple attacks, floating movement and drops.
@@ -49,7 +50,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -160,6 +161,8 @@ namespace ManagedDoom
                     if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 2);
                     else session.SpawnNitrogolemMissile(this);
                     break;
+                case HereticAction.A_HeadAttack: session.AttackIronLich(this); break;
+                case HereticAction.A_BossDeath: session.IronLichBossDeath(this); break;
                 case HereticAction.A_MummySoul: session.SpawnGolemSoul(Body); break;
                 case HereticAction.A_ChicAttack:
                     if (Body.Target != null && MeleeRange) session.DamageEnvironment(1 + (session.World.Random.Next() & 1));
@@ -172,10 +175,10 @@ namespace ManagedDoom
                     Body.Flags &= ~MobjFlags.Solid;
                     if (IsChicken) break;
                     var random = session.World.Random;
-                    if (OriginalType == HereticActorType.MT_WIZARD)
+                    if (OriginalType is HereticActorType.MT_WIZARD or HereticActorType.MT_HEAD)
                     {
                         if (random.Next() <= 84) { var drop = session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMBLSRWIMPY, 10); DropRequested?.Invoke(drop); }
-                        if (random.Next() <= 4) { var drop = session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_ARTITOMEOFPOWER, 0); DropRequested?.Invoke(drop); }
+                        if (random.Next() <= (OriginalType == HereticActorType.MT_HEAD ? 51 : 4)) { var drop = session.SpawnEnemyAmmoDrop(Body, OriginalType == HereticActorType.MT_HEAD ? HereticActorType.MT_ARTIEGG : HereticActorType.MT_ARTITOMEOFPOWER, 0); DropRequested?.Invoke(drop); }
                         break;
                     }
                     if (random.Next() <= 84)

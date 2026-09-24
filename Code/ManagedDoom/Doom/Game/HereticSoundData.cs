@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, whirlwind sound.
 // s&Doom modification: 2026-09-24, Iron Lich ice/fire sounds.
 // s&Doom modification: 2026-09-24, Gargoyle sound mappings and alias.
@@ -103,6 +104,10 @@ namespace ManagedDoom
             HereticSoundId.sfx_hedat1 => "HEDAT1",
             HereticSoundId.sfx_hedat2 => "HEDAT2",
             HereticSoundId.sfx_hedat3 => "HEDAT3",
+            HereticSoundId.sfx_hedsit => "HEDSIT",
+            HereticSoundId.sfx_heddth => "HEDDTH",
+            HereticSoundId.sfx_hedact => "HEDACT",
+            HereticSoundId.sfx_hedpai => "HEDPAI",
             _ => null
         };
         public static HereticSoundData Decode(byte[] data)

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, final-Lich episode floor trigger and massacre.
 // s&Doom modification: 2026-09-24, native whirlwind dispatch and distance-based attack selection.
 // s&Doom modification: 2026-09-24, Iron Lich ice bursts and growing fire columns.
 //
@@ -66,7 +67,21 @@ namespace ManagedDoom
             else if (roll < (far ? 200 : 150)) SpawnIronLichFire(enemy);
             else SpawnIronLichWhirlwind(enemy);
         }
-        // Kept separate from roster registration until whirlwind and boss death are implemented.
+        internal bool IronLichBossTriggered { get; private set; }
+        internal void IronLichBossDeath(HereticClinkTestEnemy source)
+        {
+            if (source.Combatant.Type != HereticActorType.MT_HEAD || source.Body.Health > 0 || IronLichBossTriggered ||
+                world.Options.Map != 8 || (world.Options.Episode != 1 && world.Options.Episode != 4) || blockedIronLiches != 0) return;
+            foreach (var enemy in testEnemies)
+                if (enemy.Combatant.Type == HereticActorType.MT_HEAD && enemy.Body.Health > 0) return;
+            IronLichBossTriggered = true;
+            if (world.Options.Episode > 1)
+                foreach (var enemy in testEnemies)
+                    if (enemy.Body.Health > 0) DamageTestEnemy(enemy.Body,10000,environment:true);
+            var template = world.Map.Lines[0];
+            var trigger = new LineDef(template.Vertex1,template.Vertex2,0,0,666,template.FrontSide,template.BackSide);
+            world.SectorAction.DoFloor(trigger,FloorMoveType.LowerFloor);
+        }
         internal HereticProjectile SpawnIronLichIce(HereticClinkTestEnemy enemy)
         {
             var ice = SpawnMonsterMissile(enemy, HereticActorType.MT_HEADFX1);

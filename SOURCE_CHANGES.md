@@ -1198,3 +1198,27 @@ immunity and Dragon Claw resistance), drops and episode-specific death trigger
 must be completed before map spawning is enabled. Existing map roster and
 production loading are unchanged; campaign, saves and multiplayer remain
 unfinished. No editor playtest is claimed by this checkpoint.
+
+## 2026-09-24: Iron Lich map combat and death behavior
+
+Iron Liches (MT_HEAD) now spawn in the native map-combat preview with all three
+attack families and native actor states/sounds. Morph attempts are rejected;
+powered Firemace uses ordinary damage instead of an instant kill, and powered
+Dragon Claw projectiles/rippers use the reference zero-or-one damage roll.
+Death drops use independent ten-round Dragon Claw ammo and Morph Ovum rolls.
+
+The last Lich's death lowers tag-666 floors on E1M8/E4M8. E4M8 also kills
+remaining supported monsters. Other maps/episodes do not trigger this action.
+Living Liches and failed Lich placements prevent premature completion. The
+preview still does not instantiate unsupported monster families, so its
+massacre applies to the supported roster only.
+
+Checks cover spawning/rendering, native attack dispatch, damage exceptions,
+Ovum drops, multiple-boss/episode gates, scheduled floor movement, corpse
+states and live combat. The shared map smoke check covers 3,609 enemies over
+48 maps, with 29 blocked placements reported. Run the focused checks with
+`dotnet run --project tests/Regression/Regression.csproj -- . --iron-lich`.
+
+Use Test Combat + Map Monsters in the preview. Production Heretic loading
+remains gated; remaining bosses, complete pursuit/infighting, campaign, saves
+and multiplayer are unfinished. Regression rendering is not an editor playtest.

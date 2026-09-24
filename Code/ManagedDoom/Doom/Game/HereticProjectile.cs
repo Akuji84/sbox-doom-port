@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, whirlwind contacts and delayed impact termination.
 // s&Doom modification: 2026-09-24, Iron Lich ice/fire actions and dormant fire damage.
 // s&Doom modification: 2026-09-24, Undead Warrior axes.
@@ -90,7 +91,9 @@ namespace ManagedDoom
             {
                 if ((target.Flags & MobjFlags.NoBlood) == 0) session.SpawnRipperBlood(Body);
                 session.RequestSound(HereticSoundId.sfx_ripslop, Body);
-                session.DamageTestEnemy(target, ((session.World.Random.Next() & 3) + 2) * def.Damage, inflictor: Body);
+                var ripDamage = ((session.World.Random.Next() & 3) + 2) * def.Damage;
+                if (session.SameMonsterType(target, HereticActorType.MT_HEAD)) ripDamage = session.World.Random.Next() & 1;
+                session.DamageTestEnemy(target, ripDamage, inflictor: Body);
                 return true;
             }
             if (IsMonsterMissile(Type) && session.SameMonsterType(target, MonsterOwnerType)) return false;
@@ -105,7 +108,8 @@ namespace ManagedDoom
             // The reference consumes the missile damage roll, then always
             // returns from egg handling without ordinary damage or thrust.
             if (Type == HereticActorType.MT_EGGFX) { session.RequestEggMorph(target); return false; }
-            if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target)) damage = 10000;
+            if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target) && !session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = 10000;
+            if (Type == HereticActorType.MT_BLASTERFX1 && session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = session.World.Random.Next() & 1;
             session.DamageTestEnemy(target, damage, inflictor: Body);
             return false;
         }

@@ -56,7 +56,7 @@ static class HereticWhirlwindChecks
             var expected=attack==0?HereticActorType.MT_HEADFX1:attack==1?HereticActorType.MT_HEADFX3:HereticActorType.MT_WHIRLWIND;
             Check(a.Projectiles.Count>0 && a.Projectiles[0].Type==expected,"Iron Lich close/far attack selection incorrect.");
         }
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_HEAD),"Incomplete Iron Lich roster enabled.");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_HEAD),"Iron Lich roster registration missing.");
         Console.WriteLine("PASS whirlwind: ownership, speed, seeking/ghost/dead target, periodic damage/invulnerability, lift cap, lifetime/sounds, repeated impacts and close/far attack selection");
     }
 }
