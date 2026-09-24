@@ -29,7 +29,7 @@ runtime loading before changing Doom definitions. Add pre-profile simulation and
 rendering baselines and profile-isolation checks. See ENGINE_PROFILES.md for the
 extension boundaries and upstream source references.
 
-### 2026-09-18 — Heretic asset and map preview
+### 2026-09-18 â€” Heretic asset and map preview
 
 Added an explicit asset-only Heretic loader, family-specific sprite/animation
 catalog, classic map validation, a geometry-only World and a standalone s&box
@@ -37,7 +37,7 @@ preview scene. Shared renderer and animation code remain used by Doom; fixed
 Doom compatibility hashes are retained. Adapted asset tables identify their
 GPL-2.0-or-later Chocolate Doom source and retain original copyright notices.
 
-### 2026-09-18 — Heretic navigation checkpoint
+### 2026-09-18 â€” Heretic navigation checkpoint
 
 Added isolated Heretic player state and fixed-tic navigation, view shifting,
 flight, environmental movement/damage, key pickups and line activation tables.
@@ -1311,3 +1311,24 @@ repeat timing, summoning, teleport destinations, phase transition and final
 death behavior remain unfinished. Both D'Sparil actor types remain excluded
 from map spawning. Production Heretic loading stays gated; no editor playtest
 is claimed.
+
+## 2026-09-24: D'Sparil Disciple summoning
+
+Added the paired MT_SOR2FX2 summoning missiles with native launch angles,
+vertical momentum and animation-driven summoning attempts. Successful attempts
+create a Disciple at the missile's height, stop the missile and produce teleport
+fog and sound. Blocked attempts retain the missile for its next native retry.
+Explicit-height spawns validate actor overlap and floor/ceiling clearance before
+linking the new enemy. Failed attempts preserve the native LastLook random draw.
+
+Regression checks cover launch parameters, blocked placement, vertical clearance,
+retry timing, single-enemy creation, teleport effects, cleanup and the summoned
+Disciple entering combat. The focused --sorcerer checks and full regression suite
+pass; all five production Doom simulation/render hashes remain unchanged. The
+s&box project builds with zero errors and seven existing warnings. Asset inventory
+and pinned Heretic definition checks pass. Regression rendering was inspected;
+no editor playtest is claimed.
+
+D'Sparil's health-based attack selection, repeat timing, teleporting, phase
+transition and final death remain unfinished. Both boss forms remain excluded
+from map spawning, and production Heretic loading remains gated.

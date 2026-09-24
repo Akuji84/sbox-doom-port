@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, validated explicit-height monster spawning.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
@@ -241,18 +242,20 @@ namespace ManagedDoom
         public int TestKills { get; private set; }
         public HereticGoldWand GoldWand { get; private set; }
         public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y) => TrySpawnSupportedEnemy(HereticActorType.MT_CLINK, x, y, true);
-        internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false)
+        internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false, Fixed? spawnZ = null)
         {
             if (!SupportsMapEnemy(type)) throw new ArgumentException("Unsupported map enemy: " + type);
             var enemy = new HereticClinkTestEnemy(this, type);
             var body = enemy.Body; body.X = x; body.Y = y;
             body.Subsector = Geometry.PointInSubsector(x, y, world.Map);
             var sector = body.Subsector.Sector;
-            body.Z = sector.FloorHeight;
+            body.Z = spawnZ ?? sector.FloorHeight;
             if (!world.ThingMovement.CheckPosition(body, x, y) || world.ThingMovement.CurrentCeilingZ - world.ThingMovement.CurrentFloorZ < body.Height) return null;
+            if (spawnZ.HasValue && (body.Z < world.ThingMovement.CurrentFloorZ || body.Z + body.Height > world.ThingMovement.CurrentCeilingZ)) return null;
             if (requireSight && !new VisibilityCheck(world).CheckSight(body, Body)) return null;
             world.ThingMovement.SetThingPosition(body);
-            body.Z = body.FloorZ = world.ThingMovement.CurrentFloorZ; body.CeilingZ = world.ThingMovement.CurrentCeilingZ;
+            body.FloorZ = world.ThingMovement.CurrentFloorZ; body.CeilingZ = world.ThingMovement.CurrentCeilingZ;
+            body.Z = spawnZ ?? body.FloorZ;
             enemy.SoundRequested += RequestSound;
             body.UpdateFrameInterpolationInfo(); testEnemies.Add(enemy); return enemy;
         }

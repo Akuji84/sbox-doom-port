@@ -164,11 +164,11 @@ compatibility snapshots are checked again after the Heretic tests.
 
 Remaining combat work is grouped into these checkpoints:
 
-1. **4b — combat interaction:** family-owned actor instances, spawning/filtering,
+1. **4b â€” combat interaction:** family-owned actor instances, spawning/filtering,
    actor collision and targeting, damage/death and shared-renderer integration.
-2. **4c — player weapons:** weapon overlays/input/ammo, normal and powered attacks,
+2. **4c â€” player weapons:** weapon overlays/input/ammo, normal and powered attacks,
    projectiles and impact effects, with per-weapon regression scenarios.
-3. **4d — enemies and bosses:** AI/state actions, species attacks, transformations
+3. **4d â€” enemies and bosses:** AI/state actions, species attacks, transformations
    and boss triggers, with encounter and deterministic replay coverage.
 
 The normal Heretic gameplay gate remains closed until the required systems are
@@ -287,7 +287,7 @@ The default navigation scene remains unchanged.
 The encounter searches for a visible, collision-free Clink spawn near the player.
 The enemy is linked into the real blockmap and sector rendering lists, uses the
 Heretic state runner/damage component, detects the player, approaches with basic
-collision-aware pursuit, and performs the reference 3–9 damage melee attack.
+collision-aware pursuit, and performs the reference 3â€“9 damage melee attack.
 Pain and death states run; death releases solid collision and records one kill.
 The pursuit routine is intentionally a limited test implementation, not the full
 vanilla A_Chase (door use, sound propagation, patrol/turn tactics and full actor
@@ -311,7 +311,7 @@ The opt-in **Test Combat** scene starts with the normal Gold Wand and 50 rounds.
 Space holds attack. Its separate weapon-state runner processes zero-duration
 psprite transitions correctly, raises/lowers the weapon, animates attacks and
 handles refire/release without using Doom weapon definitions. Firing consumes one
-round and deals 7–14 damage. The first shot is accurate; repeated shots use the
+round and deals 7â€“14 damage. The first shot is accurate; repeated shots use the
 reference spread. It uses the shared read-only aim calculation, including the
 three-angle target search and view-pitch fallback, then sends damage only through
 the Heretic enemy path. Non-shootable scenery is ignored by the bullet query.
@@ -1671,3 +1671,24 @@ repeat timing, summoning, teleport destinations, phase transition and final
 death behavior remain unfinished. Both D'Sparil actor types remain excluded
 from map spawning. Production Heretic loading stays gated; no editor playtest
 is claimed.
+
+## 2026-09-24: D'Sparil Disciple summoning
+
+Added the paired MT_SOR2FX2 summoning missiles with native launch angles,
+vertical momentum and animation-driven summoning attempts. Successful attempts
+create a Disciple at the missile's height, stop the missile and produce teleport
+fog and sound. Blocked attempts retain the missile for its next native retry.
+Explicit-height spawns validate actor overlap and floor/ceiling clearance before
+linking the new enemy. Failed attempts preserve the native LastLook random draw.
+
+Regression checks cover launch parameters, blocked placement, vertical clearance,
+retry timing, single-enemy creation, teleport effects, cleanup and the summoned
+Disciple entering combat. The focused --sorcerer checks and full regression suite
+pass; all five production Doom simulation/render hashes remain unchanged. The
+s&box project builds with zero errors and seven existing warnings. Asset inventory
+and pinned Heretic definition checks pass. Regression rendering was inspected;
+no editor playtest is claimed.
+
+D'Sparil's health-based attack selection, repeat timing, teleporting, phase
+transition and final death remain unfinished. Both boss forms remain excluded
+from map spawning, and production Heretic loading remains gated.

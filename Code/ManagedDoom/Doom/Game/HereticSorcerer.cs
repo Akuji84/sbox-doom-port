@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native Disciple summoning and blocked retries.
 // s&Doom modification: 2026-09-24, D'Sparil fireballs, blue bolts and sparks.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -22,10 +23,15 @@ namespace ManagedDoom
 {
     public sealed partial class HereticProjectile
     {
-        private bool SupportsSorcerer(HereticAction action) => Type == HereticActorType.MT_SOR2FX1 &&
+        private bool SupportsSorcerer(HereticAction action) => (Type == HereticActorType.MT_SOR2FX2 && action == HereticAction.A_GenWizard) || Type == HereticActorType.MT_SOR2FX1 &&
             (action == HereticAction.A_BlueSpark || action == HereticAction.A_Explode);
         private void ExecuteSorcerer(HereticAction action)
         {
+            if(action==HereticAction.A_GenWizard)
+            {
+                if(Flying && session.TrySummonDisciple(Body)) Explode(false);
+                return;
+            }
             if(action==HereticAction.A_BlueSpark)session.SpawnSorcererSparks(Body);
             else
             {
@@ -52,6 +58,24 @@ namespace ManagedDoom
             if(caster.Body.Target==null)return null;
             RequestSound(HereticSoundId.sfx_soratk,Body); // Reference attack sound is local/full volume.
             return SpawnMonsterMissile(caster,HereticActorType.MT_SOR2FX1);
+        }
+        internal void SpawnSorcererSummoners(HereticClinkTestEnemy caster)
+        {
+            if(caster.Body.Target==null)return;
+            RequestSound(HereticSoundId.sfx_soratk,Body);
+            SpawnMonsterMissile(caster,HereticActorType.MT_SOR2FX2,caster.Body.Angle-Angle.Ang45,Fixed.One/2);
+            SpawnMonsterMissile(caster,HereticActorType.MT_SOR2FX2,caster.Body.Angle+Angle.Ang45,Fixed.One/2);
+        }
+        internal bool TrySummonDisciple(Mobj missile)
+        {
+            // P_SpawnMobj consumes LastLook even when P_TestMobjLocation rejects it.
+            var lastLook=world.Random.Next()%4;
+            var height=HereticDefinitions.Actors[(int)HereticActorType.MT_WIZARD].Height;
+            var wizard=TrySpawnSupportedEnemy(HereticActorType.MT_WIZARD,missile.X,missile.Y,spawnZ:missile.Z-height/2);
+            if(wizard==null)return false;
+            wizard.Body.LastLook=lastLook;
+            SpawnTeleportFog(missile.X,missile.Y,missile.Z);
+            return true;
         }
         internal void SpawnSorcererSparks(Mobj source)
         {
