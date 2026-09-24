@@ -37,11 +37,32 @@ static class HereticArtifactHudChecks
         session.State.WeaponPowerTics = 128; Check(!Draw(false).SequenceEqual(empty), "Tome blink visible phase missing.");
         session.State.WeaponPowerTics = 112; Check(Draw(false).SequenceEqual(empty), "Tome blink hidden phase remained visible.");
         session.State.WeaponPowerTics = 0; Check(Draw(false).SequenceEqual(empty), "Expired Tome icon remained visible.");
+        session.State.FlightTics = 2100; session.State.Flying = true;
+        session.World.SetPreviewTime(0); var flight0 = Draw(false);
+        Check(!flight0.SequenceEqual(empty), "Flight icon missing with inventory closed.");
+        // Blasphemer 0.1.8 deliberately supplies identical SPFLY frames.
+        // Compare each time sample with its licensed source patch, not an assumed visual change.
+        for (var frame = 0; frame < 16; frame++)
+        {
+            session.World.SetPreviewTime(frame * 3);
+            var actual = Draw(false);
+            screen.FillRect(0, 0, 320, 200, 103);
+            screen.DrawPatch(Patch.FromWad(content.Wad, "SPFLY" + frame), 20, 17, 1);
+            Check(actual.SequenceEqual(screen.Data), "Flight frame differs from IWAD artwork.");
+        }
+        session.State.Flying = false; var landed = Draw(false);
+        session.World.SetPreviewTime(9); Check(Draw(false).SequenceEqual(landed), "Landed wings did not freeze.");
+        session.State.FlightTics = 112; Check(Draw(false).SequenceEqual(empty), "Flight blink hidden phase visible.");
+        session.State.FlightTics = 128; Check(!Draw(false).SequenceEqual(empty), "Flight blink visible phase missing.");
+        session.State.FlightTics = 0; Check(Draw(false).SequenceEqual(empty), "Expired flight still displayed.");
+        session.State.FlightTics = 2100;
         session.DamageEnvironment(10000); Check(Draw(true).SequenceEqual(empty), "Artifact HUD remained after death.");
 
         var playable = new HereticWorldSession(content); playable.StartClinkTest();
         foreach (HereticArtifact artifact in Enum.GetValues<HereticArtifact>()) playable.GiveArtifact(artifact);
         playable.GiveArtifact(HereticArtifact.TomeOfPower); playable.UseArtifact(HereticArtifact.TomeOfPower);
+        playable.State.Keys = HereticKeys.Yellow | HereticKeys.Green | HereticKeys.Blue;
+        playable.GrantFlight(2100); playable.State.Flying = true;
         var view = new HereticMapPreview(content, playable); var pixels = new byte[320 * 200 * 4];
         view.Render(pixels, 0); var closed = (byte[])pixels.Clone();
         view.InventoryVisible = true; view.Render(pixels, 0);

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, collected key icons.
 // Copyright (C) 2026 s&Doom contributors; SPDX-License-Identifier: GPL-2.0-or-later
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,11 @@ namespace ManagedDoom
     // Compact preview readout using the bundled IWAD font. Not the original status bar.
     internal sealed class HereticStatusHud
     {
+        private readonly Patch[] keyIcons;
         private readonly Dictionary<char, Patch> font = new();
         internal HereticStatusHud(Wad wad)
         {
+            keyIcons = new[] { Patch.FromWad(wad, "YKEYICON"), Patch.FromWad(wad, "GKEYICON"), Patch.FromWad(wad, "BKEYICON") };
             foreach (var c in "HEALTHRMOBEAK0123456789-")
                 if (!font.ContainsKey(c)) font.Add(c, Patch.FromWad(wad, "FONTA" + (c - 32).ToString("00")));
         }
@@ -26,6 +29,9 @@ namespace ManagedDoom
         internal void Render(HereticWorldSession session, DrawScreen screen)
         {
             if (session.GoldWand == null) return;
+            for (var i = 0; i < keyIcons.Length; i++)
+                if (((int)session.State.Keys & (1 << i)) != 0)
+                    screen.DrawPatch(keyIcons[i], 5 + 14 * i, 130, 1);
             Draw(screen, "HEALTH " + Math.Clamp(session.State.Health, 0, 999), 5);
             Draw(screen, "ARMOR " + Math.Clamp(session.State.ArmorPoints, 0, 999), 112);
             var ammo = CurrentAmmo(session.GoldWand);

@@ -19,6 +19,16 @@ static class HereticStatusHudChecks
         session.StartClinkTest(); var weapon = session.GoldWand;
         var normal = Draw(); Check(normal.Any(p => p != 103), "Status HUD missing.");
         Check(Enumerable.Range(0, 320).All(x => Enumerable.Range(157, 43).All(y => normal[x * 200 + y] == 103)), "Status overlaps inventory.");
+        foreach (var key in new[] { HereticKeys.Yellow, HereticKeys.Green, HereticKeys.Blue })
+        {
+            session.State.Keys = key; var keyed = Draw();
+            Check(!keyed.SequenceEqual(normal), "Collected key not displayed.");
+            var slot = key == HereticKeys.Yellow ? 0 : key == HereticKeys.Green ? 1 : 2;
+            for (var i = 0; i < 3; i++)
+                Check(Enumerable.Range(5 + 14 * i, 10).Any(x => Enumerable.Range(130, 6).Any(y => keyed[x * 200 + y] != 103)) == (i == slot), "Key displayed in wrong slot.");
+        }
+        session.State.Keys = HereticKeys.None;
+        Check(Draw().SequenceEqual(normal), "Removed keys left stale artwork.");
         session.State.Health = 17; session.State.ArmorPoints = 200;
         Check(!Draw().SequenceEqual(normal), "Health/armor did not update.");
         weapon.GrantTestCrossbow(21); weapon.GrantTestBlaster(31); weapon.GrantTestSkullRod(41);

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, flight animation and expiry indicator.
 // s&Doom modification: 2026-09-22, suppress Tome icon for super-chicken power.
 // s&Doom modification: 2026-09-22, tenth artifact slot for Morph Ovum.
 //
@@ -28,7 +29,7 @@ namespace ManagedDoom
     internal sealed class HereticArtifactHud
     {
         private readonly Patch box;
-        private readonly Patch[] icons, digits, keys, books;
+        private readonly Patch[] icons, digits, keys, books, wings;
         private const string Shortcuts = "QUGITHBJKL";
         private static readonly string[] IconNames =
         {
@@ -40,6 +41,7 @@ namespace ManagedDoom
             box = Patch.FromWad(wad, "ARTIBOX");
             icons = IconNames.Select(n => Patch.FromWad(wad, n)).ToArray();
             digits = Enumerable.Range(0, 10).Select(i => Patch.FromWad(wad, "SMALLIN" + i)).ToArray();
+            wings = Enumerable.Range(0, 16).Select(i => Patch.FromWad(wad, "SPFLY" + i)).ToArray();
             books = Enumerable.Range(0, 16).Select(i => Patch.FromWad(wad, "SPINBK" + i)).ToArray();
             keys = Shortcuts.Select(c => Patch.FromWad(wad, "FONTA" + (c - 32).ToString("00"))).ToArray();
         }
@@ -49,6 +51,9 @@ namespace ManagedDoom
             if (state.Health <= 0) return;
             if (state.ChickenTics == 0 && state.WeaponPowerTics > 0 && (state.WeaponPowerTics > 128 || (state.WeaponPowerTics & 16) == 0))
                 screen.DrawPatch(books[(session.World.LevelTime / 3) & 15], 300, 17, 1);
+            // Landed wings freeze immediately; unlike sb_bar.c this never depends on render history.
+            if (state.FlightTics > 0 && (state.FlightTics > 128 || (state.FlightTics & 16) == 0))
+                screen.DrawPatch(wings[state.Flying ? (session.World.LevelTime / 3) & 15 : 15], 20, 17, 1);
             if (!inventoryVisible) return;
             var counts = new[] { state.QuartzFlasks, state.MysticUrns, state.WingsOfWrath,
                 state.RingsOfInvincibility, state.Torches, state.ChaosDevices, state.TimeBombs,

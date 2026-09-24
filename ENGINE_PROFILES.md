@@ -1280,3 +1280,20 @@ Regression checks cover all six ammo pools, melee/chicken state, health/armor,
 death, inventory spacing and read-only rendering. Production Doom remains
 unchanged. Full monster/campaign, save and multiplayer integration is unfinished;
 production Heretic loading remains gated.
+
+
+## 2026-09-24: key and flight HUD indicators
+
+The combat preview displays collected yellow, green and blue key icons above
+its status readout, including on the automap. Wings of Wrath now show an active
+flight icon with a three-tick frame cadence and the reference final-128-tick
+blink rule. Landing freezes the wings immediately at frame 15; this intentionally
+simplifies the reference renderer's frame-history-dependent settling animation.
+Blasphemer 0.1.8 supplies identical artwork for all sixteen flight frames, so
+the wings look static with this IWAD. The display reads simulation state and never advances gameplay or RNG. Death
+hides the flight indicator. All artwork comes from the bundled Blasphemer IWAD.
+
+Checks cover individual key slots and removal, airborne frame rendering, landed freeze,
+expiry blinking, inventory/automap overlays and existing Doom compatibility.
+Production Heretic remains gated; full monster/campaign, saves and multiplayer
+integration are still unfinished.
