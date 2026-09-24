@@ -1156,3 +1156,22 @@ across 48 maps, with 28 blocked placements reported.
 This remains the opt-in Test Combat + Map Monsters preview. Simplified pursuit,
 remaining monsters/bosses, full campaign, saves and multiplayer are unfinished.
 Production Heretic loading stays gated; editor playtesting is still required.
+
+## 2026-09-24: Iron Lich ice and fire projectile systems
+
+Added native MT_HEADFX1 ice balls, their eight radial MT_HEADFX2 impact shards,
+and MT_HEADFX3 fire columns. Ice travels at speed 13; shards use speed 8,
+45-degree spacing and native downward momentum. Ice balls pass through ghosts;
+shards do not. Child projectiles preserve their caster and species identity.
+
+The fire column has one active base and five initially harmless layers moving
+at speed 10. The layers grow nine units per action for 2/4/6/8/10 actions before
+switching to active fire states and native damage. Spawn checks, collision,
+impact cleanup and ice/fire sounds use the shared Heretic projectile system.
+Tests exercise native animation timing, growth heights, dormant/active damage,
+owner/ghost contacts, ice impact splitting, rendered effects and cleanup.
+
+This is an attack-system checkpoint, not Iron Lich roster activation. MT_HEAD
+remains gated until whirlwind, attack selection and death behavior are ready.
+The preview roster and production launcher are unchanged. General pursuit,
+remaining monsters/bosses, campaign, saves and multiplayer remain unfinished.

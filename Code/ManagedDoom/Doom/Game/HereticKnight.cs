@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, register Iron Lich ice/fire projectile families.
 // s&Doom modification: 2026-09-24, Fire Gargoyle missiles.
 // s&Doom modification: 2026-09-24, Disciple missile registration.
 // s&Doom modification: 2026-09-24, register both Ophidian missile types.
@@ -25,7 +26,7 @@ namespace ManagedDoom
 {
     public sealed partial class HereticProjectile
     {
-        internal static bool IsMonsterMissile(HereticActorType type) => type is HereticActorType.MT_MUMMYFX1 or
+        internal static bool IsMonsterMissile(HereticActorType type) => type is HereticActorType.MT_HEADFX1 or HereticActorType.MT_HEADFX2 or HereticActorType.MT_HEADFX3 or HereticActorType.MT_MUMMYFX1 or
             HereticActorType.MT_IMPBALL or HereticActorType.MT_WIZFX1 or HereticActorType.MT_SNAKEPRO_A or HereticActorType.MT_SNAKEPRO_B or HereticActorType.MT_BEASTBALL or HereticActorType.MT_KNIGHTAXE or HereticActorType.MT_REDAXE;
         private bool SupportsKnight(HereticAction action) =>
             (Type == HereticActorType.MT_KNIGHTAXE && action == HereticAction.A_ContMobjSound) ||

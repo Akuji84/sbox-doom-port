@@ -220,6 +220,7 @@ HereticKnightChecks.Verify(root);
 HereticOphidianChecks.Verify(root);
 HereticWizardChecks.Verify(root);
 HereticGargoyleChecks.Verify(root);
+HereticIronLichChecks.Verify(root);
 HereticWandChecks.Verify(root);
 HereticImpactChecks.Verify(root);
 HereticShootChecks.Verify(root);

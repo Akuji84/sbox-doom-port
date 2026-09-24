@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Iron Lich ice/fire sounds.
 // s&Doom modification: 2026-09-24, Gargoyle sound mappings and alias.
 // s&Doom modification: 2026-09-24, Disciple sound mappings.
 // s&Doom modification: 2026-09-24, Ophidian sounds.
@@ -98,6 +99,8 @@ namespace ManagedDoom
             HereticSoundId.sfx_clkdth => "CLKDTH",
             HereticSoundId.sfx_clkact => "CLKACT",
             HereticSoundId.sfx_clkpai => "CLKPAI",
+            HereticSoundId.sfx_hedat1 => "HEDAT1",
+            HereticSoundId.sfx_hedat2 => "HEDAT2",
             _ => null
         };
         public static HereticSoundData Decode(byte[] data)

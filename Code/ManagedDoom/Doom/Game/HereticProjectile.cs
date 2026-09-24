@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Iron Lich ice/fire actions and dormant fire damage.
 // s&Doom modification: 2026-09-24, Undead Warrior axes.
 // s&Doom modification: 2026-09-24, Beast fireball lifecycle.
 // s&Doom modification: 2026-09-24, owned Nitrogolem missiles and player collision.
@@ -58,11 +59,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsIronLich(action) || SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsIronLich(action)) { ExecuteIronLich(action); return; }
             if (SupportsKnight(action)) { ExecuteKnight(action); return; }
             if (action == HereticAction.A_BeastPuff) { session.SpawnBeastPuff(Body); return; }
             if (SupportsNitrogolem(action)) { ExecuteNitrogolem(action); return; }
@@ -91,7 +93,7 @@ namespace ManagedDoom
                 return true;
             }
             if (IsMonsterMissile(Type) && session.SameMonsterType(target, MonsterOwnerType)) return false;
-            var damage = (session.World.Random.Next() % 8 + 1) * def.Damage;
+            var damage = (session.World.Random.Next() % 8 + 1) * (ContactDamageOverride ?? def.Damage);
             if (IsMonsterMissile(Type))
             {
                 session.DamageMonsterMissile(target, damage, Body);
