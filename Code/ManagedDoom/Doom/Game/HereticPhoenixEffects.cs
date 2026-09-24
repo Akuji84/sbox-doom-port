@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 //
@@ -42,7 +43,7 @@ namespace ManagedDoom
         // Only the player and registered Clink encounter actors are enabled here.
         internal int PhoenixBlastDamage(Mobj origin, Mobj target, int radiusDamage = 128)
         {
-            if ((target.Flags & MobjFlags.Shootable) == 0) return 0;
+            if (SameMonsterType(target,HereticActorType.MT_MINOTAUR) || (target.Flags & MobjFlags.Shootable) == 0) return 0;
             var dx = Math.Abs((long)target.X.Data - origin.X.Data);
             var dy = Math.Abs((long)target.Y.Data - origin.Y.Data);
             var distance = Math.Max(0, (Math.Max(dx, dy) - target.Radius.Data) >> Fixed.FracBits);

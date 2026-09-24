@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, preserve Gargoyle charge momentum and recover after wall contact.
@@ -49,7 +50,7 @@ namespace ManagedDoom
             this.session = session;
             visibility = new VisibilityCheck(session.World);
             OriginalType = type;
-            Combatant = new HereticCombatant(session.World, type, this, type == HereticActorType.MT_MINOTAUR);
+            Combatant = new HereticCombatant(session.World, type, this);
         }
         public bool Supports(HereticAction action) => SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
@@ -164,7 +165,7 @@ namespace ManagedDoom
                     else session.SpawnNitrogolemMissile(this);
                     break;
                 case HereticAction.A_HeadAttack: session.AttackIronLich(this); break;
-                case HereticAction.A_BossDeath: session.IronLichBossDeath(this); break;
+                case HereticAction.A_BossDeath: session.EpisodeBossDeath(this); break;
                 case HereticAction.A_MummySoul: session.SpawnGolemSoul(Body); break;
                 case HereticAction.A_ChicAttack:
                     if (Body.Target != null && MeleeRange) session.DamageEnvironment(1 + (session.World.Random.Next() & 1));
@@ -177,6 +178,12 @@ namespace ManagedDoom
                     Body.Flags &= ~MobjFlags.Solid;
                     if (IsChicken) break;
                     var random = session.World.Random;
+                    if (OriginalType == HereticActorType.MT_MINOTAUR)
+                    {
+                        if (random.Next() <= 51) { var drop=session.SpawnEnemyAmmoDrop(Body,HereticActorType.MT_ARTISUPERHEAL,0); DropRequested?.Invoke(drop); }
+                        if (random.Next() <= 84) { var drop=session.SpawnEnemyAmmoDrop(Body,HereticActorType.MT_AMPHRDWIMPY,10); DropRequested?.Invoke(drop); }
+                        break;
+                    }
                     if (OriginalType is HereticActorType.MT_WIZARD or HereticActorType.MT_HEAD)
                     {
                         if (random.Next() <= 84) { var drop = session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMBLSRWIMPY, 10); DropRequested?.Invoke(drop); }
@@ -236,7 +243,7 @@ namespace ManagedDoom
         public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y) => TrySpawnSupportedEnemy(HereticActorType.MT_CLINK, x, y, true);
         internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false)
         {
-            if (!SupportsMapEnemy(type) && type != HereticActorType.MT_MINOTAUR) throw new ArgumentException("Unsupported map enemy: " + type);
+            if (!SupportsMapEnemy(type)) throw new ArgumentException("Unsupported map enemy: " + type);
             var enemy = new HereticClinkTestEnemy(this, type);
             var body = enemy.Body; body.X = x; body.Y = y;
             body.Subsector = Geometry.PointInSubsector(x, y, world.Map);
@@ -266,7 +273,7 @@ namespace ManagedDoom
             foreach (var enemy in testEnemies)
                 if (enemy.Body == body)
                 {
-                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : source ?? Body, thrust);
+                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : source ?? Body, thrust, sourceIsBoss: !environment && IsBoss(source ?? Body));
                     if (result == HereticDamageResult.Killed) TestKills++;
                     return result;
                 }

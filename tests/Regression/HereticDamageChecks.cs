@@ -58,7 +58,7 @@ static class HereticDamageChecks
         try { _ = new HereticCombatant(world, HereticActorType.MT_BEAST, new Actions { Missing = HereticAction.A_NoBlocking }); throw new Exception("Missing later death action accepted."); }
         catch (NotSupportedException) { }
         Check(random.Index == indexBefore, "Rejected actor consumed randomness.");
-        try { _ = new HereticCombatant(world, HereticActorType.MT_MINOTAUR, new Actions()); throw new Exception("Unimplemented boss damage path accepted."); }
+        try { _ = new HereticCombatant(world, HereticActorType.MT_SORCERER2, new Actions()); throw new Exception("Unimplemented boss damage path accepted."); }
         catch (ArgumentException) { }
         var unchanged = beast.Body.Health;
         try { beast.ApplyOrdinaryDamage(-1); throw new Exception("Negative damage accepted."); }

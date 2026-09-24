@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, whirlwind contacts and delayed impact termination.
@@ -110,8 +111,9 @@ namespace ManagedDoom
             // The reference consumes the missile damage roll, then always
             // returns from egg handling without ordinary damage or thrust.
             if (Type == HereticActorType.MT_EGGFX) { session.RequestEggMorph(target); return false; }
-            if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target) && !session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = 10000;
+            if (Type == HereticActorType.MT_MACEFX4 && session.IsTestEnemy(target) && !session.IsBoss(target) && !session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = 10000;
             if (Type == HereticActorType.MT_BLASTERFX1 && session.SameMonsterType(target, HereticActorType.MT_HEAD)) damage = session.World.Random.Next() & 1;
+            if (Type == HereticActorType.MT_RAINPLR3 && session.IsBoss(target) && !session.IsChargingBoss(target)) damage = (session.World.Random.Next() & 7) + 1;
             session.DamageTestEnemy(target, damage, inflictor: Body);
             return false;
         }

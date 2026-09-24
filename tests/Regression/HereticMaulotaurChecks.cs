@@ -40,7 +40,7 @@ static class HereticMaulotaurChecks
         Check(spawned,"Traveling floor fire did not generate its native trail.");
         f.DamageTestEnemy(attacker.Body,10000);for(var i=0;i<200;i++)f.Tick(default);
         Check(f.Projectiles.Count==0,"Maulotaur fire leaked after collision/expiry.");
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_MINOTAUR),"Maulotaur enabled before boss/charge support.");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_MINOTAUR),"Maulotaur roster missing.");
         Console.WriteLine("PASS Maulotaur projectiles: five-shot spread, height/speed/slope/damage, ownership, floor launch/step/trail, flame expiry, separate splash radii and cleanup");
     }
 }

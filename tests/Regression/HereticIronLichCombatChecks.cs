@@ -43,10 +43,10 @@ static class HereticIronLichCombatChecks
             var sector=boss.World.Map.Sectors.First(x=>x.Lines.Any(l=>l.BackSector!=null));sector.Tag=666;
             boss.DamageTestEnemy(first.Body,10000);
             for(var i=0;i<50;i++)first.Tick();
-            Check(!boss.IronLichBossTriggered,"Boss trigger fired before final Lich death.");
+            Check(!boss.EpisodeBossTriggered,"Boss trigger fired before final Lich death.");
             boss.DamageTestEnemy(last.Body,10000);
             for(var i=0;i<50;i++)last.Tick();
-            Check(boss.IronLichBossTriggered==(episode!=2),"Boss episode gate incorrect.");
+            Check(boss.EpisodeBossTriggered==(episode!=2),"Boss episode gate incorrect.");
             Check((other.Body.Health<=0)==(episode==4),"Episode 4 massacre incorrect.");
             if(episode!=2)Check(sector.SpecialData!=null,"Boss floor lowering not scheduled.");
             Check(last.Combatant.Animation.State==HereticStateId.S_HEAD_DIE7 && (last.Body.Flags&MobjFlags.Solid)==0,"Lich corpse failed to settle.");

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, Gargoyle corpse foot-clipping flag.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
@@ -40,15 +41,13 @@ namespace ManagedDoom
         private HereticActorDefinition Definition => HereticDefinitions.Actors[(int)Type];
 
         public HereticCombatant(World world, HereticActorType type, IHereticActorActions actions)
-            : this(world,type,actions,false) { }
-        internal HereticCombatant(World world, HereticActorType type, IHereticActorActions actions, bool maulotaurFixture)
         {
             if (world?.HereticSession == null) throw new ArgumentException("Combatant requires a Heretic session.", nameof(world));
             if ((uint)type >= HereticDefinitions.Actors.Count) throw new ArgumentOutOfRangeException(nameof(type));
             if (actions == null) throw new ArgumentNullException(nameof(actions));
             var def = HereticDefinitions.Actors[(int)type];
-            if ((def.Flags & (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL)) != (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL) || ((def.Flags2 & HereticActorFlags2.MF2_BOSS) != 0 && !(maulotaurFixture && type == HereticActorType.MT_MINOTAUR)) || def.Mass <= 0)
-                throw new ArgumentException("Ordinary combatant requires a non-boss monster; players, bosses and destructible props need specialized damage handlers.", nameof(type));
+            if ((def.Flags & (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL)) != (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL) || ((def.Flags2 & HereticActorFlags2.MF2_BOSS) != 0 && type != HereticActorType.MT_MINOTAUR) || def.Mass <= 0)
+                throw new ArgumentException("Combatant requires a supported monster; players, remaining bosses and destructible props need specialized handlers.", nameof(type));
             // Validate complete reachable chains before allocating an actor or advancing randomness.
             var visited = new HashSet<HereticStateId>();
             foreach (var entry in new[] { def.SpawnState, def.SeeState, def.PainState, def.MeleeState, def.MissileState, def.CrashState, def.DeathState, def.ExtremeDeathState })

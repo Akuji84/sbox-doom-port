@@ -1624,3 +1624,30 @@ Boss-wide damage rules, native drops and episode death handling remain
 unfinished; the isolated encounter is not a finished boss implementation.
 MT_MINOTAUR remains excluded from SupportsMapEnemy, and production Heretic
 loading remains gated. No editor playtest is claimed.
+
+## 2026-09-24: Maulotaur boss integration and map spawning
+
+Maulotaurs (MT_MINOTAUR) now join the opt-in map-combat roster with their
+projectile attacks, charge/slam, melee and native boss states. Boss handling
+adds splash immunity, ordinary death-ball damage instead of instant kills,
+reduced rain damage, no whirlwind lift and protection from whirlwind/slam
+effects while charging. Monsters do not retarget a boss merely because it
+hurt them. Morph immunity and charge damage immunity remain in place.
+
+Native independent drop rolls produce a Mystic Urn and ten Phoenix rounds.
+Shared episode-death handling preserves the Iron Lich rules on E1M8/E4M8 and
+adds Maulotaur completion on E2M8/E5M8: wait for the last boss, kill remaining
+supported monsters and lower tag-666 floors. Failed boss placements prevent
+premature completion. Unsupported monster families remain outside the preview
+massacre until their own implementations are enabled.
+
+Regression checks cover damage protections, charging effect exclusion, boss
+retaliation rules, drops and Urn collection, multi-boss/episode gates, floor
+scheduling, corpse states and live combat. The map smoke check covers 48 maps,
+3,612 supported enemies and 29 reported blocked placements. Rendering uses the
+bundled Blasphemer artwork. The --maulotaur regression option runs projectile,
+charge and boss checks together.
+
+Production Heretic loading remains gated. D'Sparil, complete pursuit/infighting,
+campaign, saves and multiplayer are still unfinished. An editor playtest is
+still required; regression rendering is not a substitute for that check.

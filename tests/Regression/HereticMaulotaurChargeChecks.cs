@@ -46,7 +46,7 @@ static class HereticMaulotaurChargeChecks
         charger.Combatant.Animation.SetState(HereticStateId.S_MNTR_ATK4_1,false);
         for(var i=0;i<100 && charger.MaulotaurCharging;i++)charger.Tick();
         Check(!charger.MaulotaurCharging,"Blocked charge never recovered.");
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_MINOTAUR),"Maulotaur map gate removed prematurely.");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_MINOTAUR),"Maulotaur roster missing.");
         Console.WriteLine("PASS Maulotaur charge/melee: selection, speed/friction, immunity/morph, slam/stun/recovery, timed puffs, melee view impact and spread dispatch");
     }
 }

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Maulotaur attack decisions, melee, timed charge and slam.
 // s&Doom modification: 2026-09-24, Maulotaur spread and floor-fire projectile systems.
 //
@@ -94,6 +95,7 @@ namespace ManagedDoom
         }
         internal void MaulotaurSlam(Mobj source,Mobj target)
         {
+            if (IsChargingBoss(target)) return;
             var angle=Geometry.PointToAngle(source.X,source.Y,target.X,target.Y);
             var thrust=Fixed.FromInt(16)+new Fixed(world.Random.Next()<<10);
             target.MomX+=thrust*Trig.Cos(angle);target.MomY+=thrust*Trig.Sin(angle);

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Iron Lich whirlwind lifetime, seeking and touch effects.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -69,6 +70,7 @@ namespace ManagedDoom
         }
         internal void TouchWhirlwind(Mobj target)
         {
+            if (IsChargingBoss(target)) return;
             target.Angle += new Angle(unchecked((uint)((world.Random.Next() - world.Random.Next()) << 20)));
             target.MomX += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
             target.MomY += new Fixed((world.Random.Next() - world.Random.Next()) << 10);
