@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native chase-direction movement.
 // s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, mounted Sorcerer action dispatch.
@@ -108,11 +109,7 @@ namespace ManagedDoom
                     {
                         state.SetState(def.MissileState); Body.Flags |= MobjFlags.JustAttacked; break;
                     }
-                    foreach (var offset in new[] { 0, 45, -45, 90, -90 })
-                    {
-                        var angle = Body.Angle + Angle.FromDegree(offset);
-                        if (session.World.ThingMovement.TryMove(Body, Body.X + def.Speed * Trig.Cos(angle), Body.Y + def.Speed * Trig.Sin(angle))) break;
-                    }
+                    ChaseStep();
                     break;
                 case HereticAction.A_FaceTarget: Face(); break;
                 case HereticAction.A_ClinkAttack:

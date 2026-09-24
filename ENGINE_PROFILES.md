@@ -1805,3 +1805,33 @@ Validation: full regression suite passes. Map smoke covers 48 maps with 3,615
 supported enemy placements and 29 reported blocked placements. All five
 production Doom simulation/render hashes remain unchanged. Build: zero errors,
 seven existing warnings. Asset-license inventory and pinned definitions pass.
+
+## 2026-09-24: Native eight-direction chase movement
+
+Heretic enemies now use persistent MoveDir/MoveCount state and the native
+P_NewChaseDir search order instead of trying five angles toward the player on
+every walking action. Direction selection tries the direct diagonal, preferred
+cardinal axes, the old direction, randomized alternatives and finally the reverse
+direction. Successful new walks receive the native random 0-15 movement count.
+A blocked enemy stops with no direction and retries on a later chase action.
+
+Movement uses the native fixed-point cardinal and 47000 diagonal components.
+Ground actors follow the new floor height and emit the existing floor-contact
+effect when stepping down. Floating actors can adjust vertically after a failed
+move when the shared collision layer permits it, retaining the native InFloat
+flag. Doom movement is unchanged.
+
+The focused --chase checks cover all eight step vectors, ground floor following,
+diagonal priority and RNG/count, reverse-direction avoidance, complete blocking,
+recovery when a blocker is removed, and missing-target/no-direction behavior.
+The same checks run in the full regression suite.
+
+This replaces the movement portion of preview pursuit. Monster door activation,
+full A_Chase timing/turning, target selection and infighting still need integration.
+Production Heretic loading, campaign, saves and multiplayer remain gated. No
+s&box editor playtest is claimed.
+
+Validation: focused and full regressions pass, including 48-map smoke coverage
+and unchanged simulation/render hashes for all five production Doom WADs.
+Build: zero errors, seven existing warnings. Licensed asset inventory and
+pinned Heretic definition checks pass.
