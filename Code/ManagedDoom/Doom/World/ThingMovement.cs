@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, native Maulotaur slam contact routing.
 // s&Doom modification: 2026-09-24, route Gargoyle charge contacts through native Heretic states.
 // s&Doom modification: 2026-09-22, isolated native Heretic crossbow collision and sky routing.
 // s&Doom modification: 2026-09-22, Heretic test-enemy contact, crush and telefrag routing.
@@ -307,8 +308,8 @@ namespace ManagedDoom
                 if (currentThing.Z >= thing.Z + thing.Height || currentThing.Z + currentThing.Height <= thing.Z)
                     return true;
                 foreach (var enemy in world.HereticSession.CombatEnemies)
-                    if (enemy.Body == currentThing && enemy.GargoyleCharging)
-                    { enemy.GargoyleChargeContact(thing); return false; }
+                    if (enemy.Body == currentThing && (enemy.GargoyleCharging || enemy.MaulotaurCharging))
+                    { if (enemy.MaulotaurCharging) enemy.MaulotaurChargeContact(thing); else enemy.GargoyleChargeContact(thing); return false; }
                 return (thing.Flags & MobjFlags.Solid) == 0;
             }
 

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur attack decisions, melee, timed charge and slam.
 // s&Doom modification: 2026-09-24, Maulotaur spread and floor-fire projectile systems.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -20,6 +21,55 @@
 // Adapted from pinned p_enemy.c A_MinotaurAtk2/A_MntrFloorFire/A_Explode.
 namespace ManagedDoom
 {
+    public sealed partial class HereticClinkTestEnemy
+    {
+        private int maulotaurChargeTics;
+        private bool maulotaurRepeatedFire;
+        internal bool MaulotaurCharging => Combatant.Type == HereticActorType.MT_MINOTAUR && (Body.Flags & MobjFlags.SkullFly) != 0;
+        private bool SupportsMaulotaurActor(HereticAction action) => action is HereticAction.A_MinotaurAtk1 or HereticAction.A_MinotaurAtk2 or HereticAction.A_MinotaurAtk3 or HereticAction.A_MinotaurDecide or HereticAction.A_MinotaurCharge;
+        private void ExecuteMaulotaurActor(HereticAction action,HereticActorState state)
+        {
+            if (action == HereticAction.A_MinotaurCharge)
+            {
+                if(maulotaurChargeTics>0){session.SpawnMaulotaurChargePuff(Body);maulotaurChargeTics--;}
+                else{Body.Flags &= ~MobjFlags.SkullFly;state.SetState(HereticStateId.S_MNTR_WALK1);}
+                return;
+            }
+            if(Body.Target==null)return;
+            var random=session.World.Random;
+            if(action==HereticAction.A_MinotaurDecide)
+            {
+                Sound(HereticSoundId.sfx_minsit);
+                var target=Body.Target;var distance=Geometry.AproxDistance(target.X-Body.X,target.Y-Body.Y);
+                if(target.Z+target.Height>Body.Z && target.Z+target.Height<Body.Z+Body.Height && distance<Fixed.FromInt(512) && distance>Fixed.FromInt(64) && random.Next()<150)
+                {
+                    state.SetState(HereticStateId.S_MNTR_ATK4_1,false);Body.Flags|=MobjFlags.SkullFly;Face();
+                    Body.MomX=13*Trig.Cos(Body.Angle);Body.MomY=13*Trig.Sin(Body.Angle);maulotaurChargeTics=17;
+                }
+                else if(target.Z==target.FloorZ && distance<Fixed.FromInt(576) && random.Next()<220)
+                {state.SetState(HereticStateId.S_MNTR_ATK3_1);maulotaurRepeatedFire=false;}
+                else Face();
+                return;
+            }
+            if(action==HereticAction.A_MinotaurAtk1)Sound(HereticSoundId.sfx_stfpow);
+            if(MeleeRange)
+            {
+                session.DamageEnvironment((random.Next()%8+1)*(action==HereticAction.A_MinotaurAtk1?4:5));
+                if(action!=HereticAction.A_MinotaurAtk2)session.Camera.DeltaViewHeight=-Fixed.FromInt(16);
+                else Sound(HereticSoundId.sfx_minat2);
+            }
+            else if(action==HereticAction.A_MinotaurAtk2)session.SpawnMaulotaurSpread(this);
+            else if(action==HereticAction.A_MinotaurAtk3)session.SpawnMaulotaurFloorFire(this);
+            if(action==HereticAction.A_MinotaurAtk3 && random.Next()<192 && !maulotaurRepeatedFire)
+            {state.SetState(HereticStateId.S_MNTR_ATK3_4);maulotaurRepeatedFire=true;}
+        }
+        internal void MaulotaurChargeContact(Mobj target)
+        {
+            session.World.Random.Next(); // Ordinary skull impact roll precedes the special slam.
+            if((target.Flags&MobjFlags.Shootable)!=0 && target.Health>0)session.MaulotaurSlam(Body,target);
+            StopCharge(); // Shared native momentum reset and SeeState recovery.
+        }
+    }
     public sealed partial class HereticProjectile
     {
         private bool SupportsMaulotaur(HereticAction action) =>
@@ -37,6 +87,20 @@ namespace ManagedDoom
     }
     public sealed partial class HereticWorldSession
     {
+        internal void SpawnMaulotaurChargePuff(Mobj source)
+        {
+            var puff=SpawnLiquidEffect(source,HereticActorType.MT_PHOENIXPUFF);
+            puff.Body.Z=source.Z;puff.Body.MomZ=Fixed.FromInt(2);puff.Body.UpdateFrameInterpolationInfo();
+        }
+        internal void MaulotaurSlam(Mobj source,Mobj target)
+        {
+            var angle=Geometry.PointToAngle(source.X,source.Y,target.X,target.Y);
+            var thrust=Fixed.FromInt(16)+new Fixed(world.Random.Next()<<10);
+            target.MomX+=thrust*Trig.Cos(angle);target.MomY+=thrust*Trig.Sin(angle);
+            var damage=(world.Random.Next()%8+1)*6;
+            if(target==Body){DamageEnvironment(damage);target.ReactionTime=14+(world.Random.Next()&7);}
+            else DamageTestEnemy(target,damage,environment:true);
+        }
         internal void SpawnMaulotaurSpread(HereticClinkTestEnemy enemy)
         {
             if (enemy.Body.Target == null) return;

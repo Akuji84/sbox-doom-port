@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, Gargoyle corpse foot-clipping flag.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 //
@@ -39,12 +40,14 @@ namespace ManagedDoom
         private HereticActorDefinition Definition => HereticDefinitions.Actors[(int)Type];
 
         public HereticCombatant(World world, HereticActorType type, IHereticActorActions actions)
+            : this(world,type,actions,false) { }
+        internal HereticCombatant(World world, HereticActorType type, IHereticActorActions actions, bool maulotaurFixture)
         {
             if (world?.HereticSession == null) throw new ArgumentException("Combatant requires a Heretic session.", nameof(world));
             if ((uint)type >= HereticDefinitions.Actors.Count) throw new ArgumentOutOfRangeException(nameof(type));
             if (actions == null) throw new ArgumentNullException(nameof(actions));
             var def = HereticDefinitions.Actors[(int)type];
-            if ((def.Flags & (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL)) != (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL) || (def.Flags2 & HereticActorFlags2.MF2_BOSS) != 0 || def.Mass <= 0)
+            if ((def.Flags & (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL)) != (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL) || ((def.Flags2 & HereticActorFlags2.MF2_BOSS) != 0 && !(maulotaurFixture && type == HereticActorType.MT_MINOTAUR)) || def.Mass <= 0)
                 throw new ArgumentException("Ordinary combatant requires a non-boss monster; players, bosses and destructible props need specialized damage handlers.", nameof(type));
             // Validate complete reachable chains before allocating an actor or advancing randomness.
             var visited = new HashSet<HereticStateId>();
@@ -88,6 +91,7 @@ namespace ManagedDoom
                 throw new ArgumentException("Damage sources must belong to the target's session.");
             if (damage == 0 || Animation.Removed || Body.Health <= 0 || (Body.Flags & MobjFlags.Shootable) == 0)
                 return HereticDamageResult.Ignored;
+            if (Type == HereticActorType.MT_MINOTAUR && (Body.Flags & MobjFlags.SkullFly) != 0) return HereticDamageResult.Ignored;
             var random = Body.World.Random;
             if ((Body.Flags & MobjFlags.SkullFly) != 0)
             {

@@ -1242,3 +1242,25 @@ MT_MINOTAUR remains gated pending charge, melee/attack decisions, boss damage
 rules, drops and episode death handling. This checkpoint adds projectile
 systems; it does not add Maulotaurs to the map roster. Production Heretic
 loading remains gated. Regression rendering is not an editor playtest.
+
+## 2026-09-24: Maulotaur charge and melee encounter
+
+The isolated Maulotaur encounter now implements native attack decisions,
+speed-13 charge momentum, seventeen charge actions with rising puffs, collision
+slam/thrust, player reaction-time stun and ordinary-damage immunity during a
+charge. Melee attacks apply the native damage and view-height impact. Ranged
+actions dispatch the spread and floor fire; floor fire can repeat once.
+Maulotaurs reject chicken morph. Charge contact and wall recovery share the
+existing Heretic collision path without using Doom actor definitions.
+
+An explicit StartEnemyTest(MT_MINOTAUR) fixture can instantiate the actor;
+normal map spawning remains disabled. Tests cover charge selection/speed,
+friction exclusion, immunity without RNG consumption, slam/stun/recovery,
+timed puff creation/rise, melee view response, ranged dispatch, floor-fire
+selection and its bounded repeat. The focused --maulotaur regression option
+runs both projectile and charge checks.
+
+Boss-wide damage rules, native drops and episode death handling remain
+unfinished; the isolated encounter is not a finished boss implementation.
+MT_MINOTAUR remains excluded from SupportsMapEnemy, and production Heretic
+loading remains gated. No editor playtest is claimed.

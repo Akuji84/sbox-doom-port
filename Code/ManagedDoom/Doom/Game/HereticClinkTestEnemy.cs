@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, preserve Gargoyle charge momentum and recover after wall contact.
 // s&Doom modification: 2026-09-24, Fire Gargoyle actions and landing crashes.
@@ -48,9 +49,9 @@ namespace ManagedDoom
             this.session = session;
             visibility = new VisibilityCheck(session.World);
             OriginalType = type;
-            Combatant = new HereticCombatant(session.World, type, this);
+            Combatant = new HereticCombatant(session.World, type, this, type == HereticActorType.MT_MINOTAUR);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -76,6 +77,7 @@ namespace ManagedDoom
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {
+            if (SupportsMaulotaurActor(action)) { ExecuteMaulotaurActor(action,state); return; }
             if (SupportsGargoyle(action)) { ExecuteGargoyle(action, state); return; }
             var elapsed = action == HereticAction.A_ChicLook || action == HereticAction.A_ChicPain ? 10 : action == HereticAction.A_ChicChase ? 3 : action == HereticAction.A_ChicAttack ? 18 : 0;
             if (elapsed != 0 && UpdateChicken(elapsed)) return;
@@ -205,10 +207,10 @@ namespace ManagedDoom
                 var dx = new Fixed(Math.Clamp(Body.MomX.Data, -15 * Fixed.FracUnit, 15 * Fixed.FracUnit));
                 var dy = new Fixed(Math.Clamp(Body.MomY.Data, -15 * Fixed.FracUnit, 15 * Fixed.FracUnit));
                 if (!session.World.ThingMovement.TryMove(Body, Body.X + dx, Body.Y + dy)) Body.MomX = Body.MomY = Fixed.Zero;
-                if (!GargoyleCharging) { Body.MomX *= new Fixed(0xe800); Body.MomY *= new Fixed(0xe800); }
+                if (!GargoyleCharging && !MaulotaurCharging) { Body.MomX *= new Fixed(0xe800); Body.MomY *= new Fixed(0xe800); }
             }
             // A wall stops XY momentum; native skull-flight recovers on the following tick.
-            else if (GargoyleCharging) StopGargoyleCharge();
+            else if (GargoyleCharging || MaulotaurCharging) StopCharge();
             Body.Z += Body.MomZ;
             if ((Body.Flags & MobjFlags.Float) != 0 && Body.Target != null && (Body.Flags & (MobjFlags.SkullFly | MobjFlags.InFloat)) == 0)
             {
@@ -234,7 +236,7 @@ namespace ManagedDoom
         public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y) => TrySpawnSupportedEnemy(HereticActorType.MT_CLINK, x, y, true);
         internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false)
         {
-            if (!SupportsMapEnemy(type)) throw new ArgumentException("Unsupported map enemy: " + type);
+            if (!SupportsMapEnemy(type) && type != HereticActorType.MT_MINOTAUR) throw new ArgumentException("Unsupported map enemy: " + type);
             var enemy = new HereticClinkTestEnemy(this, type);
             var body = enemy.Body; body.X = x; body.Y = y;
             body.Subsector = Geometry.PointInSubsector(x, y, world.Map);

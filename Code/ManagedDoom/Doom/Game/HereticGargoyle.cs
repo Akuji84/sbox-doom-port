@@ -28,7 +28,7 @@ namespace ManagedDoom
         private bool SupportsGargoyle(HereticAction action) => action is HereticAction.A_ImpMeAttack or HereticAction.A_ImpMsAttack or HereticAction.A_ImpMsAttack2 or
             HereticAction.A_ImpDeath or HereticAction.A_ImpXDeath1 or HereticAction.A_ImpXDeath2 or HereticAction.A_ImpExplode;
         internal bool GargoyleCharging => Combatant.Type == HereticActorType.MT_IMP && (Body.Flags & MobjFlags.SkullFly) != 0;
-        internal void StopGargoyleCharge()
+        internal void StopCharge()
         {
             Body.Flags &= ~MobjFlags.SkullFly;
             Body.MomX = Body.MomY = Body.MomZ = Fixed.Zero;
@@ -43,7 +43,7 @@ namespace ManagedDoom
                 if (target == session.Body) session.DamageEnvironment(damage);
                 else session.DamageTestEnemy(target, damage, inflictor: Body, source: Body);
             }
-            StopGargoyleCharge();
+            StopCharge();
         }
         private void BeginGargoyleCrash()
         {
