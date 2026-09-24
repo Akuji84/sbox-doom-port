@@ -1314,3 +1314,32 @@ rejection, a renamed copy of the bundled IWAD, preview loading with an add-on,
 and a real Doom base with Heretic markers in an add-on. The existing production
 Heretic gate remains in place. General Heretic gameplay compatibility is not
 complete; extended map formats and advanced mod features remain unsupported.
+
+
+## 2026-09-24: Golems and authored map combat
+
+The native preview now supports normal Golems (MT_MUMMY) and ghost Golems
+(MT_MUMMYGHOST) alongside Clinks. The shared combat controller executes their
+native attack, pain and death states, 2-16 melee damage, hit/miss sounds, rising
+finite death souls, corpse collision release, and three-round Gold Wand drops.
+Sound aliases follow pinned sounds.c, including mumact using mumsit. Player
+weapon damage, kill accounting and ghost flags use the existing Heretic paths.
+Chicken morphs now restore the original enemy type instead of always becoming
+a Clink. Dropped Gold Wand pickups preserve their specified ammo amount.
+
+To try authored encounters, open Assets/scenes/heretic-preview.scene and enable
+Test Combat and Map Monsters on SboxHereticPreview. This replaces the synthetic
+Clink encounter with supported monsters at map positions and angles, honoring
+skill/single-player filters. Calling StartMapCombat twice does not duplicate
+actors. Other monster types remain omitted and counted as unsupported; blocked
+supported placements are reported separately. The default navigation preview
+and existing synthetic Clink test remain available.
+
+Tests cover normal/ghost Golem attacks, native weapon kills, morph restoration,
+soul/corpse cleanup, drops, skill filtering, repeated initialization, deterministic
+map combat and loading/ticking/rendering all 48 bundled Blasphemer maps.
+
+Pursuit still uses the existing simplified preview movement, not complete vanilla
+A_Chase/noise targeting. Nitrogolems, remaining monster families/bosses, campaign
+completion, saves and multiplayer remain unfinished. Production Heretic loading
+remains gated. This checkpoint does not change Doom rules or its production WADs.

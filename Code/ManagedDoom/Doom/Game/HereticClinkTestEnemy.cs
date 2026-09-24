@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Golem/ghost combat and shared supported-enemy spawning.
 // s&Doom modification: 2026-09-22, reversible chicken test-enemy lifecycle.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
 // s&Doom modification: 2026-09-22, normal Gold Wand replaces the encounter test ray.
@@ -30,16 +31,18 @@ namespace ManagedDoom
         private readonly HereticWorldSession session;
         private readonly VisibilityCheck visibility;
         public HereticCombatant Combatant { get; private set; }
+        internal HereticActorType OriginalType { get; }
         public Mobj Body => Combatant.Body;
         public event Action<HereticSoundId, Mobj> SoundRequested;
         public event Action<HereticTestDrop> DropRequested;
-        internal HereticClinkTestEnemy(HereticWorldSession session)
+        internal HereticClinkTestEnemy(HereticWorldSession session, HereticActorType type = HereticActorType.MT_CLINK)
         {
             this.session = session;
             visibility = new VisibilityCheck(session.World);
-            Combatant = new HereticCombatant(session.World, HereticActorType.MT_CLINK, this);
+            OriginalType = type;
+            Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -83,6 +86,17 @@ namespace ManagedDoom
                     Sound(def.AttackSound);
                     if (MeleeRange) session.DamageEnvironment(session.World.Random.Next() % 7 + 3);
                     break;
+                case HereticAction.A_MummyAttack:
+                    if (Body.Target == null) break;
+                    Sound(def.AttackSound);
+                    if (MeleeRange)
+                    {
+                        session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 2);
+                        Sound(HereticSoundId.sfx_mumat2);
+                    }
+                    else Sound(HereticSoundId.sfx_mumat1);
+                    break;
+                case HereticAction.A_MummySoul: session.SpawnGolemSoul(Body); break;
                 case HereticAction.A_ChicAttack:
                     if (Body.Target != null && MeleeRange) session.DamageEnvironment(1 + (session.World.Random.Next() & 1));
                     break;
@@ -96,7 +110,7 @@ namespace ManagedDoom
                     var random = session.World.Random;
                     if (random.Next() <= 84)
                     {
-                        var drop = session.SpawnClinkAmmoDrop(Body);
+                        var drop = OriginalType == HereticActorType.MT_CLINK ? session.SpawnClinkAmmoDrop(Body) : session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMGWNDWIMPY, 3);
                         DropRequested?.Invoke(drop);
                     }
                     break;
@@ -127,27 +141,30 @@ namespace ManagedDoom
         public int TestEnemyCount => testEnemies.Count;
         public int TestKills { get; private set; }
         public HereticGoldWand GoldWand { get; private set; }
-        public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y)
+        public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y) => TrySpawnSupportedEnemy(HereticActorType.MT_CLINK, x, y, true);
+        internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false)
         {
-            var enemy = new HereticClinkTestEnemy(this);
+            if (!SupportsMapEnemy(type)) throw new ArgumentException("Unsupported map enemy: " + type);
+            var enemy = new HereticClinkTestEnemy(this, type);
             var body = enemy.Body; body.X = x; body.Y = y;
             body.Subsector = Geometry.PointInSubsector(x, y, world.Map);
             var sector = body.Subsector.Sector;
             body.Z = sector.FloorHeight;
             if (!world.ThingMovement.CheckPosition(body, x, y) || world.ThingMovement.CurrentCeilingZ - world.ThingMovement.CurrentFloorZ < body.Height) return null;
-            if (!new VisibilityCheck(world).CheckSight(body, Body)) return null;
+            if (requireSight && !new VisibilityCheck(world).CheckSight(body, Body)) return null;
             world.ThingMovement.SetThingPosition(body);
             body.Z = body.FloorZ = world.ThingMovement.CurrentFloorZ; body.CeilingZ = world.ThingMovement.CurrentCeilingZ;
             enemy.SoundRequested += RequestSound;
             body.UpdateFrameInterpolationInfo(); testEnemies.Add(enemy); return enemy;
         }
-        public HereticClinkTestEnemy StartClinkTest()
+        public HereticClinkTestEnemy StartClinkTest() => StartEnemyTest(HereticActorType.MT_CLINK);
+        public HereticClinkTestEnemy StartEnemyTest(HereticActorType type)
         {
             foreach (var distance in new[] { 96, 160, 64 })
             for (var offset = 0; offset < 360; offset += 45)
             {
                 var angle = Body.Angle + Angle.FromDegree(offset);
-                var enemy = TrySpawnClinkTest(Body.X + distance * Trig.Cos(angle), Body.Y + distance * Trig.Sin(angle));
+                var enemy = TrySpawnSupportedEnemy(type, Body.X + distance * Trig.Cos(angle), Body.Y + distance * Trig.Sin(angle), true);
                 if (enemy != null) { GoldWand ??= new HereticGoldWand(this); EnableCombatAmmo(); return enemy; }
             }
             return null;

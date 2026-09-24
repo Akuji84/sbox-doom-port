@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, shared Golem and Clink ammo drops.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -21,13 +22,13 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Adapted 2026-09-22: pinned p_enemy.c P_DropItem, p_mobj.c movement.
-        internal HereticTestDrop SpawnClinkAmmoDrop(Mobj source)
+        internal HereticTestDrop SpawnClinkAmmoDrop(Mobj source) => SpawnEnemyAmmoDrop(source, HereticActorType.MT_AMSKRDWIMPY, 20);
+        internal HereticTestDrop SpawnEnemyAmmoDrop(Mobj source, HereticActorType type, int amount)
         {
-            var type = HereticActorType.MT_AMSKRDWIMPY;
             var def = HereticDefinitions.Actors[(int)type];
             var animation = new HereticActorState(def.SpawnState);
             var body = new Mobj(world) { X = source.X, Y = source.Y, Z = source.Z + source.Height / 2,
-                Radius = def.Radius, Height = def.Height, Health = 20,
+                Radius = def.Radius, Height = def.Height, Health = amount,
                 Flags = MobjFlags.Special | MobjFlags.Dropped, LastLook = world.Random.Next() % 4,
                 Sprite = (Sprite)animation.Definition.Sprite, Frame = animation.Definition.Frame,
                 MomX = new Fixed((world.Random.Next() - world.Random.Next()) << 8),

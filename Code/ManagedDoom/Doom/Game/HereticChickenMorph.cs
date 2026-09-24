@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, restore original monster type after morph.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -55,7 +56,7 @@ namespace ManagedDoom
             ChickenTics -= elapsed;
             if (ChickenTics > 0) return false;
             var old = Body;
-            var restored = new HereticCombatant(session.World, HereticActorType.MT_CLINK, this);
+            var restored = new HereticCombatant(session.World, OriginalType, this);
             var body = restored.Body;
             body.X = old.X; body.Y = old.Y; body.Z = old.Z; body.Subsector = old.Subsector;
             var movement = session.World.ThingMovement;
@@ -79,7 +80,7 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         // Enabled by Morph Ovum use in the single-player combat preview.
-        // Only registered Clink enemies participate in this lifecycle.
+        // Only registered supported enemies participate in this lifecycle.
         internal bool EnemyMorphEnabled { get; set; }
         internal bool MorphTestEnemy(Mobj body)
         {

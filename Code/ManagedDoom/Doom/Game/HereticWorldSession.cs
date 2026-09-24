@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, preserve dropped Gold Wand ammo quantities.
 // s&Doom modification: 2026-09-22, chicken movement, camera, healing and timer.
 // s&Doom modification: 2026-09-22, Morph Ovum map pickup.
 // s&Doom modification: 2026-09-22, Tome pickup, timing and death cleanup.
@@ -469,7 +470,7 @@ namespace ManagedDoom
                 }
                 else
                 {
-                    if (!GoldWand.GiveAmmo(ammo.blaster, ammo.amount, skill == GameSkill.Baby || skill == GameSkill.Nightmare)) continue;
+                    if (!GoldWand.GiveAmmo(ammo.blaster, (body.Flags & MobjFlags.Dropped) != 0 ? body.Health : ammo.amount, skill == GameSkill.Baby || skill == GameSkill.Nightmare)) continue;
                     State.Message = ammo.blaster ? "Dragon Claw ammo" : "Gold Wand ammo";
                     RequestSound(HereticSoundId.sfx_itemup, Body);
                 }

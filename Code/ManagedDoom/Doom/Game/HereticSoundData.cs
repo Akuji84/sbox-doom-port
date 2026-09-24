@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Golem sounds.
 // s&Doom modification: 2026-09-22, chicken peck sounds.
 // s&Doom modification: 2026-09-22, chicken actor sounds.
 // s&Doom modification: 2026-09-22, powered Hellstaff sounds.
@@ -53,6 +54,12 @@ namespace ManagedDoom
             HereticSoundId.sfx_chicatk => "CHICATK",
             HereticSoundId.sfx_chicdth => "CHICDTH",
             HereticSoundId.sfx_chicact => "CHICACT",
+            HereticSoundId.sfx_mumsit => "MUMSIT",
+            HereticSoundId.sfx_mumat1 => "MUMAT1",
+            HereticSoundId.sfx_mumat2 => "MUMAT2",
+            HereticSoundId.sfx_mumdth => "MUMDTH",
+            HereticSoundId.sfx_mumact => "MUMSIT",
+            HereticSoundId.sfx_mumpai => "MUMPAI",
             HereticSoundId.sfx_clksit => "CLKSIT",
             HereticSoundId.sfx_clkatk => "CLKATK",
             HereticSoundId.sfx_clkdth => "CLKDTH",
