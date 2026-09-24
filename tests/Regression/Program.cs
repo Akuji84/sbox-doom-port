@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using static Sandbox.SboxManagedDoomShellBridgeService;
 
 var root = Path.GetFullPath(args.Length > 0 ? args[0] : ".");
+if (args.Contains("--sorcerer")) { HereticSorcererChecks.Verify(root); return; }
 if (args.Contains("--maulotaur")) { HereticMaulotaurChecks.Verify(root); HereticMaulotaurChargeChecks.Verify(root); HereticMaulotaurBossChecks.Verify(root); return; }
 if (args.Contains("--iron-lich")) { HereticIronLichCombatChecks.Verify(root); return; }
 foreach (var length in new[] {0,1,55,56,63,64,65,127,128,1024})
@@ -228,6 +229,7 @@ HereticIronLichCombatChecks.Verify(root);
 HereticMaulotaurChecks.Verify(root);
 HereticMaulotaurChargeChecks.Verify(root);
 HereticMaulotaurBossChecks.Verify(root);
+HereticSorcererChecks.Verify(root);
 HereticWandChecks.Verify(root);
 HereticImpactChecks.Verify(root);
 HereticShootChecks.Verify(root);

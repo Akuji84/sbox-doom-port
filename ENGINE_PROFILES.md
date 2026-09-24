@@ -1651,3 +1651,23 @@ charge and boss checks together.
 Production Heretic loading remains gated. D'Sparil, complete pursuit/infighting,
 campaign, saves and multiplayer are still unfinished. An editor playtest is
 still required; regression rendering is not a substitute for that check.
+
+## 2026-09-24: D'Sparil fireballs and blue bolts
+
+Added MT_SRCRFX1 mounted fireballs and MT_SOR2FX1 blue bolts to the shared
+Heretic projectile path. Mounted fire launches at 48 units and speed 20, with
+single or three-shot helpers; side shots use the native ANG1_X offsets and
+share the center shot's vertical aim. Blue bolts use speed 20, direct damage,
+two rising sparks per native action, and 80+(random&31) splash damage on impact.
+Sparks retain native random momentum and finite animation lifetime. Attack
+sounds use the licensed WAD mappings, including the mounted sound alias.
+
+Tests cover launch height, speed/spread/slope, ownership, direct damage,
+blue impact splash, spark movement, rendered effects and cleanup. The focused
+`--sorcerer` regression option runs these checks.
+
+This is a projectile-system checkpoint. Mounted health-based attack selection,
+repeat timing, summoning, teleport destinations, phase transition and final
+death behavior remain unfinished. Both D'Sparil actor types remain excluded
+from map spawning. Production Heretic loading stays gated; no editor playtest
+is claimed.

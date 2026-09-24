@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
@@ -63,11 +64,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => SupportsMaulotaur(action) || SupportsIronLich(action) || SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsSorcerer(action) || SupportsMaulotaur(action) || SupportsIronLich(action) || SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsSorcerer(action)) { ExecuteSorcerer(action); return; }
             if (SupportsMaulotaur(action)) { ExecuteMaulotaur(action); return; }
             if (SupportsIronLich(action)) { ExecuteIronLich(action); return; }
             if (SupportsKnight(action)) { ExecuteKnight(action); return; }

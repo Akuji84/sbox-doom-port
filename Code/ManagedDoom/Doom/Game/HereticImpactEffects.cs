@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, rising Maulotaur charge puffs.
 // s&Doom modification: 2026-09-24, falling Gargoyle debris.
 // s&Doom modification: 2026-09-24, low-gravity axe drips.
@@ -139,7 +140,7 @@ namespace ManagedDoom
                         body.MomZ = body.MomZ == Fixed.Zero ? -Fixed.One / 4 : body.MomZ - Fixed.One / 8;
                     }
                 }
-                else if (effect.Type == HereticActorType.MT_PHOENIXPUFF) { MovePhoenixTrail(body); body.Z += body.MomZ; }
+                else if (effect.Type == HereticActorType.MT_PHOENIXPUFF || effect.Type == HereticActorType.MT_SOR2FXSPARK) { MovePhoenixTrail(body); body.Z += body.MomZ; }
                 else if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
                 else body.Z += body.MomZ;
                 if (!IsLiquidChunk(effect.Type) && effect.Type != HereticActorType.MT_BLOODSPLATTER && body.MomZ != Fixed.Zero)

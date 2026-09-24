@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
@@ -117,6 +118,8 @@ namespace ManagedDoom
             HereticSoundId.sfx_mindth => "MINDTH",
             HereticSoundId.sfx_minact => "MINACT",
             HereticSoundId.sfx_minpai => "MINPAI",
+            HereticSoundId.sfx_sbtatk => "BSTATK",
+            HereticSoundId.sfx_soratk => "SORATK",
             _ => null
         };
         public static HereticSoundData Decode(byte[] data)
