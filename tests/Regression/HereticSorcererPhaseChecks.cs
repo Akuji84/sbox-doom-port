@@ -81,7 +81,7 @@ static class HereticSorcererPhaseChecks
         Check(loops==7 && rider.Combatant.Animation.State==HereticStateId.S_SOR2_DIE15 && (rider.Body.Flags&MobjFlags.Solid)==0,"Rider death loop count/corpse incorrect.");
         Check(sounds.Contains(HereticSoundId.sfx_sordsph) && sounds.Contains(HereticSoundId.sfx_sordexp) && sounds.Contains(HereticSoundId.sfx_sordbon),"Final death sounds missing.");
         Check(!s.ImpactEffects.Any(e=>e.Type==HereticActorType.MT_SOR2TELEFADE),"Teleport fade leaked.");
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER1),"Boss map gate changed.");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER1),"Mounted boss missing from preview roster.");
         Console.WriteLine("PASS Sorcerer phase: real mounted death, unique rider, rise timing/audio, pursuit, blocked teleport, fade, massacre and seven-loop death");
     }
 }

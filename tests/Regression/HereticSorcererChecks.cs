@@ -45,7 +45,7 @@ static class HereticSorcererChecks
         effects.Tick(default);Check(spark.Body.Z>z,"Blue spark did not rise.");
         for(var i=0;i<40;i++)effects.Tick(default);
         Check(!effects.ImpactEffects.Any(a=>a.Type==HereticActorType.MT_SOR2FXSPARK),"Blue sparks leaked.");
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER1) && !HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER2),"Unfinished D'Sparil enabled.");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER1) && !HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER2),"Sorcerer map roster changed unexpectedly.");
         Console.WriteLine("PASS D'Sparil projectiles: mounted single/triple fire, native height/angles/speed/damage, ownership, blue bolt sparks/splash, rendering and cleanup");
     }
 }

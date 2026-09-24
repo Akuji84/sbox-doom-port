@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, guard failed Sorcerer map placements.
 // s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, native supported-boss rules and episode death triggers.
 //
@@ -41,7 +42,7 @@ namespace ManagedDoom
                 _ => null
             };
             if (source.Combatant.Type != type || source.Body.Health > 0 || EpisodeBossTriggered || world.Options.Map != 8) return;
-            if ((type == HereticActorType.MT_HEAD && blockedIronLiches != 0) || (type == HereticActorType.MT_MINOTAUR && blockedMaulotaurs != 0)) return;
+            if ((type == HereticActorType.MT_HEAD && blockedIronLiches != 0) || (type == HereticActorType.MT_MINOTAUR && blockedMaulotaurs != 0) || (type == HereticActorType.MT_SORCERER2 && blockedSorcerers != 0)) return;
             foreach (var enemy in testEnemies)
                 if (enemy.Combatant.Type == type && enemy.Body.Health > 0) return;
             EpisodeBossTriggered = true;

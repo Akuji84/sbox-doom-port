@@ -1778,3 +1778,30 @@ is claimed.
 Validation: focused and full regression suites pass; all five production Doom
 simulation/render hashes remain unchanged. Build: zero errors, seven existing
 warnings. Licensed asset inventory and pinned definition checks pass.
+
+## 2026-09-24: D'Sparil preview map encounters
+
+MT_SORCERER1 now joins the opt-in native map-combat roster. It uses the map's
+position, angle and difficulty filtering, then creates its second form through
+the existing death/rise sequence. MT_SORCERER2 remains a runtime-spawned actor,
+not a separately enabled map placement. Repeated StartMapCombat calls do not
+spawn duplicate bosses. Failed mounted boss placements prevent a false E3M8
+completion, matching the existing safeguards for other supported boss families.
+
+The bundled Blasphemer maps containing mounted bosses are E3M8, E6M1 and E6M3.
+Regression encounters cover all three on easy, medium and hard: nine encounters
+and 39 successful destination checks across the 13 authored teleport spots.
+Tests exercise map placement, the mounted death/rider transition, actual
+health-based teleport decisions selecting distant map spots, rendering, final
+death, E3M8-only completion, repeated activation and a deliberately blocked
+boss placement. E6 boss deaths do not trigger E3M8 completion.
+
+Use the isolated Heretic preview scene with Navigation, TestCombat and MapMonsters
+enabled to exercise map encounters. Production Heretic loading remains gated.
+Full pursuit/infighting, campaign, saves and multiplayer integration still need
+work; these regression checks do not constitute an s&box editor playtest.
+
+Validation: full regression suite passes. Map smoke covers 48 maps with 3,615
+supported enemy placements and 29 reported blocked placements. All five
+production Doom simulation/render hashes remain unchanged. Build: zero errors,
+seven existing warnings. Asset-license inventory and pinned definitions pass.

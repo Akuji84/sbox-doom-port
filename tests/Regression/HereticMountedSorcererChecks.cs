@@ -45,7 +45,7 @@ static class HereticMountedSorcererChecks
         melee.World.ThingMovement.SetThingPosition(attacker.Body);attacker.Body.Target=melee.Body;
         melee.World.Random.Clear();attacker.Execute(HereticAction.A_Srcr1Attack,new HereticActorState(HereticStateId.S_SRCR1_ATK3,attacker));
         Check(melee.State.Health==92 && melee.Projectiles.Count==0,$"Mounted melee damage or projectile exclusion incorrect: {melee.State.Health}, {melee.Projectiles.Count}.");
-        Check(!HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER1),"Incomplete mounted boss enabled.");
+        Check(HereticWorldSession.SupportsMapEnemy(HereticActorType.MT_SORCERER1),"Mounted preview boss not enabled.");
         Console.WriteLine("PASS mounted Sorcerer controller: health thresholds, bounded animated repeat, missing target, pain acceleration and melee");
     }
 }
