@@ -216,6 +216,7 @@ HereticClinkChecks.Verify(root);
 HereticGolemChecks.Verify(root);
 HereticNitrogolemChecks.Verify(root);
 HereticBeastChecks.Verify(root);
+HereticKnightChecks.Verify(root);
 HereticWandChecks.Verify(root);
 HereticImpactChecks.Verify(root);
 HereticShootChecks.Verify(root);

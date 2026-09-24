@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Warrior sounds and active-sound alias.
 // s&Doom modification: 2026-09-24, Beast sound mappings.
 // s&Doom modification: 2026-09-24, Golem sounds.
 // s&Doom modification: 2026-09-22, chicken peck sounds.
@@ -55,6 +56,12 @@ namespace ManagedDoom
             HereticSoundId.sfx_chicatk => "CHICATK",
             HereticSoundId.sfx_chicdth => "CHICDTH",
             HereticSoundId.sfx_chicact => "CHICACT",
+            HereticSoundId.sfx_kgtsit => "KGTSIT",
+            HereticSoundId.sfx_kgtatk => "KGTATK",
+            HereticSoundId.sfx_kgtat2 => "KGTAT2",
+            HereticSoundId.sfx_kgtdth => "KGTDTH",
+            HereticSoundId.sfx_kgtact => "KGTSIT",
+            HereticSoundId.sfx_kgtpai => "KGTPAI",
             HereticSoundId.sfx_bstsit => "BSTSIT",
             HereticSoundId.sfx_bstatk => "BSTATK",
             HereticSoundId.sfx_bstdth => "BSTDTH",

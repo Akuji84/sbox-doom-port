@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, axe launch height and shared enemy missile validation.
 // s&Doom modification: 2026-09-24, shared launch path for Beast fireballs.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -50,13 +51,14 @@ namespace ManagedDoom
         internal HereticProjectile SpawnNitrogolemMissile(HereticClinkTestEnemy enemy) => SpawnMonsterMissile(enemy, HereticActorType.MT_MUMMYFX1);
         internal HereticProjectile SpawnMonsterMissile(HereticClinkTestEnemy enemy, HereticActorType type)
         {
-            if (type != HereticActorType.MT_MUMMYFX1 && type != HereticActorType.MT_BEASTBALL)
+            if (!HereticProjectile.IsMonsterMissile(type))
                 throw new ArgumentException("Unsupported monster projectile.", nameof(type));
             var source = enemy.Body;
             if (source.Health <= 0 || State.Health <= 0) return null;
             var angle = Geometry.PointToAngle(source.X, source.Y, Body.X, Body.Y);
             var missile = new HereticProjectile(this, type, angle, Fixed.Zero, source);
             missile.MonsterOwnerType = enemy.Combatant.Type;
+            if (type == HereticActorType.MT_KNIGHTAXE || type == HereticActorType.MT_REDAXE) missile.Body.Z += Fixed.FromInt(4);
             // Feet clipping applies only while standing on a liquid floor.
             if (source.Z == source.FloorZ && source.FloorZ == source.Subsector.Sector.FloorHeight && FloorType(source) != HereticFloorType.Solid)
                 missile.Body.Z -= Fixed.FromInt(10);

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, low-gravity axe drips.
 // s&Doom modification: 2026-09-22, native rising beak puff.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
 // s&Doom modification: 2026-09-22, native powered Gold Wand attack and effects.
@@ -125,7 +126,16 @@ namespace ManagedDoom
                 body.UpdateFrameInterpolationInfo();
                 if (effect.Type == HereticActorType.MT_CRBOWFX4) MoveCrossbowSpark(body);
                 else if (IsLiquidChunk(effect.Type)) MoveLiquidChunk(effect);
-                else if (effect.Type == HereticActorType.MT_BLOOD) MovePhoenixTrail(body);
+                else if (effect.Type == HereticActorType.MT_BLOOD)
+                {
+                    MovePhoenixTrail(body);
+                    // Red-axe drips use low gravity; ripper blood retains its no-gravity path.
+                    if ((body.Flags & MobjFlags.NoGravity) == 0)
+                    {
+                        body.Z += body.MomZ;
+                        body.MomZ = body.MomZ == Fixed.Zero ? -Fixed.One / 4 : body.MomZ - Fixed.One / 8;
+                    }
+                }
                 else if (effect.Type == HereticActorType.MT_PHOENIXPUFF) MovePhoenixTrail(body);
                 else if (effect.Type == HereticActorType.MT_BLOODSPLATTER) MoveBlood(effect);
                 else body.Z += body.MomZ;

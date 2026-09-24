@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Undead Warrior axes.
 // s&Doom modification: 2026-09-24, Beast fireball lifecycle.
 // s&Doom modification: 2026-09-24, owned Nitrogolem missiles and player collision.
 // s&Doom modification: 2026-09-22, gated Morph Ovum projectile foundation.
@@ -38,7 +39,7 @@ namespace ManagedDoom
         public bool Flying { get; private set; } = true;
         internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope, Mobj owner = null)
         {
-            if (type != HereticActorType.MT_BEASTBALL && type != HereticActorType.MT_MUMMYFX1 && type != HereticActorType.MT_EGGFX && type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (!IsMonsterMissile(type) && type != HereticActorType.MT_EGGFX && type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
             owner ??= session.Body;
@@ -57,11 +58,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsKnight(action)) { ExecuteKnight(action); return; }
             if (action == HereticAction.A_BeastPuff) { session.SpawnBeastPuff(Body); return; }
             if (SupportsNitrogolem(action)) { ExecuteNitrogolem(action); return; }
             if (SupportsRain(action)) { ExecuteRain(action); return; }
@@ -88,9 +90,9 @@ namespace ManagedDoom
                 session.DamageTestEnemy(target, ((session.World.Random.Next() & 3) + 2) * def.Damage, inflictor: Body);
                 return true;
             }
-            if ((Type == HereticActorType.MT_MUMMYFX1 || Type == HereticActorType.MT_BEASTBALL) && session.SameMonsterType(target, MonsterOwnerType)) return false;
+            if (IsMonsterMissile(Type) && session.SameMonsterType(target, MonsterOwnerType)) return false;
             var damage = (session.World.Random.Next() % 8 + 1) * def.Damage;
-            if (Type == HereticActorType.MT_MUMMYFX1 || Type == HereticActorType.MT_BEASTBALL)
+            if (IsMonsterMissile(Type))
             {
                 session.DamageMonsterMissile(target, damage, Body);
                 return false;

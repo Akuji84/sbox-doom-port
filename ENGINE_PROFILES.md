@@ -1397,3 +1397,28 @@ burn-death animations are not implemented. Full vanilla pursuit/infighting,
 remaining monsters and bosses, campaign completion, saves and multiplayer remain
 unfinished. Unsupported actors and blocked map placements remain reported, and
 production Heretic loading remains gated. Existing Doom rules are unchanged.
+
+
+## 2026-09-24: Undead Warriors and axe projectiles
+
+Normal and ghost Undead Warriors (MT_KNIGHT/MT_KNIGHTGHOST) now spawn in native
+map-combat mode. The authored attack chain performs two attacks: 3-24 melee
+damage at close range or axe throws at distance. Normal Warriors choose a red
+axe on a random roll below 40/256; ghost Warriors always use red axes. The native
+pain/death states, five-round crossbow drop and original-type chicken restoration
+are connected to the existing combat lifecycle.
+
+Both axes launch at height 36 (adjusted for liquid feet clipping), travel without
+homing, and pass through ghosts. Green axes deal 2-16 damage and red axes 7-56.
+Green axe flight sound and red axe blood drips use their native actions. Drips
+preserve random draw order and fall with low gravity; existing ripper blood keeps
+its separate no-gravity behavior. Impact animations and trails are cleaned up.
+Warrior sounds include the active-to-sight alias from pinned sounds.c.
+
+Enable Test Combat + Map Monsters in the Heretic preview. Tests cover normal and
+ghost two-throw sequences, melee, both axe choices and damage multipliers, ghost
+pass-through, low-gravity blood, morph/death/drop handling, rendered combat and
+cleanup. The shared 48-map combat smoke and deterministic replay checks cover the
+expanded roster. Unsupported monsters and blocked placements remain reported.
+Full vanilla pursuit/infighting, remaining monsters/bosses, campaign completion,
+saves and multiplayer remain unfinished; production Heretic loading stays gated.
