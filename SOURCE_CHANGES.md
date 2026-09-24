@@ -1062,3 +1062,28 @@ cleanup. The shared 48-map combat smoke and deterministic replay checks cover th
 expanded roster. Unsupported monsters and blocked placements remain reported.
 Full vanilla pursuit/infighting, remaining monsters/bosses, campaign completion,
 saves and multiplayer remain unfinished; production Heretic loading stays gated.
+
+
+## 2026-09-24: Ophidian combat
+
+Ophidians (MT_SNAKE) now participate in native map combat. Their authored attack
+sequence fires three MT_SNAKEPRO_A missiles at ticks 10, 14 and 18, followed by
+MT_SNAKEPRO_B at tick 37. Both fly at speed 14 without homing; the small missile
+deals 1-8 damage and the final missile 3-24. Each shot faces the player and emits
+the native attack sound. Missing targets return the actor to its walk state
+instead of spawning a shot. Sight, pain and death sounds are also mapped.
+
+The native pain/death sequence, original-type chicken restoration and five-round
+Phoenix ammo drop use the existing combat lifecycle. Dropped Phoenix ammunition
+now honors its stored amount instead of granting the ordinary one-round pickup.
+Both projectile types retain native impact animations and shared owner exclusion,
+collision, armor, invulnerability and player damage handling.
+
+Enable Test Combat + Map Monsters in the Heretic preview. Checks cover exact
+attack timing, both projectile types/speeds/damage, owner exclusion, missing
+targets, live attack detection, rendered combat, morph/death/cleanup and actual
+five-round pickups. Shared tests load, tick and render the expanded roster across
+all 48 bundled Blasphemer maps and check deterministic replay and Doom compatibility.
+Full vanilla pursuit/infighting, remaining monsters/bosses, campaign, saves and
+multiplayer remain unfinished. Unsupported actors and blocked placements remain
+reported; production Heretic loading stays gated.

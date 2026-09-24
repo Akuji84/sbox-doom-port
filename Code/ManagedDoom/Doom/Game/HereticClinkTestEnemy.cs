@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Ophidian attacks and drops.
 // s&Doom modification: 2026-09-24, Undead Warrior combat.
 // s&Doom modification: 2026-09-24, Beast attacks and per-family drops.
 // s&Doom modification: 2026-09-24, Nitrogolem ranged attacks.
@@ -45,7 +46,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -114,6 +115,12 @@ namespace ManagedDoom
                     }
                     else Sound(HereticSoundId.sfx_mumat1);
                     break;
+                case HereticAction.A_SnakeAttack:
+                case HereticAction.A_SnakeAttack2:
+                    if (Body.Target == null) { state.SetState(HereticStateId.S_SNAKE_WALK1); break; }
+                    Sound(def.AttackSound); Face();
+                    session.SpawnMonsterMissile(this, action == HereticAction.A_SnakeAttack ? HereticActorType.MT_SNAKEPRO_A : HereticActorType.MT_SNAKEPRO_B);
+                    break;
                 case HereticAction.A_KnightAttack:
                     if (Body.Target == null) break;
                     if (MeleeRange)
@@ -156,6 +163,7 @@ namespace ManagedDoom
                         var drop = OriginalType switch
                         {
                             HereticActorType.MT_CLINK => session.SpawnClinkAmmoDrop(Body),
+                            HereticActorType.MT_SNAKE => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMPHRDWIMPY, 5),
                             HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMCBOWWIMPY, 5),
                             HereticActorType.MT_BEAST => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMCBOWWIMPY, 10),
                             _ => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMGWNDWIMPY, 3)

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, preserve dropped Phoenix ammo quantities.
 // s&Doom modification: 2026-09-24, preserve dropped crossbow ammo quantities.
 // s&Doom modification: 2026-09-24, preserve dropped Gold Wand ammo quantities.
 // s&Doom modification: 2026-09-22, chicken movement, camera, healing and timer.
@@ -425,7 +426,7 @@ namespace ManagedDoom
                 {
                     var weapon = actor.Type == HereticActorType.MT_WPHOENIXROD;
                     var bonus = skill == GameSkill.Baby || skill == GameSkill.Nightmare;
-                    if (!(weapon ? GoldWand.GivePhoenix(bonus) : GoldWand.GivePhoenixAmmo(actor.Type == HereticActorType.MT_AMPHRDWIMPY ? 1 : 10, bonus))) continue;
+                    if (!(weapon ? GoldWand.GivePhoenix(bonus) : GoldWand.GivePhoenixAmmo((body.Flags & MobjFlags.Dropped) != 0 ? body.Health : actor.Type == HereticActorType.MT_AMPHRDWIMPY ? 1 : 10, bonus))) continue;
                     State.Message = weapon ? "Phoenix Rod" : "Phoenix Rod ammo";
                     RequestSound(weapon ? HereticSoundId.sfx_wpnup : HereticSoundId.sfx_itemup, Body);
                 }
