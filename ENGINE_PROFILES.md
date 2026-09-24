@@ -1496,3 +1496,23 @@ Normal Gargoyles (MT_IMP) remain gated pending charge/collision support.
 Remaining monsters/bosses, full pursuit/infighting, campaign, saves and
 multiplayer remain unfinished. Production Heretic loading stays gated;
 this checkpoint has regression/render verification, not an editor playtest.
+
+## 2026-09-24: Normal Gargoyle charge and melee
+
+Normal Gargoyles (MT_IMP) now spawn in the native map-combat preview. Their
+native attack states select a speed-12 charge with vertical aim toward the
+target's center. Charge momentum bypasses ordinary friction; actor contact
+ends the charge and wall contact recovers on the following tick. Contacts
+use Heretic actor states without accessing Doom actor definitions. Native
+MT_IMP impact damage is zero; its separate melee attack deals 5-12 damage.
+Missing targets and rejected random attack rolls return to pursuit.
+
+Both Gargoyle variants share crash/debris handling, and normal Gargoyles
+restore correctly after chicken morph. Regression coverage includes charge
+speed, contact, wall recovery, melee, attack rejection, morph and extreme
+crash deaths. The expanded map smoke check covers 3,573 supported enemies
+across 48 maps, with 28 blocked placements reported.
+
+This remains the opt-in Test Combat + Map Monsters preview. Simplified pursuit,
+remaining monsters/bosses, full campaign, saves and multiplayer are unfinished.
+Production Heretic loading stays gated; editor playtesting is still required.

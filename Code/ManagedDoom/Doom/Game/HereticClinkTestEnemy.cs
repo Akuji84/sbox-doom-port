@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, preserve Gargoyle charge momentum and recover after wall contact.
 // s&Doom modification: 2026-09-24, Fire Gargoyle actions and landing crashes.
 // s&Doom modification: 2026-09-24, Disciple attacks, floating movement and drops.
 // s&Doom modification: 2026-09-24, Ophidian attacks and drops.
@@ -201,8 +202,10 @@ namespace ManagedDoom
                 var dx = new Fixed(Math.Clamp(Body.MomX.Data, -15 * Fixed.FracUnit, 15 * Fixed.FracUnit));
                 var dy = new Fixed(Math.Clamp(Body.MomY.Data, -15 * Fixed.FracUnit, 15 * Fixed.FracUnit));
                 if (!session.World.ThingMovement.TryMove(Body, Body.X + dx, Body.Y + dy)) Body.MomX = Body.MomY = Fixed.Zero;
-                Body.MomX *= new Fixed(0xe800); Body.MomY *= new Fixed(0xe800);
+                if (!GargoyleCharging) { Body.MomX *= new Fixed(0xe800); Body.MomY *= new Fixed(0xe800); }
             }
+            // A wall stops XY momentum; native skull-flight recovers on the following tick.
+            else if (GargoyleCharging) StopGargoyleCharge();
             Body.Z += Body.MomZ;
             if ((Body.Flags & MobjFlags.Float) != 0 && Body.Target != null && (Body.Flags & (MobjFlags.SkullFly | MobjFlags.InFloat)) == 0)
             {
