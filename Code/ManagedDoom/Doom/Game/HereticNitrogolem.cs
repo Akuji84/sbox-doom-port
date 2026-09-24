@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, fixed-angle Disciple side missiles.
 // s&Doom modification: 2026-09-24, axe launch height and shared enemy missile validation.
 // s&Doom modification: 2026-09-24, shared launch path for Beast fireballs.
 //
@@ -49,26 +50,26 @@ namespace ManagedDoom
             return false;
         }
         internal HereticProjectile SpawnNitrogolemMissile(HereticClinkTestEnemy enemy) => SpawnMonsterMissile(enemy, HereticActorType.MT_MUMMYFX1);
-        internal HereticProjectile SpawnMonsterMissile(HereticClinkTestEnemy enemy, HereticActorType type)
+        internal HereticProjectile SpawnMonsterMissile(HereticClinkTestEnemy enemy, HereticActorType type, Angle? fixedAngle = null, Fixed? fixedMomZ = null)
         {
             if (!HereticProjectile.IsMonsterMissile(type))
                 throw new ArgumentException("Unsupported monster projectile.", nameof(type));
             var source = enemy.Body;
             if (source.Health <= 0 || State.Health <= 0) return null;
-            var angle = Geometry.PointToAngle(source.X, source.Y, Body.X, Body.Y);
+            var angle = fixedAngle ?? Geometry.PointToAngle(source.X, source.Y, Body.X, Body.Y);
             var missile = new HereticProjectile(this, type, angle, Fixed.Zero, source);
             missile.MonsterOwnerType = enemy.Combatant.Type;
             if (type == HereticActorType.MT_KNIGHTAXE || type == HereticActorType.MT_REDAXE) missile.Body.Z += Fixed.FromInt(4);
             // Feet clipping applies only while standing on a liquid floor.
             if (source.Z == source.FloorZ && source.FloorZ == source.Subsector.Sector.FloorHeight && FloorType(source) != HereticFloorType.Solid)
                 missile.Body.Z -= Fixed.FromInt(10);
-            if ((Body.Flags & MobjFlags.Shadow) != 0)
+            if (!fixedAngle.HasValue && (Body.Flags & MobjFlags.Shadow) != 0)
                 angle += new Angle(unchecked((uint)((world.Random.Next() - world.Random.Next()) << 21)));
             missile.Body.Angle = angle;
             var speed = new Fixed(HereticDefinitions.Actors[(int)type].Speed);
             missile.Body.MomX = speed * Trig.Cos(angle); missile.Body.MomY = speed * Trig.Sin(angle);
             var distance = Math.Max(1, Geometry.AproxDistance(Body.X - source.X, Body.Y - source.Y).Data / speed.Data);
-            missile.Body.MomZ = (Body.Z - source.Z) / distance;
+            missile.Body.MomZ = fixedMomZ ?? (Body.Z - source.Z) / distance;
             projectiles.Add(missile);
             missile.Animation.ShortenPositiveTics(world.Random.Next() & 3);
             missile.Advance(true);

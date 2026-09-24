@@ -1087,3 +1087,31 @@ all 48 bundled Blasphemer maps and check deterministic replay and Doom compatibi
 Full vanilla pursuit/infighting, remaining monsters/bosses, campaign, saves and
 multiplayer remain unfinished. Unsupported actors and blocked placements remain
 reported; production Heretic loading stays gated.
+
+
+## 2026-09-24: Disciples and floating enemy combat
+
+Disciples of D'Sparil (MT_WIZARD) now spawn in the native map-combat preview.
+Their attack wind-up alternates normal/ghost visibility every four ticks and
+ends visible, with either 4-32 melee damage or three MT_WIZFX1 projectiles. Side
+shots use the center shot's angle plus/minus ANG45/8 and share its vertical
+momentum. A blocked center launch suppresses the side shots. Missiles travel
+at speed 18 and deal 3-24 damage through the shared enemy-missile path.
+
+The shared actor tick now respects NoGravity and implements the reference
+floating height adjustment toward a target. Death removes flight/ghost flags
+and lets the corpse fall. Original-type chicken restoration restores the
+Disciple's flight flags. Pain/death actions clear ghost visibility. Native
+sounds, ten-round Dragon Claw ammo drops and the rare Tome drop are connected;
+drops spawn even when no diagnostic event subscriber is present.
+
+Enable Test Combat + Map Monsters in the Heretic preview. Regression checks
+cover floating, visibility timing, three-shot spread/shared slope, projectile
+and melee damage, airborne morph restoration, falling corpses, rare Tome and
+ammo drops/collection, live combat and cleanup. Shared tests cover the expanded
+roster in all 48 Blasphemer maps plus deterministic replay and Doom compatibility.
+
+Horizontal pursuit and obstacle routing still use simplified preview AI; full
+vanilla pursuit/infighting, remaining monsters/bosses, campaign completion, saves
+and multiplayer remain unfinished. Blocked placements and unsupported actors
+remain reported. Production Heretic loading stays gated.

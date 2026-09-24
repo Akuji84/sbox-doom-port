@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Disciple attacks, floating movement and drops.
 // s&Doom modification: 2026-09-24, Ophidian attacks and drops.
 // s&Doom modification: 2026-09-24, Undead Warrior combat.
 // s&Doom modification: 2026-09-24, Beast attacks and per-family drops.
@@ -46,7 +47,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -115,6 +116,16 @@ namespace ManagedDoom
                     }
                     else Sound(HereticSoundId.sfx_mumat1);
                     break;
+                case HereticAction.A_WizAtk1: Face(); Body.Flags &= ~MobjFlags.Shadow; break;
+                case HereticAction.A_WizAtk2: Face(); Body.Flags |= MobjFlags.Shadow; break;
+                case HereticAction.A_GhostOff: Body.Flags &= ~MobjFlags.Shadow; break;
+                case HereticAction.A_WizAtk3:
+                    Body.Flags &= ~MobjFlags.Shadow;
+                    if (Body.Target == null) break;
+                    Sound(def.AttackSound);
+                    if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 4);
+                    else session.SpawnWizardVolley(this);
+                    break;
                 case HereticAction.A_SnakeAttack:
                 case HereticAction.A_SnakeAttack2:
                     if (Body.Target == null) { state.SetState(HereticStateId.S_SNAKE_WALK1); break; }
@@ -158,6 +169,12 @@ namespace ManagedDoom
                     Body.Flags &= ~MobjFlags.Solid;
                     if (IsChicken) break;
                     var random = session.World.Random;
+                    if (OriginalType == HereticActorType.MT_WIZARD)
+                    {
+                        if (random.Next() <= 84) { var drop = session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMBLSRWIMPY, 10); DropRequested?.Invoke(drop); }
+                        if (random.Next() <= 4) { var drop = session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_ARTITOMEOFPOWER, 0); DropRequested?.Invoke(drop); }
+                        break;
+                    }
                     if (random.Next() <= 84)
                     {
                         var drop = OriginalType switch
@@ -185,8 +202,15 @@ namespace ManagedDoom
                 Body.MomX *= new Fixed(0xe800); Body.MomY *= new Fixed(0xe800);
             }
             Body.Z += Body.MomZ;
+            if ((Body.Flags & MobjFlags.Float) != 0 && Body.Target != null && (Body.Flags & (MobjFlags.SkullFly | MobjFlags.InFloat)) == 0)
+            {
+                var distance = Geometry.AproxDistance(Body.X - Body.Target.X, Body.Y - Body.Target.Y);
+                var delta = Body.Target.Z + Body.Height / 2 - Body.Z;
+                if (delta < Fixed.Zero && distance < -delta * 3) Body.Z -= Fixed.FromInt(4);
+                else if (delta > Fixed.Zero && distance < delta * 3) Body.Z += Fixed.FromInt(4);
+            }
             if (Body.Z <= Body.FloorZ) { Body.Z = Body.FloorZ; Body.MomZ = Fixed.Zero; }
-            else Body.MomZ -= Fixed.One;
+            else if ((Body.Flags & MobjFlags.NoGravity) == 0) Body.MomZ -= Fixed.One;
             if (Body.Z + Body.Height > Body.CeilingZ) { Body.Z = Body.CeilingZ - Body.Height; Body.MomZ = Fixed.Zero; }
             Combatant.TickState();
             if (Body.Z < Body.FloorZ) Body.Z = Body.FloorZ;

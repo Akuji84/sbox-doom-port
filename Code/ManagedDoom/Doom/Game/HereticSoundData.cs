@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Disciple sound mappings.
 // s&Doom modification: 2026-09-24, Ophidian sounds.
 // s&Doom modification: 2026-09-24, Warrior sounds and active-sound alias.
 // s&Doom modification: 2026-09-24, Beast sound mappings.
@@ -57,6 +58,11 @@ namespace ManagedDoom
             HereticSoundId.sfx_chicatk => "CHICATK",
             HereticSoundId.sfx_chicdth => "CHICDTH",
             HereticSoundId.sfx_chicact => "CHICACT",
+            HereticSoundId.sfx_wizsit => "WIZSIT",
+            HereticSoundId.sfx_wizatk => "WIZATK",
+            HereticSoundId.sfx_wizdth => "WIZDTH",
+            HereticSoundId.sfx_wizact => "WIZACT",
+            HereticSoundId.sfx_wizpai => "WIZPAI",
             HereticSoundId.sfx_snksit => "SNKSIT",
             HereticSoundId.sfx_snkatk => "SNKATK",
             HereticSoundId.sfx_snkdth => "SNKDTH",
