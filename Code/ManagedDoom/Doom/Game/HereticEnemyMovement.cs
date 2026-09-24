@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, activate eligible doors after blocked chase moves.
 // s&Doom modification: 2026-09-24, native Heretic chase-direction selection.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -38,8 +39,15 @@ namespace ManagedDoom
                     Body.Flags|=MobjFlags.InFloat;
                     return true;
                 }
-                // Monster activation of blocked door specials is a separate integration.
-                return false;
+                if(movement.crossedSpecialCount<=0)return false;
+                Body.MoveDir=Direction.None;
+                var activated=false;
+                while(movement.crossedSpecialCount>0)
+                {
+                    var line=movement.crossedSpecials[--movement.crossedSpecialCount];
+                    if(session.UseMonsterLine(line))activated=true;
+                }
+                return activated;
             }
             Body.Flags&=~MobjFlags.InFloat;
             if((Body.Flags&MobjFlags.Float)==0)

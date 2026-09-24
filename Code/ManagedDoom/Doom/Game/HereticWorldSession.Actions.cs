@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, restricted monster door activation.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -45,6 +46,15 @@ namespace ManagedDoom
             }
         }
 
+        // Native P_UseSpecialLine accepts these manual types for monsters;
+        // EV_VerticalDoor still rejects locked doors because monsters have no keys.
+        internal bool UseMonsterLine(LineDef line)
+        {
+            if ((line.Flags & LineFlags.Secret) != 0) return false;
+            if ((int)line.Special is not (1 or 32 or 33 or 34)) return false;
+            LocalDoor(line, monster: true);
+            return true;
+        }
         public bool UseLine(LineDef line, int side = 0)
         {
             if (side != 0) return false;

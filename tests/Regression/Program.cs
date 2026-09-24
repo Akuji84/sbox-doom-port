@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using static Sandbox.SboxManagedDoomShellBridgeService;
 
 var root = Path.GetFullPath(args.Length > 0 ? args[0] : ".");
-if (args.Contains("--chase")) { HereticEnemyMovementChecks.Verify(root); return; }
+if (args.Contains("--chase")) { HereticEnemyMovementChecks.Verify(root); HereticMonsterDoorChecks.Verify(root); return; }
 if (args.Contains("--sorcerer")) { HereticSorcererChecks.Verify(root); HereticMountedSorcererChecks.Verify(root); HereticSorcererPhaseChecks.Verify(root); HereticSorcererBossChecks.Verify(root); HereticSorcererMapChecks.Verify(root); HereticSummoningChecks.Verify(root); return; }
 if (args.Contains("--maulotaur")) { HereticMaulotaurChecks.Verify(root); HereticMaulotaurChargeChecks.Verify(root); HereticMaulotaurBossChecks.Verify(root); return; }
 if (args.Contains("--iron-lich")) { HereticIronLichCombatChecks.Verify(root); return; }
@@ -230,7 +230,7 @@ HereticIronLichCombatChecks.Verify(root);
 HereticMaulotaurChecks.Verify(root);
 HereticMaulotaurChargeChecks.Verify(root);
 HereticMaulotaurBossChecks.Verify(root);
-HereticEnemyMovementChecks.Verify(root);
+HereticEnemyMovementChecks.Verify(root); HereticMonsterDoorChecks.Verify(root);
 HereticSorcererChecks.Verify(root); HereticMountedSorcererChecks.Verify(root); HereticSorcererPhaseChecks.Verify(root); HereticSorcererBossChecks.Verify(root); HereticSorcererMapChecks.Verify(root);
 HereticSummoningChecks.Verify(root);
 HereticWandChecks.Verify(root);

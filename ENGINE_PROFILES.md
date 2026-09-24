@@ -1835,3 +1835,32 @@ Validation: focused and full regressions pass, including 48-map smoke coverage
 and unchanged simulation/render hashes for all five production Doom WADs.
 Build: zero errors, seven existing warnings. Licensed asset inventory and
 pinned Heretic definition checks pass.
+
+## 2026-09-24: Monster manual-door activation
+
+Blocked Heretic chase moves now process the collision layer's touched special
+lines in native reverse order. Eligible activation clears MoveDir and lets the
+enemy wait/retry rather than treating every closed door as an impassable wall.
+The native monster whitelist accepts specials 1, 32, 33 and 34, rejects secret
+lines and rejects player-only switches, exits, platforms and teleports. Locked
+manual doors still refuse to open for monsters, even if the player has keys;
+the native accepted-use return value is retained without activating the lock.
+
+Monsters can raise ordinary manual doors and reopen closing ones. They cannot
+close doors that are opening or waiting. Monster activation does not alter the
+player's key messages. Initial monster-opened doors play the licensed DOROPN
+sound. Existing player door behavior retains its original path.
+
+The --chase regression option now also tests monster doors: eligibility and
+secret/locked restrictions, no borrowing player keys, opening/waiting/closing
+states, opening sound, and a real map collision where an enemy opens a closed
+door and walks through it after sufficient clearance develops. These checks
+also run in the full suite.
+
+Full A_Chase timing/turning, target selection and infighting remain unfinished.
+Production Heretic loading, campaign, saves and multiplayer remain gated. No
+s&box editor playtest is claimed.
+
+Validation: focused and full regression suites pass, including unchanged
+simulation/render hashes for all five production Doom WADs. Build: zero errors,
+seven existing warnings. Licensed asset inventory and pinned definitions pass.

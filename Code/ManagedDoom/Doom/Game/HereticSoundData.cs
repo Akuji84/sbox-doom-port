@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, monster manual-door opening audio.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
@@ -133,6 +134,7 @@ namespace ManagedDoom
             HereticSoundId.sfx_sbtdth => "SBTDTH",
             HereticSoundId.sfx_sbtact => "SBTACT",
             HereticSoundId.sfx_sbtpai => "SBTPAI",
+            HereticSoundId.sfx_doropn => "DOROPN",
             _ => null
         };
         public static HereticSoundData Decode(byte[] data)

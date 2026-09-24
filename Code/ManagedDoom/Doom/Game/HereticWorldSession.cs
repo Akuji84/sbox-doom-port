@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, monsters reopen but never close manual doors.
 // s&Doom modification: 2026-09-24, preserve dropped Phoenix ammo quantities.
 // s&Doom modification: 2026-09-24, preserve dropped crossbow ammo quantities.
 // s&Doom modification: 2026-09-24, preserve dropped Gold Wand ammo quantities.
@@ -516,21 +517,23 @@ namespace ManagedDoom
                     world.MapCollision.LineOpening(line); return world.MapCollision.OpenRange > Fixed.Zero;
                 });
         }
-        private void LocalDoor(LineDef line)
+        private void LocalDoor(LineDef line, bool monster = false)
         {
             var code = (int)line.Special;
             var key = code == 26 || code == 32 ? HereticKeys.Blue : code == 27 || code == 34 ? HereticKeys.Yellow : code == 28 || code == 33 ? HereticKeys.Green : HereticKeys.None;
+            if (monster && key != HereticKeys.None) return;
             if (key != HereticKeys.None && (State.Keys & key) == 0) { State.Message = "You need the " + key.ToString().ToLowerInvariant() + " key."; return; }
             if (line.BackSide == null) return;
             var sector = line.BackSide.Sector;
             var openOnly = code >= 31 && code <= 34;
             if (sector.SpecialData is VerticalDoor door)
-            { if (!openOnly) door.Direction = door.Direction == -1 ? 1 : -1; return; }
+            { if (!openOnly && (door.Direction == -1 || !monster)) door.Direction = door.Direction == -1 ? 1 : -1; return; }
             if (sector.SpecialData != null) return;
             var created = new VerticalDoor(world) { Sector = sector, Direction = 1, Speed = Fixed.FromInt(2), TopWait = 150,
                 Type = openOnly ? VerticalDoorType.Open : VerticalDoorType.Normal,
                 TopHeight = world.SectorAction.FindLowestCeilingSurrounding(sector) - Fixed.FromInt(4) };
             sector.SpecialData = created; world.Thinkers.Add(created);
+            if (monster) RequestSound(HereticSoundId.sfx_doropn, sector.SoundOrigin);
             if (openOnly) line.Special = 0;
         }
         private bool Door(LineDef line, VerticalDoorType type, int multiplier)
