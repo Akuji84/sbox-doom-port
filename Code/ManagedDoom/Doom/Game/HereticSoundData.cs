@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
@@ -120,6 +121,18 @@ namespace ManagedDoom
             HereticSoundId.sfx_minpai => "MINPAI",
             HereticSoundId.sfx_sbtatk => "BSTATK",
             HereticSoundId.sfx_soratk => "SORATK",
+            HereticSoundId.sfx_sorzap => "SORZAP",
+            HereticSoundId.sfx_sorrise => "SORRISE",
+            HereticSoundId.sfx_sorsit => "SORSIT",
+            HereticSoundId.sfx_soract => "SORACT",
+            HereticSoundId.sfx_sorpai => "SORPAI",
+            HereticSoundId.sfx_sordsph => "SORDSPH",
+            HereticSoundId.sfx_sordexp => "SORDEXP",
+            HereticSoundId.sfx_sordbon => "SORDBON",
+            HereticSoundId.sfx_sbtsit => "BSTSIT",
+            HereticSoundId.sfx_sbtdth => "SBTDTH",
+            HereticSoundId.sfx_sbtact => "SBTACT",
+            HereticSoundId.sfx_sbtpai => "SBTPAI",
             _ => null
         };
         public static HereticSoundData Decode(byte[] data)

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, mounted Sorcerer action dispatch.
 // s&Doom modification: 2026-09-24, validated explicit-height monster spawning.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
@@ -52,9 +53,9 @@ namespace ManagedDoom
             this.session = session;
             visibility = new VisibilityCheck(session.World);
             OriginalType = type;
-            Combatant = new HereticCombatant(session.World, type, this);
+            Combatant = new HereticCombatant(session.World, type, this, allowSorcererPreview: type is HereticActorType.MT_SORCERER1 or HereticActorType.MT_SORCERER2);
         }
-        public bool Supports(HereticAction action) => SupportsMountedSorcerer(action) || SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => SupportsSorcererLifecycle(action) || SupportsMountedSorcerer(action) || SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -80,6 +81,7 @@ namespace ManagedDoom
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {
+            if (SupportsSorcererLifecycle(action)) { ExecuteSorcererLifecycle(action,state); return; }
             if (SupportsMountedSorcerer(action)) { ExecuteMountedSorcerer(action, state); return; }
             if (SupportsMaulotaurActor(action)) { ExecuteMaulotaurActor(action,state); return; }
             if (SupportsGargoyle(action)) { ExecuteGargoyle(action, state); return; }
@@ -176,10 +178,13 @@ namespace ManagedDoom
                 case HereticAction.A_Feathers: session.SpawnChickenFeathers(Body); break;
                 case HereticAction.A_ChicPain:
                 case HereticAction.A_Pain: Sound(def.PainSound); break;
-                case HereticAction.A_Scream: Sound(def.DeathSound); break;
+                case HereticAction.A_Scream:
+                    if (OriginalType == HereticActorType.MT_SORCERER1) session.RequestSound(def.DeathSound,session.Body);
+                    else Sound(def.DeathSound);
+                    break;
                 case HereticAction.A_NoBlocking:
                     Body.Flags &= ~MobjFlags.Solid;
-                    if (IsChicken) break;
+                    if (IsChicken || OriginalType is HereticActorType.MT_SORCERER1 or HereticActorType.MT_SORCERER2) break;
                     var random = session.World.Random;
                     if (OriginalType == HereticActorType.MT_MINOTAUR)
                     {
@@ -244,9 +249,9 @@ namespace ManagedDoom
         public int TestKills { get; private set; }
         public HereticGoldWand GoldWand { get; private set; }
         public HereticClinkTestEnemy TrySpawnClinkTest(Fixed x, Fixed y) => TrySpawnSupportedEnemy(HereticActorType.MT_CLINK, x, y, true);
-        internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false, Fixed? spawnZ = null)
+        internal HereticClinkTestEnemy TrySpawnSupportedEnemy(HereticActorType type, Fixed x, Fixed y, bool requireSight = false, Fixed? spawnZ = null, bool sorcererPreview = false)
         {
-            if (!SupportsMapEnemy(type)) throw new ArgumentException("Unsupported map enemy: " + type);
+            if (!SupportsMapEnemy(type) && !(sorcererPreview && type is HereticActorType.MT_SORCERER1 or HereticActorType.MT_SORCERER2)) throw new ArgumentException("Unsupported map enemy: " + type);
             var enemy = new HereticClinkTestEnemy(this, type);
             var body = enemy.Body; body.X = x; body.Y = y;
             body.Subsector = Geometry.PointInSubsector(x, y, world.Map);
@@ -299,7 +304,9 @@ namespace ManagedDoom
             TickImpactEffects();
             TickProjectiles();
             GoldWand?.Tick(shoot);
-            foreach (var enemy in testEnemies) enemy.Tick();
+            // Phase transitions may append an actor; it starts ticking next frame.
+            var count = testEnemies.Count;
+            for (var i = 0; i < count; i++) testEnemies[i].Tick();
         }
     }
 }

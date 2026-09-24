@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, restore original monster type after morph.
@@ -28,7 +29,7 @@ namespace ManagedDoom
         internal int ChickenTics { get; private set; }
         internal bool MorphToChicken()
         {
-            if ((Combatant.Type is HereticActorType.MT_HEAD or HereticActorType.MT_MINOTAUR) || IsChicken || Body.Health <= 0 || (Body.Flags & MobjFlags.Shootable) == 0) return false;
+            if ((Combatant.Type is HereticActorType.MT_HEAD or HereticActorType.MT_MINOTAUR or HereticActorType.MT_SORCERER1 or HereticActorType.MT_SORCERER2) || IsChicken || Body.Health <= 0 || (Body.Flags & MobjFlags.Shootable) == 0) return false;
             var old = Body;
             var replacement = new HereticCombatant(session.World, HereticActorType.MT_CHICKEN, this);
             session.MorphFog(old);

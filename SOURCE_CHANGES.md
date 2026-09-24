@@ -1354,3 +1354,40 @@ Validation: focused and full regressions pass, including unchanged production
 Doom simulation/render hashes. Build: zero errors, seven existing warnings.
 Licensed asset inventory and pinned definition checks pass. No editor playtest
 is claimed.
+
+## 2026-09-24: Isolated D'Sparil phase lifecycle
+
+Mounted death now reaches A_SorcererRise and creates one native MT_SORCERER2
+actor at the corpse's position with its angle and target, 3,500 health, native
+rise frames and full-volume rise/sight sounds. The mount becomes non-solid.
+Enemy ticking tolerates actors created during another actor's animation; a new
+rider starts ticking on the following frame. Duplicate rise dispatch is guarded.
+The isolated boss constructor is explicitly opted in; ordinary map spawning and
+the generic combatant boss guard remain unchanged.
+
+The second-form controller selects blue bolts or paired summoners at the native
+health/probability boundaries, supports melee, and uses type-56 boss spots for
+teleport decisions. Teleporting resets momentum, applies the destination angle,
+plays sounds and leaves a finite fade at the old position. Occupied destinations
+are rejected without telefragging. Headroom is checked and the destination scan
+is bounded so malformed all-nearby spot lists cannot hang the simulation.
+
+Second-form death immediately kills remaining supported preview monsters, plays
+the native seven-loop animation and death sounds, and leaves a non-solid corpse
+without ordinary ammo drops. Both forms reject chicken morphing. Twelve sound
+mappings were added using the bundled licensed WAD audio.
+
+Regression coverage includes a real mounted actor's death through rider creation,
+position/target/health inheritance, rise timing and rendering, unique spawning,
+attack chance boundaries, no-target behavior, absent/too-close teleport spots,
+blocked teleport effects, fade cleanup, immediate massacre and seven death loops.
+
+This is still an isolated lifecycle checkpoint. D'Sparil-specific damage reactions
+and E3M8 completion need integration/verification before enabling map spawning.
+Generic pursuit remains the preview implementation. Production Heretic loading,
+campaign, saves and multiplayer remain gated; no editor playtest is claimed.
+
+Validation: full regression suite passes, including unchanged simulation and
+rendered-frame hashes for all five production Doom WADs. The game builds with
+zero errors and seven existing warnings. Licensed asset inventory and pinned
+Heretic definition checks pass.

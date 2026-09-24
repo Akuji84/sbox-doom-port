@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
 // s&Doom modification: 2026-09-24, Gargoyle corpse foot-clipping flag.
@@ -40,13 +41,13 @@ namespace ManagedDoom
         public Mobj Killer { get; private set; }
         private HereticActorDefinition Definition => HereticDefinitions.Actors[(int)Type];
 
-        public HereticCombatant(World world, HereticActorType type, IHereticActorActions actions)
+        public HereticCombatant(World world, HereticActorType type, IHereticActorActions actions, bool allowSorcererPreview = false)
         {
             if (world?.HereticSession == null) throw new ArgumentException("Combatant requires a Heretic session.", nameof(world));
             if ((uint)type >= HereticDefinitions.Actors.Count) throw new ArgumentOutOfRangeException(nameof(type));
             if (actions == null) throw new ArgumentNullException(nameof(actions));
             var def = HereticDefinitions.Actors[(int)type];
-            if ((def.Flags & (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL)) != (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL) || ((def.Flags2 & HereticActorFlags2.MF2_BOSS) != 0 && type != HereticActorType.MT_MINOTAUR) || def.Mass <= 0)
+            if ((def.Flags & (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL)) != (HereticActorFlags.MF_SHOOTABLE | HereticActorFlags.MF_COUNTKILL) || ((def.Flags2 & HereticActorFlags2.MF2_BOSS) != 0 && type != HereticActorType.MT_MINOTAUR && !(allowSorcererPreview && type is HereticActorType.MT_SORCERER1 or HereticActorType.MT_SORCERER2)) || def.Mass <= 0)
                 throw new ArgumentException("Combatant requires a supported monster; players, remaining bosses and destructible props need specialized handlers.", nameof(type));
             // Validate complete reachable chains before allocating an actor or advancing randomness.
             var visited = new HashSet<HereticStateId>();
