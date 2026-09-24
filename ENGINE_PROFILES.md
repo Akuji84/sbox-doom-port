@@ -1369,3 +1369,31 @@ protection/thrust, same-type immunity, morph/death cleanup, 48-map combat smoke
 coverage, deterministic replay and unchanged Doom compatibility. Unsupported
 monsters and blocked placements remain reported. Campaign, remaining monsters
 and bosses, saves and multiplayer are unfinished; production Heretic is gated.
+
+
+## 2026-09-24: Beast combat and fireball trails
+
+Beasts (MT_BEAST) now spawn in native map-combat mode. Their shared attack
+sequence deals 3-24 melee damage up close or launches a straight MT_BEASTBALL
+at reference speed with a randomized flame trail. Fireballs use the existing
+enemy owner/collision/player-damage path without acquiring a homing target.
+Trail effects preserve the reference random draw order, do not block actors,
+and expire through native frames. Beast sight/attack/pain/death sounds are mapped.
+
+The AI now checks whether a melee state exists before entering it: Beasts use
+their missile attack sequence for both attack ranges. Missile probability also
+applies the reference adjustment for actors without a dedicated melee state.
+Normal and gib deaths release corpse collision and can drop ten crossbow rounds;
+dropped-arrow pickups now honor that amount instead of always granting five.
+Beasts restore their original type after chicken morphing.
+
+Enable Test Combat + Map Monsters in the Heretic preview. Tests cover attacks,
+fireball speed/ownership, flame trails and cleanup, rendered combat, morphs,
+normal/gib death chains and actual ten-round pickups. The shared smoke check
+loads, ticks and renders all 48 Blasphemer maps with the expanded roster.
+
+Player deaths still use the existing preview death handling; specialized fire
+burn-death animations are not implemented. Full vanilla pursuit/infighting,
+remaining monsters and bosses, campaign completion, saves and multiplayer remain
+unfinished. Unsupported actors and blocked map placements remain reported, and
+production Heretic loading remains gated. Existing Doom rules are unchanged.

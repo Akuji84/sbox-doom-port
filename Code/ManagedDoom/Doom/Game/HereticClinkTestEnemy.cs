@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Beast attacks and per-family drops.
 // s&Doom modification: 2026-09-24, Nitrogolem ranged attacks.
 // s&Doom modification: 2026-09-24, Golem/ghost combat and shared supported-enemy spawning.
 // s&Doom modification: 2026-09-22, reversible chicken test-enemy lifecycle.
@@ -43,7 +44,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -62,6 +63,7 @@ namespace ManagedDoom
             if ((Body.Flags & MobjFlags.JustHit) != 0) { Body.Flags &= ~MobjFlags.JustHit; return true; }
             if (Body.ReactionTime != 0) return false;
             var distance = Geometry.AproxDistance(Body.X - session.Body.X, Body.Y - session.Body.Y).ToIntFloor() - 64;
+            if (HereticDefinitions.Actors[(int)Combatant.Type].MeleeState == HereticStateId.S_NULL) distance -= 128;
             return session.World.Random.Next() >= Math.Min(distance, 200);
         }
         private void Face() => Body.Angle = Geometry.PointToAngle(Body.X, Body.Y, session.Body.X, session.Body.Y);
@@ -85,7 +87,7 @@ namespace ManagedDoom
                     Face();
                     var recovering = def.MissileState != HereticStateId.S_NULL && (Body.Flags & MobjFlags.JustAttacked) != 0;
                     if (recovering) Body.Flags &= ~MobjFlags.JustAttacked;
-                    if (!recovering && Body.ReactionTime == 0 && MeleeRange) { state.SetState(def.MeleeState); break; }
+                    if (!recovering && def.MeleeState != HereticStateId.S_NULL && Body.ReactionTime == 0 && MeleeRange) { state.SetState(def.MeleeState); break; }
                     if (!recovering && def.MissileState != HereticStateId.S_NULL && CheckMissileRange())
                     {
                         state.SetState(def.MissileState); Body.Flags |= MobjFlags.JustAttacked; break;
@@ -111,6 +113,12 @@ namespace ManagedDoom
                     }
                     else Sound(HereticSoundId.sfx_mumat1);
                     break;
+                case HereticAction.A_BeastAttack:
+                    if (Body.Target == null) break;
+                    Sound(def.AttackSound);
+                    if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 3);
+                    else session.SpawnMonsterMissile(this, HereticActorType.MT_BEASTBALL);
+                    break;
                 case HereticAction.A_MummyAttack2:
                     if (Body.Target == null) break;
                     if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 2);
@@ -130,7 +138,12 @@ namespace ManagedDoom
                     var random = session.World.Random;
                     if (random.Next() <= 84)
                     {
-                        var drop = OriginalType == HereticActorType.MT_CLINK ? session.SpawnClinkAmmoDrop(Body) : session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMGWNDWIMPY, 3);
+                        var drop = OriginalType switch
+                        {
+                            HereticActorType.MT_CLINK => session.SpawnClinkAmmoDrop(Body),
+                            HereticActorType.MT_BEAST => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMCBOWWIMPY, 10),
+                            _ => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMGWNDWIMPY, 3)
+                        };
                         DropRequested?.Invoke(drop);
                     }
                     break;

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, preserve dropped crossbow ammo quantities.
 // s&Doom modification: 2026-09-24, preserve dropped Gold Wand ammo quantities.
 // s&Doom modification: 2026-09-22, chicken movement, camera, healing and timer.
 // s&Doom modification: 2026-09-22, Morph Ovum map pickup.
@@ -440,7 +441,7 @@ namespace ManagedDoom
                 {
                     var weapon = actor.Type == HereticActorType.MT_MISC15;
                     var bonus = skill == GameSkill.Baby || skill == GameSkill.Nightmare;
-                    if (!(weapon ? GoldWand.GiveCrossbow(bonus) : GoldWand.GiveCrossbowAmmo(actor.Type == HereticActorType.MT_AMCBOWWIMPY ? 5 : 20, bonus))) continue;
+                    if (!(weapon ? GoldWand.GiveCrossbow(bonus) : GoldWand.GiveCrossbowAmmo((body.Flags & MobjFlags.Dropped) != 0 ? body.Health : actor.Type == HereticActorType.MT_AMCBOWWIMPY ? 5 : 20, bonus))) continue;
                     State.Message = weapon ? "Ethereal Crossbow" : "Crossbow ammo";
                     RequestSound(weapon ? HereticSoundId.sfx_wpnup : HereticSoundId.sfx_itemup, Body);
                 }

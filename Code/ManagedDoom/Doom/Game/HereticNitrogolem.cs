@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, shared launch path for Beast fireballs.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -46,12 +47,15 @@ namespace ManagedDoom
                 if (enemy.Body == target) return enemy.Combatant.Type == type.Value;
             return false;
         }
-        internal HereticProjectile SpawnNitrogolemMissile(HereticClinkTestEnemy enemy)
+        internal HereticProjectile SpawnNitrogolemMissile(HereticClinkTestEnemy enemy) => SpawnMonsterMissile(enemy, HereticActorType.MT_MUMMYFX1);
+        internal HereticProjectile SpawnMonsterMissile(HereticClinkTestEnemy enemy, HereticActorType type)
         {
+            if (type != HereticActorType.MT_MUMMYFX1 && type != HereticActorType.MT_BEASTBALL)
+                throw new ArgumentException("Unsupported monster projectile.", nameof(type));
             var source = enemy.Body;
             if (source.Health <= 0 || State.Health <= 0) return null;
             var angle = Geometry.PointToAngle(source.X, source.Y, Body.X, Body.Y);
-            var missile = new HereticProjectile(this, HereticActorType.MT_MUMMYFX1, angle, Fixed.Zero, source);
+            var missile = new HereticProjectile(this, type, angle, Fixed.Zero, source);
             missile.MonsterOwnerType = enemy.Combatant.Type;
             // Feet clipping applies only while standing on a liquid floor.
             if (source.Z == source.FloorZ && source.FloorZ == source.Subsector.Sector.FloorHeight && FloorType(source) != HereticFloorType.Solid)
@@ -59,14 +63,14 @@ namespace ManagedDoom
             if ((Body.Flags & MobjFlags.Shadow) != 0)
                 angle += new Angle(unchecked((uint)((world.Random.Next() - world.Random.Next()) << 21)));
             missile.Body.Angle = angle;
-            var speed = new Fixed(HereticDefinitions.Actors[(int)HereticActorType.MT_MUMMYFX1].Speed);
+            var speed = new Fixed(HereticDefinitions.Actors[(int)type].Speed);
             missile.Body.MomX = speed * Trig.Cos(angle); missile.Body.MomY = speed * Trig.Sin(angle);
             var distance = Math.Max(1, Geometry.AproxDistance(Body.X - source.X, Body.Y - source.Y).Data / speed.Data);
             missile.Body.MomZ = (Body.Z - source.Z) / distance;
             projectiles.Add(missile);
             missile.Animation.ShortenPositiveTics(world.Random.Next() & 3);
             missile.Advance(true);
-            if (missile.Flying) missile.SeekerTarget = Body;
+            if (missile.Flying && type == HereticActorType.MT_MUMMYFX1) missile.SeekerTarget = Body;
             missile.Body.UpdateFrameInterpolationInfo();
             return missile;
         }

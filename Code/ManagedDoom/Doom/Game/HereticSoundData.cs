@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Beast sound mappings.
 // s&Doom modification: 2026-09-24, Golem sounds.
 // s&Doom modification: 2026-09-22, chicken peck sounds.
 // s&Doom modification: 2026-09-22, chicken actor sounds.
@@ -54,6 +55,11 @@ namespace ManagedDoom
             HereticSoundId.sfx_chicatk => "CHICATK",
             HereticSoundId.sfx_chicdth => "CHICDTH",
             HereticSoundId.sfx_chicact => "CHICACT",
+            HereticSoundId.sfx_bstsit => "BSTSIT",
+            HereticSoundId.sfx_bstatk => "BSTATK",
+            HereticSoundId.sfx_bstdth => "BSTDTH",
+            HereticSoundId.sfx_bstact => "BSTACT",
+            HereticSoundId.sfx_bstpai => "BSTPAI",
             HereticSoundId.sfx_mumhed => "MUMHED",
             HereticSoundId.sfx_mumsit => "MUMSIT",
             HereticSoundId.sfx_mumat1 => "MUMAT1",
