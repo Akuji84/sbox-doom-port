@@ -1,12 +1,12 @@
-# Source release: sdoom-heretic-golem-map-combat-2026-09-24
+# Source release: sdoom-heretic-nitrogolem-2026-09-24
 
 Source snapshot for s&Doom, including multiplayer, save/input improvements
 the Heretic asset/geometry, navigation, actor-definition and map-scenery checkpoints, and bundled WAD licenses and credits.
 
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-golem-map-combat-2026-09-24
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-nitrogolem-2026-09-24
 
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-golem-map-combat-2026-09-24.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-nitrogolem-2026-09-24.zip
 
 ## Contents and build
 

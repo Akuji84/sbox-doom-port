@@ -1343,3 +1343,29 @@ Pursuit still uses the existing simplified preview movement, not complete vanill
 A_Chase/noise targeting. Nitrogolems, remaining monster families/bosses, campaign
 completion, saves and multiplayer remain unfinished. Production Heretic loading
 remains gated. This checkpoint does not change Doom rules or its production WADs.
+
+
+## 2026-09-24: Nitrogolems and enemy homing missiles
+
+Normal and ghost Nitrogolems (MT_MUMMYLEADER/MT_MUMMYLEADERGHOST) now participate
+in the native map-combat preview. Their native attack states choose melee or
+launch a homing skull. Missile selection checks sight, reaction delay, retaliation
+and reference distance probability, with a recovery step after firing. Movement
+still uses the simplified preview chase rather than vanilla direction selection.
+
+Skulls launch from their shooter with reference speed, vertical aiming, liquid
+feet clipping, invisible-target spread and initial half-step. They retain a
+separate homing target, use the Nitrogolem 10/20 ANG1_X steering thresholds,
+play MUMHED, and finish native impact animations. Owner contact passes through;
+matching monster types block without damage. Player impacts apply 4-32 damage,
+reference thrust, Baby scaling, armor, invulnerability and existing death handling.
+Collateral monster damage records the shooter as its source. Full monster
+infighting/retargeting remains unfinished; preview AI still pursues the player.
+
+Both variants reuse Golem drops/souls and restore their original type after
+chicken morphing. Enable Test Combat + Map Monsters in the Heretic preview to
+try the expanded roster. Tests cover actual ranged attacks, homing, player
+protection/thrust, same-type immunity, morph/death cleanup, 48-map combat smoke
+coverage, deterministic replay and unchanged Doom compatibility. Unsupported
+monsters and blocked placements remain reported. Campaign, remaining monsters
+and bosses, saves and multiplayer are unfinished; production Heretic is gated.

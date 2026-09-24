@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Nitrogolem ranged attacks.
 // s&Doom modification: 2026-09-24, Golem/ghost combat and shared supported-enemy spawning.
 // s&Doom modification: 2026-09-22, reversible chicken test-enemy lifecycle.
 // s&Doom modification: 2026-09-22, opt-in powered staff attack, thrust and effects.
@@ -42,7 +43,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => action is HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -54,6 +55,14 @@ namespace ManagedDoom
                 return distance < Fixed.FromInt(64) && Body.Z <= session.Body.Z + session.Body.Height &&
                     session.Body.Z <= Body.Z + Body.Height && CanSee;
             }
+        }
+        private bool CheckMissileRange()
+        {
+            if (!CanSee) return false;
+            if ((Body.Flags & MobjFlags.JustHit) != 0) { Body.Flags &= ~MobjFlags.JustHit; return true; }
+            if (Body.ReactionTime != 0) return false;
+            var distance = Geometry.AproxDistance(Body.X - session.Body.X, Body.Y - session.Body.Y).ToIntFloor() - 64;
+            return session.World.Random.Next() >= Math.Min(distance, 200);
         }
         private void Face() => Body.Angle = Geometry.PointToAngle(Body.X, Body.Y, session.Body.X, session.Body.Y);
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
@@ -74,7 +83,13 @@ namespace ManagedDoom
                     if (Body.ReactionTime > 0) Body.ReactionTime--;
                     if (Body.Threshold > 0) Body.Threshold--;
                     Face();
-                    if (Body.ReactionTime == 0 && MeleeRange) { state.SetState(def.MeleeState); break; }
+                    var recovering = def.MissileState != HereticStateId.S_NULL && (Body.Flags & MobjFlags.JustAttacked) != 0;
+                    if (recovering) Body.Flags &= ~MobjFlags.JustAttacked;
+                    if (!recovering && Body.ReactionTime == 0 && MeleeRange) { state.SetState(def.MeleeState); break; }
+                    if (!recovering && def.MissileState != HereticStateId.S_NULL && CheckMissileRange())
+                    {
+                        state.SetState(def.MissileState); Body.Flags |= MobjFlags.JustAttacked; break;
+                    }
                     foreach (var offset in new[] { 0, 45, -45, 90, -90 })
                     {
                         var angle = Body.Angle + Angle.FromDegree(offset);
@@ -95,6 +110,11 @@ namespace ManagedDoom
                         Sound(HereticSoundId.sfx_mumat2);
                     }
                     else Sound(HereticSoundId.sfx_mumat1);
+                    break;
+                case HereticAction.A_MummyAttack2:
+                    if (Body.Target == null) break;
+                    if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 2);
+                    else session.SpawnNitrogolemMissile(this);
                     break;
                 case HereticAction.A_MummySoul: session.SpawnGolemSoul(Body); break;
                 case HereticAction.A_ChicAttack:
@@ -169,12 +189,12 @@ namespace ManagedDoom
             }
             return null;
         }
-        public HereticDamageResult DamageTestEnemy(Mobj body, int damage, bool environment = false, Mobj inflictor = null, HereticDamageThrust thrust = HereticDamageThrust.Normal)
+        public HereticDamageResult DamageTestEnemy(Mobj body, int damage, bool environment = false, Mobj inflictor = null, HereticDamageThrust thrust = HereticDamageThrust.Normal, Mobj source = null)
         {
             foreach (var enemy in testEnemies)
                 if (enemy.Body == body)
                 {
-                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : Body, thrust);
+                    var result = enemy.Combatant.ApplyOrdinaryDamage(damage, environment ? null : inflictor ?? Body, environment ? null : source ?? Body, thrust);
                     if (result == HereticDamageResult.Killed) TestKills++;
                     return result;
                 }

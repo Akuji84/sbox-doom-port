@@ -54,6 +54,7 @@ namespace ManagedDoom
             HereticSoundId.sfx_chicatk => "CHICATK",
             HereticSoundId.sfx_chicdth => "CHICDTH",
             HereticSoundId.sfx_chicact => "CHICACT",
+            HereticSoundId.sfx_mumhed => "MUMHED",
             HereticSoundId.sfx_mumsit => "MUMSIT",
             HereticSoundId.sfx_mumat1 => "MUMAT1",
             HereticSoundId.sfx_mumat2 => "MUMAT2",

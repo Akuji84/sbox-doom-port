@@ -214,6 +214,7 @@ HereticHeightChecks.Verify(root);
 HereticDamageChecks.Verify(root);
 HereticClinkChecks.Verify(root);
 HereticGolemChecks.Verify(root);
+HereticNitrogolemChecks.Verify(root);
 HereticWandChecks.Verify(root);
 HereticImpactChecks.Verify(root);
 HereticShootChecks.Verify(root);

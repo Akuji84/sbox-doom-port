@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, owned Nitrogolem missiles and player collision.
 // s&Doom modification: 2026-09-22, gated Morph Ovum projectile foundation.
 // s&Doom modification: 2026-09-22, powered Hellstaff and rain lifecycle.
 // s&Doom modification: 2026-09-22, powered Firemace death-ball behavior.
@@ -34,18 +35,19 @@ namespace ManagedDoom
         public HereticActorType Type { get; }
         public HereticActorState Animation { get; }
         public bool Flying { get; private set; } = true;
-        internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope)
+        internal HereticProjectile(HereticWorldSession session, HereticActorType type, Angle angle, Fixed slope, Mobj owner = null)
         {
-            if (type != HereticActorType.MT_EGGFX && type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
+            if (type != HereticActorType.MT_MUMMYFX1 && type != HereticActorType.MT_EGGFX && type != HereticActorType.MT_HORNRODFX2 && type != HereticActorType.MT_RAINPLR3 && type != HereticActorType.MT_PHOENIXFX2 && type != HereticActorType.MT_RIPPER && type != HereticActorType.MT_BLASTERFX1 && type != HereticActorType.MT_GOLDWANDFX2 && type != HereticActorType.MT_CRBOWFX2 && type != HereticActorType.MT_CRBOWFX1 && type != HereticActorType.MT_CRBOWFX3 && type != HereticActorType.MT_HORNRODFX1 && type != HereticActorType.MT_PHOENIXFX1 && !IsMaceType(type))
                 throw new NotSupportedException("Projectile family is not enabled.");
             this.session = session; Type = type;
+            owner ??= session.Body;
             var def = HereticDefinitions.Actors[(int)type];
             Animation = new HereticActorState(def.SpawnState, this);
-            Body = new Mobj(session.World) { X = session.Body.X, Y = session.Body.Y,
-                Z = session.Body.Z + Fixed.FromInt(32) + (type == HereticActorType.MT_GOLDWANDFX2 ? Fixed.Zero : Fixed.FromInt(session.State.LookDirection) / 173),
+            Body = new Mobj(session.World) { X = owner.X, Y = owner.Y,
+                Z = owner.Z + Fixed.FromInt(32) + (owner != session.Body || type == HereticActorType.MT_GOLDWANDFX2 ? Fixed.Zero : Fixed.FromInt(session.State.LookDirection) / 173),
                 Radius = def.Radius, Height = def.Height, Health = def.SpawnHealth,
                 Flags = MobjFlags.Missile | MobjFlags.NoGravity | MobjFlags.NoBlockMap | MobjFlags.DropOff,
-                Target = session.Body, Angle = angle, LastLook = session.World.Random.Next() % 4,
+                Target = owner, Angle = angle, LastLook = session.World.Random.Next() % 4,
                 MomX = new Fixed(def.Speed) * Trig.Cos(angle), MomY = new Fixed(def.Speed) * Trig.Sin(angle),
                 MomZ = new Fixed(def.Speed) * slope };
             LowGravity = type == HereticActorType.MT_MACEFX4 || type == HereticActorType.MT_MACEFX2 || type == HereticActorType.MT_MACEFX3;
@@ -54,11 +56,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsNitrogolem(action)) { ExecuteNitrogolem(action); return; }
             if (SupportsRain(action)) { ExecuteRain(action); return; }
             if (action == HereticAction.A_FlameEnd) { Body.MomZ += new Fixed(98304); return; }
             if (action == HereticAction.A_FloatPuff) { Body.MomZ += new Fixed(117964); return; }
@@ -83,7 +86,13 @@ namespace ManagedDoom
                 session.DamageTestEnemy(target, ((session.World.Random.Next() & 3) + 2) * def.Damage, inflictor: Body);
                 return true;
             }
+            if (Type == HereticActorType.MT_MUMMYFX1 && session.SameMonsterType(target, MonsterOwnerType)) return false;
             var damage = (session.World.Random.Next() % 8 + 1) * def.Damage;
+            if (Type == HereticActorType.MT_MUMMYFX1)
+            {
+                session.DamageMonsterMissile(target, damage, Body);
+                return false;
+            }
             // The reference consumes the missile damage roll, then always
             // returns from egg handling without ordinary damage or thrust.
             if (Type == HereticActorType.MT_EGGFX) { session.RequestEggMorph(target); return false; }
