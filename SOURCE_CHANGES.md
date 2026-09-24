@@ -1222,3 +1222,23 @@ states and live combat. The shared map smoke check covers 3,609 enemies over
 Use Test Combat + Map Monsters in the preview. Production Heretic loading
 remains gated; remaining bosses, complete pursuit/infighting, campaign, saves
 and multiplayer are unfinished. Regression rendering is not an editor playtest.
+
+## 2026-09-24: Maulotaur projectile attacks
+
+Added the five-shot MT_MNTRFX1 spread with speed 20, native 40-unit launch
+height, side angles and a shared vertical aim. Added speed-14 MT_MNTRFX2
+floor fire and its MT_MNTRFX3 trail, with native random offsets, ownership,
+minimal contact-checking motion and finite animation lifetime. Traveling fire
+can climb small steps; resting flames do not explode merely for touching the
+floor. Impact actions use the reference splash damage (24 for the traveling
+fire and 128 for a trail flame impact). Existing Phoenix defaults stay at 128.
+
+Regression checks cover spread angles, speed, slope, height, damage and owner
+exclusion, floor launch/step handling, emitted flame ownership/expiry, splash
+radius isolation, rendering and cleanup. Focused checks are available with
+`dotnet run --project tests/Regression/Regression.csproj -- . --maulotaur`.
+
+MT_MINOTAUR remains gated pending charge, melee/attack decisions, boss damage
+rules, drops and episode death handling. This checkpoint adds projectile
+systems; it does not add Maulotaurs to the map roster. Production Heretic
+loading remains gated. Regression rendering is not an editor playtest.

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, fixed-angle Disciple side missiles.
 // s&Doom modification: 2026-09-24, axe launch height and shared enemy missile validation.
 // s&Doom modification: 2026-09-24, shared launch path for Beast fireballs.
@@ -60,8 +61,10 @@ namespace ManagedDoom
             var missile = new HereticProjectile(this, type, angle, Fixed.Zero, source);
             missile.MonsterOwnerType = enemy.Combatant.Type;
             if (type == HereticActorType.MT_KNIGHTAXE || type == HereticActorType.MT_REDAXE) missile.Body.Z += Fixed.FromInt(4);
+            if (type == HereticActorType.MT_MNTRFX1) missile.Body.Z += Fixed.FromInt(8);
+            if (type == HereticActorType.MT_MNTRFX2) missile.Body.Z = missile.Body.FloorZ;
             // Feet clipping applies only while standing on a liquid floor.
-            if (source.Z == source.FloorZ && source.FloorZ == source.Subsector.Sector.FloorHeight && FloorType(source) != HereticFloorType.Solid)
+            if (type != HereticActorType.MT_MNTRFX2 && source.Z == source.FloorZ && source.FloorZ == source.Subsector.Sector.FloorHeight && FloorType(source) != HereticFloorType.Solid)
                 missile.Body.Z -= Fixed.FromInt(10);
             if (!fixedAngle.HasValue && (Body.Flags & MobjFlags.Shadow) != 0)
                 angle += new Angle(unchecked((uint)((world.Random.Next() - world.Random.Next()) << 21)));

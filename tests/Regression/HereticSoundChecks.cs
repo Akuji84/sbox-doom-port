@@ -17,7 +17,7 @@ static class HereticSoundChecks
             Check(sound.SampleRate > 0 && sound.Samples.Length > 0 && sound.Samples.Any(x => x != 0), "Empty decoded sound " + name);
             count++;
         }
-        Check(count == 85, "Encounter sound mapping incomplete.");
+        Check(count == 87, "Encounter sound mapping incomplete.");
         var synthetic = new byte[43]; synthetic[0] = 3; synthetic[2] = 0x11; synthetic[3] = 0x2b; synthetic[4] = 35;
         synthetic[24] = 0; synthetic[25] = 128; synthetic[26] = 255;
         var decoded = HereticSoundData.Decode(synthetic);

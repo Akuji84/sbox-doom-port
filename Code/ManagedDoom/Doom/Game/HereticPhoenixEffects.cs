@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-22, powered Phoenix Rod flame cycle and effects.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -39,18 +40,18 @@ namespace ManagedDoom
         }
         // Adapted 2026-09-22 from pinned PIT_RadiusAttack/A_Explode.
         // Only the player and registered Clink encounter actors are enabled here.
-        internal int PhoenixBlastDamage(Mobj origin, Mobj target)
+        internal int PhoenixBlastDamage(Mobj origin, Mobj target, int radiusDamage = 128)
         {
             if ((target.Flags & MobjFlags.Shootable) == 0) return 0;
             var dx = Math.Abs((long)target.X.Data - origin.X.Data);
             var dy = Math.Abs((long)target.Y.Data - origin.Y.Data);
             var distance = Math.Max(0, (Math.Max(dx, dy) - target.Radius.Data) >> Fixed.FracBits);
-            if (distance >= 128 || !new VisibilityCheck(world).CheckSight(target, origin)) return 0;
-            return 128 - (int)distance;
+            if (distance >= radiusDamage || !new VisibilityCheck(world).CheckSight(target, origin)) return 0;
+            return radiusDamage - (int)distance;
         }
-        internal void PhoenixRadiusAttack(Mobj origin)
+        internal void PhoenixRadiusAttack(Mobj origin, int radiusDamage = 128)
         {
-            var damage = PhoenixBlastDamage(origin, Body);
+            var damage = PhoenixBlastDamage(origin, Body, radiusDamage);
             if (damage > 0 && State.Health > 0)
             {
                 var forceDamage = skill == GameSkill.Baby ? damage >> 1 : damage;
@@ -63,8 +64,8 @@ namespace ManagedDoom
             }
             foreach (var enemy in testEnemies)
             {
-                damage = PhoenixBlastDamage(origin, enemy.Body);
-                if (damage > 0) DamageTestEnemy(enemy.Body, damage, inflictor: origin);
+                damage = PhoenixBlastDamage(origin, enemy.Body, radiusDamage);
+                if (damage > 0) DamageTestEnemy(enemy.Body, damage, inflictor: origin, source: origin.Target);
             }
         }
         // A normal player Phoenix missile has no seeker target. Its puff action

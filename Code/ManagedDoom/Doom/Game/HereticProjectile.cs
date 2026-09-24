@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, whirlwind contacts and delayed impact termination.
 // s&Doom modification: 2026-09-24, Iron Lich ice/fire actions and dormant fire damage.
@@ -61,11 +62,12 @@ namespace ManagedDoom
             Body.FloorZ = Body.Subsector.Sector.FloorHeight; Body.CeilingZ = Body.Subsector.Sector.CeilingHeight;
             Body.UpdateFrameInterpolationInfo();
         }
-        public bool Supports(HereticAction action) => SupportsIronLich(action) || SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
+        public bool Supports(HereticAction action) => SupportsMaulotaur(action) || SupportsIronLich(action) || SupportsKnight(action) || (Type == HereticActorType.MT_BEASTBALL && action == HereticAction.A_BeastPuff) || SupportsNitrogolem(action) || SupportsRain(action) || (Type == HereticActorType.MT_PHOENIXFX2 && (action == HereticAction.A_FlameEnd || action == HereticAction.A_FloatPuff)) || (Type == HereticActorType.MT_BLASTERFX1 && action == HereticAction.A_SpawnRippers) || (Type == HereticActorType.MT_CRBOWFX2 && action == HereticAction.A_BoltSpark) || SupportsMace(action) || Type == HereticActorType.MT_PHOENIXFX1 &&
             (action == HereticAction.A_PhoenixPuff || action == HereticAction.A_Explode);
         public void Execute(HereticAction action, HereticActorState actor)
         {
             if (!Supports(action)) throw new NotSupportedException("Projectile action: " + action);
+            if (SupportsMaulotaur(action)) { ExecuteMaulotaur(action); return; }
             if (SupportsIronLich(action)) { ExecuteIronLich(action); return; }
             if (SupportsKnight(action)) { ExecuteKnight(action); return; }
             if (action == HereticAction.A_BeastPuff) { session.SpawnBeastPuff(Body); return; }
@@ -137,7 +139,8 @@ namespace ManagedDoom
                 }
                 // A whirlwind resting exactly on the floor has no vertical collision;
                 // native P_ZMovement is not called for zero Z momentum at floor height.
-                var floorImpact = Body.Z <= Body.FloorZ && !(Type == HereticActorType.MT_WHIRLWIND && Body.Z == Body.FloorZ && dz == Fixed.Zero);
+                if (Type == HereticActorType.MT_MNTRFX2 && Body.Z < Body.FloorZ) Body.Z = Body.FloorZ;
+                var floorImpact = Body.Z <= Body.FloorZ && Type != HereticActorType.MT_MNTRFX2 && !((Type == HereticActorType.MT_WHIRLWIND || Type == HereticActorType.MT_MNTRFX3) && Body.Z == Body.FloorZ && dz == Fixed.Zero);
                 if (floorImpact || Body.Z + Body.Height > Body.CeilingZ)
                 {
                     // Rain impacts choose floor versus airborne animation by Z.

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
 // s&Doom modification: 2026-09-24, whirlwind sound.
 // s&Doom modification: 2026-09-24, Iron Lich ice/fire sounds.
@@ -108,6 +109,8 @@ namespace ManagedDoom
             HereticSoundId.sfx_heddth => "HEDDTH",
             HereticSoundId.sfx_hedact => "HEDACT",
             HereticSoundId.sfx_hedpai => "HEDPAI",
+            HereticSoundId.sfx_minat1 => "MINAT1",
+            HereticSoundId.sfx_minat2 => "MINAT2",
             _ => null
         };
         public static HereticSoundData Decode(byte[] data)
