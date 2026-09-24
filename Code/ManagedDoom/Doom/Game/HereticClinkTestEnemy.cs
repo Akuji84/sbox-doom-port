@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, mounted Sorcerer action dispatch.
 // s&Doom modification: 2026-09-24, validated explicit-height monster spawning.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, isolated Maulotaur combat fixture.
@@ -53,7 +54,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => SupportsMountedSorcerer(action) || SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -79,6 +80,7 @@ namespace ManagedDoom
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {
+            if (SupportsMountedSorcerer(action)) { ExecuteMountedSorcerer(action, state); return; }
             if (SupportsMaulotaurActor(action)) { ExecuteMaulotaurActor(action,state); return; }
             if (SupportsGargoyle(action)) { ExecuteGargoyle(action, state); return; }
             var elapsed = action == HereticAction.A_ChicLook || action == HereticAction.A_ChicPain ? 10 : action == HereticAction.A_ChicChase ? 3 : action == HereticAction.A_ChicAttack ? 18 : 0;

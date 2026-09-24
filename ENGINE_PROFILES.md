@@ -1692,3 +1692,25 @@ no editor playtest is claimed.
 D'Sparil's health-based attack selection, repeat timing, teleporting, phase
 transition and final death remain unfinished. Both boss forms remain excluded
 from map spawning, and production Heretic loading remains gated.
+
+## 2026-09-24: Mounted Sorcerer attack controller
+
+Implemented A_Srcr1Attack health thresholds, native melee damage, and the
+animation-driven low-health repeat. Health above 1332 produces one fireball;
+health at or below 1332 produces three. Below 666, the shared native special1
+counter permits one repeat through S_SRCR1_ATK4 and then clears. A_Sor1Pain
+sets that same counter to 20; A_Sor1Chase shortens each affected walking state
+by three tics before invoking the existing preview pursuit handler.
+
+Focused regression tests exercise threshold boundaries, the timed repeat chain,
+missing targets, pain/repeat interaction, 20 accelerated walking actions and
+melee damage without a projectile. These controller tests use a supported
+fixture body: they do not claim a complete mounted boss encounter. Both
+D'Sparil forms remain excluded from map spawning until phase transition,
+teleportation and final death behavior are implemented. Generic pursuit remains
+the existing preview implementation. Production Heretic loading stays gated.
+
+Validation: focused and full regressions pass, including unchanged production
+Doom simulation/render hashes. Build: zero errors, seven existing warnings.
+Licensed asset inventory and pinned definition checks pass. No editor playtest
+is claimed.

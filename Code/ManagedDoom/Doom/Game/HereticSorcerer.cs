@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, mounted Sorcerer attack and pain controller.
 // s&Doom modification: 2026-09-24, native Disciple summoning and blocked retries.
 // s&Doom modification: 2026-09-24, D'Sparil fireballs, blue bolts and sparks.
 //
@@ -21,6 +22,42 @@
 // Adapted from pinned p_enemy.c A_Srcr1Attack/A_BlueSpark/A_Explode.
 namespace ManagedDoom
 {
+    public sealed partial class HereticClinkTestEnemy
+    {
+        // Native special1 is shared by pain acceleration and the repeat limiter.
+        private int sorcererSpecial1;
+        private bool SupportsMountedSorcerer(HereticAction action) => action is
+            HereticAction.A_Sor1Pain or HereticAction.A_Sor1Chase or HereticAction.A_Srcr1Attack;
+        private void ExecuteMountedSorcerer(HereticAction action, HereticActorState state)
+        {
+            var def = HereticDefinitions.Actors[(int)HereticActorType.MT_SORCERER1];
+            if (action == HereticAction.A_Sor1Pain)
+            {
+                sorcererSpecial1 = 20;
+                Sound(def.PainSound);
+                return;
+            }
+            if (action == HereticAction.A_Sor1Chase)
+            {
+                if (sorcererSpecial1 != 0) { sorcererSpecial1--; state.ShortenPositiveTics(3); }
+                Execute(HereticAction.A_Chase, state);
+                return;
+            }
+            if (Body.Target == null) return;
+            if (MeleeRange)
+            {
+                Sound(def.AttackSound);
+                session.DamageEnvironment((session.World.Random.Next() % 8 + 1) * 8);
+                return;
+            }
+            session.SpawnSorcererFire(this, Body.Health <= (def.SpawnHealth / 3) * 2);
+            if (Body.Health < def.SpawnHealth / 3)
+            {
+                if (sorcererSpecial1 != 0) sorcererSpecial1 = 0;
+                else { sorcererSpecial1 = 1; state.SetState(HereticStateId.S_SRCR1_ATK4); }
+            }
+        }
+    }
     public sealed partial class HereticProjectile
     {
         private bool SupportsSorcerer(HereticAction action) => (Type == HereticActorType.MT_SOR2FX2 && action == HereticAction.A_GenWizard) || Type == HereticActorType.MT_SOR2FX1 &&
@@ -42,7 +79,6 @@ namespace ManagedDoom
     }
     public sealed partial class HereticWorldSession
     {
-        // The actor's health/attack-state controller will select single or triple fire.
         internal void SpawnSorcererFire(HereticClinkTestEnemy caster,bool spread)
         {
             if(caster.Body.Target==null)return;
