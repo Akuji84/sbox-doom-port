@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, falling Gargoyle debris.
 // s&Doom modification: 2026-09-24, low-gravity axe drips.
 // s&Doom modification: 2026-09-22, native rising beak puff.
 // s&Doom modification: 2026-09-22, powered Dragon Claw and radial rippers.
@@ -124,7 +125,8 @@ namespace ManagedDoom
                 var effect = impactEffects[i];
                 var body = effect.Body;
                 body.UpdateFrameInterpolationInfo();
-                if (effect.Type == HereticActorType.MT_CRBOWFX4) MoveCrossbowSpark(body);
+                if (effect.Type == HereticActorType.MT_IMPCHUNK1 || effect.Type == HereticActorType.MT_IMPCHUNK2) MoveGargoyleChunk(body);
+                else if (effect.Type == HereticActorType.MT_CRBOWFX4) MoveCrossbowSpark(body);
                 else if (IsLiquidChunk(effect.Type)) MoveLiquidChunk(effect);
                 else if (effect.Type == HereticActorType.MT_BLOOD)
                 {

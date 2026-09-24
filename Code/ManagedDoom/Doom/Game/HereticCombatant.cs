@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Gargoyle corpse foot-clipping flag.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -33,6 +34,7 @@ namespace ManagedDoom
         public HereticActorState Animation { get; }
         public HereticActorFlags2 Flags2 { get; private set; }
         public int LastDamage { get; private set; }
+        internal void EnableFootClipping() => Flags2 |= HereticActorFlags2.MF2_FOOTCLIP;
         public Mobj Killer { get; private set; }
         private HereticActorDefinition Definition => HereticDefinitions.Actors[(int)Type];
 

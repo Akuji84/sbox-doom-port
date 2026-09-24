@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Fire Gargoyle map spawning.
 // s&Doom modification: 2026-09-24, Disciple map spawning.
 // s&Doom modification: 2026-09-24, Ophidian map spawning.
 // s&Doom modification: 2026-09-24, Undead Warrior map spawning.
@@ -33,7 +34,7 @@ namespace ManagedDoom
         public int BlockedMapEnemies { get; private set; }
         public IReadOnlyList<HereticClinkTestEnemy> CombatEnemies => testEnemies.AsReadOnly();
         public static bool SupportsMapEnemy(HereticActorType type) => type is
-            HereticActorType.MT_WIZARD or HereticActorType.MT_SNAKE or HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST or HereticActorType.MT_BEAST or HereticActorType.MT_CLINK or HereticActorType.MT_MUMMY or HereticActorType.MT_MUMMYGHOST or
+            HereticActorType.MT_IMPLEADER or HereticActorType.MT_WIZARD or HereticActorType.MT_SNAKE or HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST or HereticActorType.MT_BEAST or HereticActorType.MT_CLINK or HereticActorType.MT_MUMMY or HereticActorType.MT_MUMMYGHOST or
             HereticActorType.MT_MUMMYLEADER or HereticActorType.MT_MUMMYLEADERGHOST;
         // Opt-in until the complete roster, campaign and multiplayer are implemented.
         public void StartMapCombat()

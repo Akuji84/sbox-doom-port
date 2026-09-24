@@ -1475,3 +1475,24 @@ Horizontal pursuit and obstacle routing still use simplified preview AI; full
 vanilla pursuit/infighting, remaining monsters/bosses, campaign completion, saves
 and multiplayer remain unfinished. Blocked placements and unsupported actors
 remain reported. Production Heretic loading stays gated.
+
+## 2026-09-24: Fire Gargoyle combat and crash deaths
+
+Fire Gargoyles (MT_IMPLEADER) now spawn in the native map-combat preview.
+They fly, deal 5-12 melee damage or launch speed-10 fireballs dealing 1-8
+damage, and use native animation and sound definitions. Normal and extreme
+deaths fall into their respective crash sequences and create exactly two
+debris chunks with gravity, floor friction and native animation expiry.
+Chicken restoration retains the original enemy type and flight flags.
+
+Regression checks cover melee/fireballs, owner exclusion, live attacks, morph
+restoration, grounded/airborne normal and extreme deaths, kill accounting,
+debris cleanup and rendered combat. The full suite passes, including all five
+production Doom WAD simulation/render hashes. Map smoke tests cover 48 maps,
+3,009 supported enemies and 28 reported blocked placements. Licensed asset
+inventory and pinned actor-definition reproduction checks pass.
+
+Normal Gargoyles (MT_IMP) remain gated pending charge/collision support.
+Remaining monsters/bosses, full pursuit/infighting, campaign, saves and
+multiplayer remain unfinished. Production Heretic loading stays gated;
+this checkpoint has regression/render verification, not an editor playtest.

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-24, Fire Gargoyle actions and landing crashes.
 // s&Doom modification: 2026-09-24, Disciple attacks, floating movement and drops.
 // s&Doom modification: 2026-09-24, Ophidian attacks and drops.
 // s&Doom modification: 2026-09-24, Undead Warrior combat.
@@ -47,7 +48,7 @@ namespace ManagedDoom
             OriginalType = type;
             Combatant = new HereticCombatant(session.World, type, this);
         }
-        public bool Supports(HereticAction action) => action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
+        public bool Supports(HereticAction action) => SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
         private bool MeleeRange
@@ -73,6 +74,7 @@ namespace ManagedDoom
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {
+            if (SupportsGargoyle(action)) { ExecuteGargoyle(action, state); return; }
             var elapsed = action == HereticAction.A_ChicLook || action == HereticAction.A_ChicPain ? 10 : action == HereticAction.A_ChicChase ? 3 : action == HereticAction.A_ChicAttack ? 18 : 0;
             if (elapsed != 0 && UpdateChicken(elapsed)) return;
             var def = HereticDefinitions.Actors[(int)Combatant.Type];
@@ -212,6 +214,7 @@ namespace ManagedDoom
             if (Body.Z <= Body.FloorZ) { Body.Z = Body.FloorZ; Body.MomZ = Fixed.Zero; }
             else if ((Body.Flags & MobjFlags.NoGravity) == 0) Body.MomZ -= Fixed.One;
             if (Body.Z + Body.Height > Body.CeilingZ) { Body.Z = Body.CeilingZ - Body.Height; Body.MomZ = Fixed.Zero; }
+            CheckGargoyleLanding();
             Combatant.TickState();
             if (Body.Z < Body.FloorZ) Body.Z = Body.FloorZ;
         }
