@@ -1932,3 +1932,31 @@ Validation: focused acquisition checks and full regressions pass, including
 48-map smoke and unchanged simulation/render hashes for all five production
 Doom WADs. Build succeeds with zero errors. Asset licenses and pinned
 definitions pass.
+
+## 2026-09-29: Target-aware monster attacks and retaliation
+
+Enemy melee checks, missile-range checks and facing now use Body.Target instead
+of the session player. Shared melee damage routes to the selected monster with
+attacker attribution, preserving boss/Disciple retaliation exclusions. Ordinary
+melee families, Gargoyles, Iron Liches, Maulotaurs and both Sorcerer forms use this
+routing. Maulotaur melee only changes the camera when its target is the player.
+
+Monster projectile aim, vertical slope, shadow spread and Nitrogolem/whirlwind
+homing use the selected target. A living monster target permits ranged attacks
+even after the player dies. Direct preview projectile helper calls without a
+target retain their existing player fallback; normal attack actions retain their
+target checks. Player-directed damage behavior remains on its existing path.
+
+Regression checks cover nine melee families attacking another monster without
+player health/camera changes, damage source attribution and boss exclusions,
+ranged facing/aim, seeker targeting, and retaliation after player death. The
+checks join --chase and the full suite.
+
+This enables core target-aware retaliation; it is not complete native infighting.
+Sound alerts, remaining target-selection/species cases and multiplayer scanning
+still need work. Production Heretic loading, campaign, saves and multiplayer
+remain gated. No editor playtest is claimed.
+
+Validation: focused and full regressions pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset licenses and pinned definitions pass.

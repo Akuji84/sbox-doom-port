@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, mounted Sorcerer attack and pain controller.
 // s&Doom modification: 2026-09-24, native Disciple summoning and blocked retries.
 // s&Doom modification: 2026-09-24, D'Sparil fireballs, blue bolts and sparks.
@@ -47,7 +48,7 @@ namespace ManagedDoom
             if (MeleeRange)
             {
                 Sound(def.AttackSound);
-                session.DamageEnvironment((session.World.Random.Next() % 8 + 1) * 8);
+                DamageMeleeTarget((session.World.Random.Next() % 8 + 1) * 8);
                 return;
             }
             session.SpawnSorcererFire(this, Body.Health <= (def.SpawnHealth / 3) * 2);

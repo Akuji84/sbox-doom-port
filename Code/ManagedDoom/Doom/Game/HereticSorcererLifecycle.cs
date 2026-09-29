@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
 //
@@ -45,7 +46,7 @@ namespace ManagedDoom
                     if (MeleeRange)
                     {
                         session.RequestSound(HereticSoundId.sfx_soratk,session.Body);
-                        session.DamageEnvironment((session.World.Random.Next()%8+1)*20);
+                        DamageMeleeTarget((session.World.Random.Next()%8+1)*20);
                     }
                     else if (session.World.Random.Next() < (Body.Health < 1750 ? 96 : 48)) session.SpawnSorcererSummoners(this);
                     else session.SpawnSorcererBlueBolt(this);

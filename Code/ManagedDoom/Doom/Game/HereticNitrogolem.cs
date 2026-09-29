@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, D'Sparil projectile integration.
 // s&Doom modification: 2026-09-24, Maulotaur projectile integration.
 // s&Doom modification: 2026-09-24, fixed-angle Disciple side missiles.
@@ -44,6 +45,13 @@ namespace ManagedDoom
     }
     public sealed partial class HereticWorldSession
     {
+        internal void DamageEnemyTarget(Mobj attacker,int damage)
+        {
+            var target=attacker.Target;
+            if(target==null || target.Health<=0 || (target.Flags&MobjFlags.Shootable)==0)return;
+            if(target==Body)DamageEnvironment(damage);
+            else DamageTestEnemy(target,damage,inflictor:attacker,source:attacker);
+        }
         internal bool SameMonsterType(Mobj target, HereticActorType? type)
         {
             if (!type.HasValue) return false;
@@ -57,8 +65,9 @@ namespace ManagedDoom
             if (!HereticProjectile.IsMonsterMissile(type))
                 throw new ArgumentException("Unsupported monster projectile.", nameof(type));
             var source = enemy.Body;
-            if (source.Health <= 0 || State.Health <= 0) return null;
-            var angle = fixedAngle ?? Geometry.PointToAngle(source.X, source.Y, Body.X, Body.Y);
+            var target = source.Target ?? Body; // Preserve direct preview projectile-fixture calls.
+            if (source.Health <= 0 || target.Health <= 0) return null;
+            var angle = fixedAngle ?? Geometry.PointToAngle(source.X, source.Y, target.X, target.Y);
             var missile = new HereticProjectile(this, type, angle, Fixed.Zero, source);
             missile.MonsterOwnerType = enemy.Combatant.Type;
             if (type == HereticActorType.MT_KNIGHTAXE || type == HereticActorType.MT_REDAXE) missile.Body.Z += Fixed.FromInt(4);
@@ -68,17 +77,17 @@ namespace ManagedDoom
             // Feet clipping applies only while standing on a liquid floor.
             if (type != HereticActorType.MT_MNTRFX2 && source.Z == source.FloorZ && source.FloorZ == source.Subsector.Sector.FloorHeight && FloorType(source) != HereticFloorType.Solid)
                 missile.Body.Z -= Fixed.FromInt(10);
-            if (!fixedAngle.HasValue && (Body.Flags & MobjFlags.Shadow) != 0)
+            if (!fixedAngle.HasValue && (target.Flags & MobjFlags.Shadow) != 0)
                 angle += new Angle(unchecked((uint)((world.Random.Next() - world.Random.Next()) << 21)));
             missile.Body.Angle = angle;
             var speed = new Fixed(HereticDefinitions.Actors[(int)type].Speed);
             missile.Body.MomX = speed * Trig.Cos(angle); missile.Body.MomY = speed * Trig.Sin(angle);
-            var distance = Math.Max(1, Geometry.AproxDistance(Body.X - source.X, Body.Y - source.Y).Data / speed.Data);
-            missile.Body.MomZ = fixedMomZ ?? (Body.Z - source.Z) / distance;
+            var distance = Math.Max(1, Geometry.AproxDistance(target.X - source.X, target.Y - source.Y).Data / speed.Data);
+            missile.Body.MomZ = fixedMomZ ?? (target.Z - source.Z) / distance;
             projectiles.Add(missile);
             missile.Animation.ShortenPositiveTics(world.Random.Next() & 3);
             missile.Advance(true);
-            if (missile.Flying && type == HereticActorType.MT_MUMMYFX1) missile.SeekerTarget = Body;
+            if (missile.Flying && type == HereticActorType.MT_MUMMYFX1) missile.SeekerTarget = target;
             missile.Body.UpdateFrameInterpolationInfo();
             return missile;
         }

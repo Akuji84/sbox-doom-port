@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, final-Lich episode floor trigger and massacre.
 // s&Doom modification: 2026-09-24, native whirlwind dispatch and distance-based attack selection.
 // s&Doom modification: 2026-09-24, Iron Lich ice bursts and growing fire columns.
@@ -55,12 +56,12 @@ namespace ManagedDoom
         internal void AttackIronLich(HereticClinkTestEnemy enemy)
         {
             if (enemy.Body.Target == null) return;
-            var body = enemy.Body;
-            body.Angle = Geometry.PointToAngle(body.X, body.Y, Body.X, Body.Y);
-            var distance = Geometry.AproxDistance(body.X - Body.X, body.Y - Body.Y);
-            if (distance < Fixed.FromInt(64) && body.Z <= Body.Z + Body.Height && Body.Z <= body.Z + body.Height &&
-                new VisibilityCheck(world).CheckSight(body, Body))
-            { DamageEnvironment((world.Random.Next() % 8 + 1) * 6); return; }
+            var body = enemy.Body;var target=body.Target;
+            body.Angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
+            var distance = Geometry.AproxDistance(body.X - target.X, body.Y - target.Y);
+            if (distance < Fixed.FromInt(64) && body.Z <= target.Z + target.Height && target.Z <= body.Z + body.Height &&
+                new VisibilityCheck(world).CheckSight(body, target))
+            { DamageEnemyTarget(body,(world.Random.Next() % 8 + 1) * 6); return; }
             var far = distance > Fixed.FromInt(512);
             var roll = world.Random.Next();
             if (roll < (far ? 150 : 50)) SpawnIronLichIce(enemy);

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, normal Gargoyle melee, charge and native collision recovery.
 // s&Doom modification: 2026-09-24, Fire Gargoyle combat and crash debris.
 //
@@ -73,12 +74,12 @@ namespace ManagedDoom
                 case HereticAction.A_ImpMeAttack:
                     if (Body.Target == null) return;
                     Sound(HereticDefinitions.Actors[(int)Combatant.Type].AttackSound);
-                    if (MeleeRange) session.DamageEnvironment(5 + (session.World.Random.Next() & 7));
+                    if (MeleeRange) DamageMeleeTarget(5 + (session.World.Random.Next() & 7));
                     break;
                 case HereticAction.A_ImpMsAttack2:
                     if (Body.Target == null) return;
                     Sound(HereticDefinitions.Actors[(int)Combatant.Type].AttackSound);
-                    if (MeleeRange) session.DamageEnvironment(5 + (session.World.Random.Next() & 7));
+                    if (MeleeRange) DamageMeleeTarget(5 + (session.World.Random.Next() & 7));
                     else session.SpawnMonsterMissile(this, HereticActorType.MT_IMPBALL);
                     break;
                 case HereticAction.A_ImpDeath:

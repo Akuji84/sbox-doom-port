@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware whirlwind seeking.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Iron Lich whirlwind lifetime, seeking and touch effects.
 //
@@ -63,7 +64,7 @@ namespace ManagedDoom
             var wind = SpawnMonsterMissile(enemy, HereticActorType.MT_WHIRLWIND);
             if (wind != null && wind.Flying)
             {
-                wind.InitializeWhirlwind(Body);
+                wind.InitializeWhirlwind(enemy.Body.Target ?? Body);
                 RequestSound(HereticSoundId.sfx_hedat3, enemy.Body);
             }
             return wind;

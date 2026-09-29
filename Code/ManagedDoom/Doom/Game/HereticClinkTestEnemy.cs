@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-29, player acquisition and lost-target recovery.
 // s&Doom modification: 2026-09-29, native chase attack recovery and missile cadence.
 // s&Doom modification: 2026-09-29, incremental chase turning and Nightmare timing.
@@ -79,26 +80,30 @@ namespace ManagedDoom
             Body.Target = target;
             return true;
         }
+        private bool CanSeeTarget => Body.Target != null && Body.Target.Health > 0 &&
+            (Body.Target.Flags & MobjFlags.Shootable) != 0 && visibility.CheckSight(Body,Body.Target);
+        private void DamageMeleeTarget(int damage) => session.DamageEnemyTarget(Body,damage);
         private bool MeleeRange
         {
             get
             {
-                var dx = Fixed.Abs(Body.X - session.Body.X); var dy = Fixed.Abs(Body.Y - session.Body.Y);
+                if (!CanSeeTarget) return false;
+                var dx = Fixed.Abs(Body.X - Body.Target.X); var dy = Fixed.Abs(Body.Y - Body.Target.Y);
                 var distance = dx + dy - new Fixed(Math.Min(dx.Data, dy.Data)) / 2;
-                return distance < Fixed.FromInt(64) && Body.Z <= session.Body.Z + session.Body.Height &&
-                    session.Body.Z <= Body.Z + Body.Height && CanSee;
+                return distance < Fixed.FromInt(64) && Body.Z <= Body.Target.Z + Body.Target.Height &&
+                    Body.Target.Z <= Body.Z + Body.Height && CanSeeTarget;
             }
         }
         private bool CheckMissileRange()
         {
-            if (!CanSee) return false;
+            if (!CanSeeTarget) return false;
             if ((Body.Flags & MobjFlags.JustHit) != 0) { Body.Flags &= ~MobjFlags.JustHit; return true; }
             if (Body.ReactionTime != 0) return false;
-            var distance = Geometry.AproxDistance(Body.X - session.Body.X, Body.Y - session.Body.Y).ToIntFloor() - 64;
+            var distance = Geometry.AproxDistance(Body.X - Body.Target.X, Body.Y - Body.Target.Y).ToIntFloor() - 64;
             if (HereticDefinitions.Actors[(int)Combatant.Type].MeleeState == HereticStateId.S_NULL) distance -= 128;
             return session.World.Random.Next() >= Math.Min(distance, 200);
         }
-        private void Face() => Body.Angle = Geometry.PointToAngle(Body.X, Body.Y, session.Body.X, session.Body.Y);
+        private void Face() { if (Body.Target != null) Body.Angle = Geometry.PointToAngle(Body.X, Body.Y, Body.Target.X, Body.Target.Y); }
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {
@@ -148,14 +153,14 @@ namespace ManagedDoom
                 case HereticAction.A_FaceTarget: Face(); break;
                 case HereticAction.A_ClinkAttack:
                     Sound(def.AttackSound);
-                    if (MeleeRange) session.DamageEnvironment(session.World.Random.Next() % 7 + 3);
+                    if (MeleeRange) DamageMeleeTarget(session.World.Random.Next() % 7 + 3);
                     break;
                 case HereticAction.A_MummyAttack:
                     if (Body.Target == null) break;
                     Sound(def.AttackSound);
                     if (MeleeRange)
                     {
-                        session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 2);
+                        DamageMeleeTarget(((session.World.Random.Next() & 7) + 1) * 2);
                         Sound(HereticSoundId.sfx_mumat2);
                     }
                     else Sound(HereticSoundId.sfx_mumat1);
@@ -167,7 +172,7 @@ namespace ManagedDoom
                     Body.Flags &= ~MobjFlags.Shadow;
                     if (Body.Target == null) break;
                     Sound(def.AttackSound);
-                    if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 4);
+                    if (MeleeRange) DamageMeleeTarget(((session.World.Random.Next() & 7) + 1) * 4);
                     else session.SpawnWizardVolley(this);
                     break;
                 case HereticAction.A_SnakeAttack:
@@ -180,7 +185,7 @@ namespace ManagedDoom
                     if (Body.Target == null) break;
                     if (MeleeRange)
                     {
-                        session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 3);
+                        DamageMeleeTarget(((session.World.Random.Next() & 7) + 1) * 3);
                         Sound(HereticSoundId.sfx_kgtat2);
                     }
                     else
@@ -193,19 +198,19 @@ namespace ManagedDoom
                 case HereticAction.A_BeastAttack:
                     if (Body.Target == null) break;
                     Sound(def.AttackSound);
-                    if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 3);
+                    if (MeleeRange) DamageMeleeTarget(((session.World.Random.Next() & 7) + 1) * 3);
                     else session.SpawnMonsterMissile(this, HereticActorType.MT_BEASTBALL);
                     break;
                 case HereticAction.A_MummyAttack2:
                     if (Body.Target == null) break;
-                    if (MeleeRange) session.DamageEnvironment(((session.World.Random.Next() & 7) + 1) * 2);
+                    if (MeleeRange) DamageMeleeTarget(((session.World.Random.Next() & 7) + 1) * 2);
                     else session.SpawnNitrogolemMissile(this);
                     break;
                 case HereticAction.A_HeadAttack: session.AttackIronLich(this); break;
                 case HereticAction.A_BossDeath: session.EpisodeBossDeath(this); break;
                 case HereticAction.A_MummySoul: session.SpawnGolemSoul(Body); break;
                 case HereticAction.A_ChicAttack:
-                    if (Body.Target != null && MeleeRange) session.DamageEnvironment(1 + (session.World.Random.Next() & 1));
+                    if (Body.Target != null && MeleeRange) DamageMeleeTarget(1 + (session.World.Random.Next() & 1));
                     break;
                 case HereticAction.A_Feathers: session.SpawnChickenFeathers(Body); break;
                 case HereticAction.A_ChicPain:

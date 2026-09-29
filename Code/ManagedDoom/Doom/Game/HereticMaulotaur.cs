@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, Maulotaur attack decisions, melee, timed charge and slam.
 // s&Doom modification: 2026-09-24, Maulotaur spread and floor-fire projectile systems.
@@ -55,9 +56,9 @@ namespace ManagedDoom
             if(action==HereticAction.A_MinotaurAtk1)Sound(HereticSoundId.sfx_stfpow);
             if(MeleeRange)
             {
-                session.DamageEnvironment((random.Next()%8+1)*(action==HereticAction.A_MinotaurAtk1?4:5));
-                if(action!=HereticAction.A_MinotaurAtk2)session.Camera.DeltaViewHeight=-Fixed.FromInt(16);
-                else Sound(HereticSoundId.sfx_minat2);
+                DamageMeleeTarget((random.Next()%8+1)*(action==HereticAction.A_MinotaurAtk1?4:5));
+                if(action!=HereticAction.A_MinotaurAtk2 && Body.Target==session.Body)session.Camera.DeltaViewHeight=-Fixed.FromInt(16);
+                else if(action==HereticAction.A_MinotaurAtk2) Sound(HereticSoundId.sfx_minat2);
             }
             else if(action==HereticAction.A_MinotaurAtk2)session.SpawnMaulotaurSpread(this);
             else if(action==HereticAction.A_MinotaurAtk3)session.SpawnMaulotaurFloorFire(this);
