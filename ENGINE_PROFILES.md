@@ -1960,3 +1960,26 @@ remain gated. No editor playtest is claimed.
 Validation: focused and full regressions pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset licenses and pinned definitions pass.
+
+## 2026-09-29: Weapon noise alerts and sector sound targets
+
+Player weapon attacks and chicken beak attacks now emit native-style noise alerts.
+An iterative sector traversal propagates the target through open two-sided portals,
+permits crossing one sound-blocking boundary, and stops at closed portals. A sector
+can be revisited when a route crosses fewer sound blockers, so alternate routes
+remain usable. Propagation consumes no gameplay randomness and avoids recursive
+stack growth on large maps.
+
+Idle monsters check sector sound targets before visual acquisition. Ambush monsters
+require sight of the sound target; ordinary monsters can react to a sound behind
+them. Boss sight sounds use the existing full-volume local sound path. The focused
+--chase checks cover boundary limits, alternate routes, closed doors, RNG isolation,
+rear-facing activation, ambush sight restrictions and real weapon alert emission.
+
+Remaining target-selection/species rules and multiplayer scanning are unfinished.
+Production Heretic loading, campaign, saves and multiplayer remain gated. No editor
+playtest is claimed.
+
+Validation: focused and full regressions pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset licenses and pinned definitions pass.

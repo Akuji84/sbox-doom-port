@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, sound-target acquisition and ambush sight guard.
 // s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-29, player acquisition and lost-target recovery.
 // s&Doom modification: 2026-09-29, native chase attack recovery and missile cadence.
@@ -119,7 +120,12 @@ namespace ManagedDoom
                 case HereticAction.A_ChicLook:
                 case HereticAction.A_Look:
                     Body.Threshold = 0;
-                    if (LookForPlayer(false)) { Sound(def.SeeSound); state.SetState(def.SeeState); }
+                    if (LookForSoundTarget() || LookForPlayer(false))
+                    {
+                        if ((Combatant.Flags2 & HereticActorFlags2.MF2_BOSS) != 0) session.RequestSound(def.SeeSound,session.Body);
+                        else Sound(def.SeeSound);
+                        state.SetState(def.SeeState);
+                    }
                     break;
                 case HereticAction.A_ChicChase:
                 case HereticAction.A_Chase:

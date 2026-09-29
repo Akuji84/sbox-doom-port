@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, weapon and beak noise alerts.
 // s&Doom modification: 2026-09-22, native beak attack foundation.
 // s&Doom modification: 2026-09-22, timed Tome weapon selection and transitions.
 // s&Doom modification: 2026-09-22, powered Hellstaff preview.
@@ -336,6 +337,7 @@ namespace ManagedDoom
         private void BeginAttack(bool held)
         {
             SetState(held ? Weapon.HoldAttack : Weapon.Attack);
+            session.NoiseAlert(session.Body,session.Body);
             if (ReadyWeapon == HereticWeapon.wp_gauntlets) session.RequestSound(HereticSoundId.sfx_gntuse, session.Body);
         }
         private void SetState(HereticStateId next)
@@ -356,7 +358,7 @@ namespace ManagedDoom
                     {
                         case HereticAction.None: break;
                         case HereticAction.A_BeakReady:
-                            if (attack) { attackDown = true; SetState(Weapon.Attack); }
+                            if (attack) { attackDown = true; SetState(Weapon.Attack); session.NoiseAlert(session.Body,session.Body); }
                             else attackDown = false;
                             break;
                         case HereticAction.A_BeakRaise:
