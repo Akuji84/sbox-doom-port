@@ -1907,3 +1907,28 @@ editor playtest is claimed.
 Validation: full regression suite passes, including cadence checks, 48-map smoke
 and unchanged simulation/render hashes for all five production Doom WADs.
 Build succeeds with zero errors. Asset licenses and pinned definitions pass.
+
+## 2026-09-29: Single-player visual acquisition and target recovery
+
+Idle Heretic enemies now use the native player-facing visibility rules: distant
+players behind the enemy are ignored, nearby rear players can be detected, and
+invisible players use the native sneaking-distance/motion exclusion and detection
+roll. A_Look resets the retaliation threshold. Chase actions discard missing,
+dead or non-shootable targets and attempt all-around player reacquisition before
+returning to the idle state.
+
+Isolated StartEnemyTest encounters now explicitly face the player at creation;
+actual map placements continue to preserve authored angles. Regression checks
+cover front/rear detection, the close-range exception, all-around acquisition,
+dead-target replacement, invisibility roll outcomes and returning to idle after
+player death. These checks join --chase and the full regression suite.
+
+This is single-player visual acquisition. Sound-alert propagation, complete
+multiplayer scanning, target-aware attacks and infighting remain unfinished.
+Production Heretic loading, campaign, saves and multiplayer remain gated. No
+editor playtest is claimed.
+
+Validation: focused acquisition checks and full regressions pass, including
+48-map smoke and unchanged simulation/render hashes for all five production
+Doom WADs. Build succeeds with zero errors. Asset licenses and pinned
+definitions pass.

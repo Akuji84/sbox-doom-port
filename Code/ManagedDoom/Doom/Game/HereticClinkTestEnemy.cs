@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, player acquisition and lost-target recovery.
 // s&Doom modification: 2026-09-29, native chase attack recovery and missile cadence.
 // s&Doom modification: 2026-09-29, incremental chase turning and Nightmare timing.
 // s&Doom modification: 2026-09-24, native chase-direction movement.
@@ -62,6 +63,22 @@ namespace ManagedDoom
         public bool Supports(HereticAction action) => SupportsSorcererLifecycle(action) || SupportsMountedSorcerer(action) || SupportsMaulotaurActor(action) || action is HereticAction.A_HeadAttack or HereticAction.A_BossDeath || SupportsGargoyle(action) || action is HereticAction.A_WizAtk1 or HereticAction.A_WizAtk2 or HereticAction.A_WizAtk3 or HereticAction.A_GhostOff or HereticAction.A_SnakeAttack or HereticAction.A_SnakeAttack2 or HereticAction.A_KnightAttack or HereticAction.A_BeastAttack or HereticAction.A_MummyAttack2 or HereticAction.A_MummyAttack or HereticAction.A_MummySoul or HereticAction.A_ChicLook or HereticAction.A_ChicChase or HereticAction.A_ChicAttack or HereticAction.A_ChicPain or HereticAction.A_Feathers or HereticAction.A_Look or HereticAction.A_Chase or
             HereticAction.A_FaceTarget or HereticAction.A_ClinkAttack or HereticAction.A_Pain or HereticAction.A_Scream or HereticAction.A_NoBlocking;
         private bool CanSee => session.State.Health > 0 && visibility.CheckSight(Body, session.Body);
+        // Single-player P_LookForPlayers visibility rules; multiplayer scanning is separate.
+        internal bool LookForPlayer(bool allAround)
+        {
+            if (!CanSee) return false;
+            var target = session.Body;
+            var distance = Geometry.AproxDistance(target.X - Body.X, target.Y - Body.Y);
+            var relative = Geometry.PointToAngle(Body.X, Body.Y, target.X, target.Y) - Body.Angle;
+            if (!allAround && relative > Angle.Ang90 && relative < Angle.Ang270 && distance > Fixed.FromInt(64)) return false;
+            if ((target.Flags & MobjFlags.Shadow) != 0)
+            {
+                if (distance > Fixed.FromInt(128) && Geometry.AproxDistance(target.MomX,target.MomY) < Fixed.FromInt(5)) return false;
+                if (session.World.Random.Next() < 225) return false;
+            }
+            Body.Target = target;
+            return true;
+        }
         private bool MeleeRange
         {
             get
@@ -96,15 +113,21 @@ namespace ManagedDoom
             {
                 case HereticAction.A_ChicLook:
                 case HereticAction.A_Look:
-                    if (CanSee) { Body.Target = session.Body; Sound(def.SeeSound); state.SetState(def.SeeState); }
+                    Body.Threshold = 0;
+                    if (LookForPlayer(false)) { Sound(def.SeeSound); state.SetState(def.SeeState); }
                     break;
                 case HereticAction.A_ChicChase:
                 case HereticAction.A_Chase:
-                    if (session.State.Health <= 0) { Body.Target = null; state.SetState(def.SpawnState); break; }
                     if (Body.ReactionTime > 0) Body.ReactionTime--;
                     if (Body.Threshold > 0) Body.Threshold--;
                     if (session.World.Options.Skill == GameSkill.Nightmare) state.ApplyNightmareChaseTiming();
                     TurnTowardChaseDirection();
+                    if (Body.Target == null || Body.Target.Health <= 0 || (Body.Target.Flags & MobjFlags.Shootable) == 0)
+                    {
+                        Body.Target = null;
+                        if (!LookForPlayer(true)) state.SetState(def.SpawnState);
+                        break;
+                    }
                     if ((Body.Flags & MobjFlags.JustAttacked) != 0)
                     {
                         Body.Flags &= ~MobjFlags.JustAttacked;
@@ -283,7 +306,7 @@ namespace ManagedDoom
             {
                 var angle = Body.Angle + Angle.FromDegree(offset);
                 var enemy = TrySpawnSupportedEnemy(type, Body.X + distance * Trig.Cos(angle), Body.Y + distance * Trig.Sin(angle), true);
-                if (enemy != null) { GoldWand ??= new HereticGoldWand(this); EnableCombatAmmo(); return enemy; }
+                if (enemy != null) { enemy.Body.Angle = Geometry.PointToAngle(enemy.Body.X,enemy.Body.Y,Body.X,Body.Y); GoldWand ??= new HereticGoldWand(this); EnableCombatAmmo(); return enemy; }
             }
             return null;
         }
