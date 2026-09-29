@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, propagate selected difficulty to shared world.
 // s&Doom modification: 2026-09-24, monsters reopen but never close manual doors.
 // s&Doom modification: 2026-09-24, preserve dropped Phoenix ammo quantities.
 // s&Doom modification: 2026-09-24, preserve dropped crossbow ammo quantities.
@@ -59,6 +60,7 @@ namespace ManagedDoom
             this.skill = skill;
             Actors = actors.AsReadOnly();
             world = World.CreateGeometryPreview(content, episode, map);
+            world.Options.Skill = skill;
             world.EnableHereticGeometryInteractions();
             world.HereticSession = this;
             var start = world.Map.Things.FirstOrDefault(t => t.Type == 1)

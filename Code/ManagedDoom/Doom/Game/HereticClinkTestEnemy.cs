@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, native chase attack recovery and missile cadence.
 // s&Doom modification: 2026-09-29, incremental chase turning and Nightmare timing.
 // s&Doom modification: 2026-09-24, native chase-direction movement.
 // s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
@@ -104,10 +105,18 @@ namespace ManagedDoom
                     if (Body.Threshold > 0) Body.Threshold--;
                     if (session.World.Options.Skill == GameSkill.Nightmare) state.ApplyNightmareChaseTiming();
                     TurnTowardChaseDirection();
-                    var recovering = def.MissileState != HereticStateId.S_NULL && (Body.Flags & MobjFlags.JustAttacked) != 0;
-                    if (recovering) Body.Flags &= ~MobjFlags.JustAttacked;
-                    if (!recovering && def.MeleeState != HereticStateId.S_NULL && Body.ReactionTime == 0 && MeleeRange) { state.SetState(def.MeleeState); break; }
-                    if (!recovering && def.MissileState != HereticStateId.S_NULL && CheckMissileRange())
+                    if ((Body.Flags & MobjFlags.JustAttacked) != 0)
+                    {
+                        Body.Flags &= ~MobjFlags.JustAttacked;
+                        if (session.World.Options.Skill != GameSkill.Nightmare) NewChaseDirection();
+                        break;
+                    }
+                    if (def.MeleeState != HereticStateId.S_NULL && MeleeRange)
+                    {
+                        Sound(def.AttackSound); state.SetState(def.MeleeState); break;
+                    }
+                    if (def.MissileState != HereticStateId.S_NULL &&
+                        (session.World.Options.Skill == GameSkill.Nightmare || Body.MoveCount == 0) && CheckMissileRange())
                     {
                         state.SetState(def.MissileState); Body.Flags |= MobjFlags.JustAttacked; break;
                     }

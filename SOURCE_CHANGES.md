@@ -1525,3 +1525,25 @@ loading, campaign, saves and multiplayer remain gated. No editor playtest is cla
 Validation: focused turning/movement checks and full regressions pass. All five
 production Doom simulation/render hashes remain unchanged. Build: zero errors,
 seven existing warnings. Licensed asset inventory and pinned definitions pass.
+
+## 2026-09-29: Attack recovery and missile cadence
+
+Chase actions now consume JustAttacked as a complete recovery action: ordinary
+skills choose a new walking direction, while Nightmare returns without moving.
+Ordinary ranged enemies wait for MoveCount to reach zero before checking missile
+range; Nightmare bypasses that walking-count gate. Melee can start during reaction
+time and emits the native attack-entry sound.
+
+Regression testing exposed a session difficulty propagation bug: geometry preview
+worlds retained Medium even when the Heretic session selected another skill.
+The constructor now copies the selected skill to world options, making Nightmare
+chase timing and attack exemptions effective. Tests cover ordinary/Nightmare
+cadence, recovery, ready attacks and melee during reaction time.
+
+Target acquisition, target-aware attacks and infighting remain incomplete.
+Production Heretic loading, campaign, saves and multiplayer remain gated. No
+editor playtest is claimed.
+
+Validation: full regression suite passes, including cadence checks, 48-map smoke
+and unchanged simulation/render hashes for all five production Doom WADs.
+Build succeeds with zero errors. Asset licenses and pinned definitions pass.
