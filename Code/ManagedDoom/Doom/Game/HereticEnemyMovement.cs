@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, native 45-degree chase turning.
 // s&Doom modification: 2026-09-24, activate eligible doors after blocked chase moves.
 // s&Doom modification: 2026-09-24, native Heretic chase-direction selection.
 //
@@ -92,6 +93,15 @@ namespace ManagedDoom
             }
             if(turnaround!=Direction.None && TryChaseDirection(turnaround))return;
             Body.MoveDir=Direction.None;
+        }
+        internal void TurnTowardChaseDirection()
+        {
+            if ((uint)Body.MoveDir >= 8) return;
+            var angle = Body.Angle.Data & 0xe0000000u;
+            var delta = unchecked((int)(angle - ((uint)Body.MoveDir << 29)));
+            if (delta > 0) angle -= 0x20000000u;
+            else if (delta < 0) angle += 0x20000000u;
+            Body.Angle = new Angle(angle);
         }
         private void ChaseStep()
         {

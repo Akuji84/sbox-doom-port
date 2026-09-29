@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, native Nightmare chase timing.
 // s&Doom modification: 2026-09-22, bounded death-state tic shortening.
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -83,6 +84,12 @@ namespace ManagedDoom
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
             if (Tics > 0) Tics = Math.Max(1, Tics - amount);
+        }
+
+        // Native A_Chase applies this even after mounted pain shortens walking tics.
+        internal void ApplyNightmareChaseTiming()
+        {
+            if (!Removed && Tics > 0) Tics = Math.Max(3, Tics - Tics / 2);
         }
 
         public void Tick()

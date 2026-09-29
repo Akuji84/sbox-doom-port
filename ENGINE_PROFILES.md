@@ -1864,3 +1864,24 @@ s&box editor playtest is claimed.
 Validation: focused and full regression suites pass, including unchanged
 simulation/render hashes for all five production Doom WADs. Build: zero errors,
 seven existing warnings. Licensed asset inventory and pinned definitions pass.
+
+## 2026-09-29: Chase turning and Nightmare walking timing
+
+Heretic chase actions now turn toward MoveDir one 45-degree step at a time,
+using native angle quantization and signed wraparound. They no longer snap to
+the player's position on every walking action. Explicit attack-facing actions
+retain their existing behavior, and no-direction actors retain their facing.
+
+Nightmare chase actions apply the native tic reduction with a three-tic minimum,
+including walking states already shortened by mounted Sorcerer pain. Other
+difficulties retain their original walking-state durations. Regression checks
+cover turning both ways, wraparound, the 180-degree signed boundary, no-direction
+facing, short-state minimum/rounding and actual chase dispatch on both difficulties.
+
+Attack recovery/cadence, target acquisition and infighting remain unfinished;
+this checkpoint does not claim complete A_Chase behavior. Production Heretic
+loading, campaign, saves and multiplayer remain gated. No editor playtest is claimed.
+
+Validation: focused turning/movement checks and full regressions pass. All five
+production Doom simulation/render hashes remain unchanged. Build: zero errors,
+seven existing warnings. Licensed asset inventory and pinned definitions pass.

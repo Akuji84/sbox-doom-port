@@ -38,6 +38,27 @@ static class HereticEnemyMovementChecks
         Check(actor.Body.MoveDir==Direction.Northeast && actor.Body.MoveCount==8 && chase.World.Random.Index==1,"Direct diagonal choice or walk RNG/counter incorrect.");
         actor.Body.MoveDir=Direction.Southwest;actor.NewChaseDirection();
         Check(actor.Body.MoveDir!=Direction.Northeast && actor.Body.MoveDir!=Direction.None,"Chase unnecessarily reversed instead of choosing an alternative.");
+        foreach(var (degrees,direction,expected) in new[]{(0,Direction.North,45),(90,Direction.East,45),(315,Direction.East,0),(0,Direction.Southeast,315),(180,Direction.East,225)})
+        {
+            actor.Body.Angle=Angle.FromDegree(degrees);actor.Body.MoveDir=direction;actor.TurnTowardChaseDirection();
+            Check(actor.Body.Angle==Angle.FromDegree(expected),"Native signed/wrapping chase turn incorrect.");
+        }
+        actor.Body.Angle=Angle.FromDegree(23);actor.Body.MoveDir=Direction.None;actor.TurnTowardChaseDirection();
+        Check(actor.Body.Angle==Angle.FromDegree(23),"No-direction chase changed facing.");
+        foreach(var tics in new[]{1,2,3,4,5})
+        {
+            var timing=new HereticActorState(HereticStateId.S_SRCR1_WALK1,initialTics:tics);
+            timing.ApplyNightmareChaseTiming();Check(timing.Tics==Math.Max(3,tics-tics/2),"Nightmare minimum/rounding incorrect.");
+        }
+        foreach(var difficulty in new[]{GameSkill.Medium,GameSkill.Nightmare})
+        {
+            var timed=new HereticWorldSession(content,1,2,difficulty);var walker=timed.StartEnemyTest(HereticActorType.MT_CLINK);
+            Check(walker!=null,"Missing chase timing fixture.");
+            walker.Body.Target=timed.Body;walker.Body.ReactionTime=1000;
+            var state=walker.Combatant.Animation;state.SetState(HereticDefinitions.Actors[(int)HereticActorType.MT_CLINK].SeeState,false);
+            var original=state.Tics;walker.Execute(HereticAction.A_Chase,state);
+            Check(state.Tics==(difficulty==GameSkill.Nightmare?Math.Max(3,original-original/2):original),"Chase did not apply difficulty timing correctly.");
+        }
         var blocked=new Mobj(chase.World){X=actor.Body.X,Y=actor.Body.Y,Z=actor.Body.Z,Radius=Fixed.FromInt(64),Height=Fixed.FromInt(128),Flags=MobjFlags.Solid};
         chase.World.ThingMovement.SetThingPosition(blocked);var bx=actor.Body.X;var by=actor.Body.Y;
         actor.NewChaseDirection();

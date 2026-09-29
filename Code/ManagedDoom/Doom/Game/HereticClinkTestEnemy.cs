@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, incremental chase turning and Nightmare timing.
 // s&Doom modification: 2026-09-24, native chase-direction movement.
 // s&Doom modification: 2026-09-24, Sorcerer damage reactions and E3M8 completion.
 // s&Doom modification: 2026-09-24, isolated Sorcerer phase lifecycle.
@@ -101,7 +102,8 @@ namespace ManagedDoom
                     if (session.State.Health <= 0) { Body.Target = null; state.SetState(def.SpawnState); break; }
                     if (Body.ReactionTime > 0) Body.ReactionTime--;
                     if (Body.Threshold > 0) Body.Threshold--;
-                    Face();
+                    if (session.World.Options.Skill == GameSkill.Nightmare) state.ApplyNightmareChaseTiming();
+                    TurnTowardChaseDirection();
                     var recovering = def.MissileState != HereticStateId.S_NULL && (Body.Flags & MobjFlags.JustAttacked) != 0;
                     if (recovering) Body.Flags &= ~MobjFlags.JustAttacked;
                     if (!recovering && def.MeleeState != HereticStateId.S_NULL && Body.ReactionTime == 0 && MeleeRange) { state.SetState(def.MeleeState); break; }
