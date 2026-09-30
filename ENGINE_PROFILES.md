@@ -2008,3 +2008,26 @@ is claimed.
 Validation: focused and full regressions pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset licenses and pinned definitions pass.
+
+## 2026-09-29: Gargoyle attack range and chase sounds
+
+Normal Gargoyles now halve the native missile-range distance threshold before
+its cap, allowing their flying attack more often at range. Fire Gargoyles retain
+the ordinary rule. Retaliation and reaction-time checks keep their native order.
+
+Pursuing monsters now roll for active sounds after movement, with the Disciple's
+additional sight-sound selection and the second-form Sorcerer's full-volume
+sound origin. Early attack/recovery returns do not roll for a roaming sound.
+The implementation follows the pinned Heretic p_enemy.c reference and remains
+restricted to Heretic actors.
+
+Regression coverage checks all 256 random-table starting positions for both
+Gargoyle variants and Clink/Disciple/Sorcerer sound selection, random consumption
+and sound origin, plus retaliation/reaction guards. Heretic remains preview-only;
+campaign, saves and multiplayer integration are unfinished. No editor playtest
+is claimed.
+
+Validation: focused and full regression suites pass, including the 48-map smoke
+test and unchanged simulation/render hashes for all five production Doom WADs.
+Build: zero errors, seven existing warnings. Licensed assets and pinned definition
+reproduction checks pass.

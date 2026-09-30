@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, native Gargoyle range bias and chase sounds.
 // s&Doom modification: 2026-09-29, native shadow-target aim and ambush clearing.
 // s&Doom modification: 2026-09-29, sound-target acquisition and ambush sight guard.
 // s&Doom modification: 2026-09-29, target-aware monster attacks.
@@ -96,14 +97,25 @@ namespace ManagedDoom
                     Body.Target.Z <= Body.Z + Body.Height && CanSeeTarget;
             }
         }
-        private bool CheckMissileRange()
+        internal bool CheckMissileRange()
         {
             if (!CanSeeTarget) return false;
             if ((Body.Flags & MobjFlags.JustHit) != 0) { Body.Flags &= ~MobjFlags.JustHit; return true; }
             if (Body.ReactionTime != 0) return false;
             var distance = Geometry.AproxDistance(Body.X - Body.Target.X, Body.Y - Body.Target.Y).ToIntFloor() - 64;
             if (HereticDefinitions.Actors[(int)Combatant.Type].MeleeState == HereticStateId.S_NULL) distance -= 128;
+            if (Combatant.Type == HereticActorType.MT_IMP) distance >>= 1;
             return session.World.Random.Next() >= Math.Min(distance, 200);
+        }
+        internal void PlayChaseSound()
+        {
+            var def = HereticDefinitions.Actors[(int)Combatant.Type];
+            if ((int)def.ActiveSound == 0 || session.World.Random.Next() >= 3) return;
+            if (Combatant.Type == HereticActorType.MT_WIZARD && session.World.Random.Next() < 128)
+                Sound(def.SeeSound);
+            else if (Combatant.Type == HereticActorType.MT_SORCERER2)
+                session.RequestSound(def.ActiveSound, session.Body);
+            else Sound(def.ActiveSound);
         }
         private void Face()
         {
@@ -163,6 +175,7 @@ namespace ManagedDoom
                         state.SetState(def.MissileState); Body.Flags |= MobjFlags.JustAttacked; break;
                     }
                     ChaseStep();
+                    PlayChaseSound();
                     break;
                 case HereticAction.A_FaceTarget: Face(); break;
                 case HereticAction.A_ClinkAttack:
