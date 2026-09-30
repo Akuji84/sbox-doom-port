@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, native Gargoyle/Disciple vertical blocking.
 // s&Doom modification: 2026-09-24, mounted Sorcerer map encounters.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
 // s&Doom modification: 2026-09-24, native Iron Lich combat integration.
@@ -41,6 +42,17 @@ namespace ManagedDoom
         public static bool SupportsMapEnemy(HereticActorType type) => type is
             HereticActorType.MT_SORCERER1 or HereticActorType.MT_MINOTAUR or HereticActorType.MT_HEAD or HereticActorType.MT_IMP or HereticActorType.MT_IMPLEADER or HereticActorType.MT_WIZARD or HereticActorType.MT_SNAKE or HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST or HereticActorType.MT_BEAST or HereticActorType.MT_CLINK or HereticActorType.MT_MUMMY or HereticActorType.MT_MUMMYGHOST or
             HereticActorType.MT_MUMMYLEADER or HereticActorType.MT_MUMMYLEADERGHOST;
+        internal bool BlocksFlyingMonsterPassage(Mobj mover,Mobj other)
+        {
+            var movingFlyer=false;var blockingFlyer=false;
+            foreach(var enemy in testEnemies)
+            {
+                var restricted=enemy.Combatant.Type is HereticActorType.MT_IMP or HereticActorType.MT_WIZARD;
+                if(enemy.Body==mover) movingFlyer=restricted && (enemy.Combatant.Flags2 & HereticActorFlags2.MF2_PASSMOBJ)!=0;
+                if(enemy.Body==other) blockingFlyer=restricted;
+            }
+            return movingFlyer && blockingFlyer;
+        }
         // Opt-in until the complete roster, campaign and multiplayer are implemented.
         public void StartMapCombat()
         {

@@ -1983,3 +1983,28 @@ playtest is claimed.
 Validation: focused and full regressions pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset licenses and pinned definitions pass.
+
+## 2026-09-29: Shadow-target facing and flying-monster spacing
+
+A_FaceTarget now clears Ambush and uses the native two-draw angular error when
+the selected target has the Shadow flag. Visible targets do not consume that
+randomness, and missing targets leave angle, flags and randomness unchanged.
+Iron Lich attack selection now uses the same facing path.
+
+Normal Gargoyles and Disciples now block each other's horizontal footprints even
+when vertically separated, matching Heretic's special flying-monster rule. Fire
+Gargoyles are excluded as in the native type checks. The restriction requires the
+moving actor's PASSMOBJ flag, which is cleared on death. The shared collision
+change is restricted to the Heretic path.
+
+Regression checks cover exact shadow aim draws and angle, ambush clearing,
+visible/missing targets, over/under collisions for both affected species and the
+Fire Gargoyle exception. These run under --chase and in the full suite.
+
+Remaining AI/species cases and multiplayer scanning are unfinished. Production
+Heretic loading, campaign, saves and multiplayer remain gated. No editor playtest
+is claimed.
+
+Validation: focused and full regressions pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset licenses and pinned definitions pass.

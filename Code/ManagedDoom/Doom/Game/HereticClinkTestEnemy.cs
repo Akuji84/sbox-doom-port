@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, native shadow-target aim and ambush clearing.
 // s&Doom modification: 2026-09-29, sound-target acquisition and ambush sight guard.
 // s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-29, player acquisition and lost-target recovery.
@@ -104,7 +105,14 @@ namespace ManagedDoom
             if (HereticDefinitions.Actors[(int)Combatant.Type].MeleeState == HereticStateId.S_NULL) distance -= 128;
             return session.World.Random.Next() >= Math.Min(distance, 200);
         }
-        private void Face() { if (Body.Target != null) Body.Angle = Geometry.PointToAngle(Body.X, Body.Y, Body.Target.X, Body.Target.Y); }
+        private void Face()
+        {
+            if (Body.Target == null) return;
+            Body.Flags &= ~MobjFlags.Ambush;
+            Body.Angle = Geometry.PointToAngle(Body.X,Body.Y,Body.Target.X,Body.Target.Y);
+            if ((Body.Target.Flags & MobjFlags.Shadow) != 0)
+                Body.Angle += new Angle(unchecked((uint)((session.World.Random.Next()-session.World.Random.Next()) << 21)));
+        }
         private void Sound(HereticSoundId sound) => SoundRequested?.Invoke(sound, Body);
         public void Execute(HereticAction action, HereticActorState state)
         {

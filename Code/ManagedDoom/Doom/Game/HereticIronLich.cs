@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, shared native attack-facing rules.
 // s&Doom modification: 2026-09-29, target-aware monster attacks.
 // s&Doom modification: 2026-09-24, final-Lich episode floor trigger and massacre.
 // s&Doom modification: 2026-09-24, native whirlwind dispatch and distance-based attack selection.
@@ -57,7 +58,7 @@ namespace ManagedDoom
         {
             if (enemy.Body.Target == null) return;
             var body = enemy.Body;var target=body.Target;
-            body.Angle = Geometry.PointToAngle(body.X, body.Y, target.X, target.Y);
+            enemy.Execute(HereticAction.A_FaceTarget,enemy.Combatant.Animation);
             var distance = Geometry.AproxDistance(body.X - target.X, body.Y - target.Y);
             if (distance < Fixed.FromInt(64) && body.Z <= target.Z + target.Height && target.Z <= body.Z + body.Height &&
                 new VisibilityCheck(world).CheckSight(body, target))

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, Heretic flying-monster species collision.
 // s&Doom modification: 2026-09-24, native Maulotaur slam contact routing.
 // s&Doom modification: 2026-09-24, route Gargoyle charge contacts through native Heretic states.
 // s&Doom modification: 2026-09-22, isolated native Heretic crossbow collision and sky routing.
@@ -305,6 +306,7 @@ namespace ManagedDoom
             // Keep this dispatch ahead of Doom's missile, pickup and damage actions.
             if (world.HereticSession != null && (currentThing == world.HereticSession.Body || world.HereticSession.IsTestEnemy(currentThing)))
             {
+                if (world.HereticSession.BlocksFlyingMonsterPassage(currentThing,thing)) return false;
                 if (currentThing.Z >= thing.Z + thing.Height || currentThing.Z + currentThing.Height <= thing.Z)
                     return true;
                 foreach (var enemy in world.HereticSession.CombatEnemies)
