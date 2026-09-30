@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, consume frame mouse turn once with fractional accumulation.
 // s&Doom modification: 2026-09-29, pause without queued input or simulation catch-up.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 // Copyright (C) 2026 s&Doom contributors.
@@ -9,6 +10,13 @@ namespace ManagedDoom
     public sealed class HereticFrameStepper
     {
         private double remainder;
+        private double pendingTurn;
+        public void ClearFrameTurn() => pendingTurn = 0;
+        public void QueueFrameTurn(double turn)
+        {
+            if (!double.IsFinite(turn)) throw new ArgumentOutOfRangeException(nameof(turn));
+            if (!Paused) pendingTurn = Math.Clamp(pendingTurn + turn, -131072, 131072);
+        }
         private HereticWeapon? pendingWeapon;
         private HereticArtifact? pendingArtifact;
         private bool observedUse, sentUse, pendingUse, pendingCenter, pendingLand, pendingTestAttack;
@@ -19,6 +27,7 @@ namespace ManagedDoom
             if (Paused == paused) return;
             Paused = paused;
             remainder = 0;
+            ClearFrameTurn();
             pendingWeapon = null;
             pendingArtifact = null;
             observedUse = sentUse = pendingUse = pendingCenter = pendingLand = pendingTestAttack = false;
@@ -41,6 +50,9 @@ namespace ManagedDoom
             while (remainder >= 1 - 1e-9)
             {
                 var command = sampled;
+                var frameTurn = (int)Math.Clamp(Math.Truncate(pendingTurn), short.MinValue - (int)sampled.Turn, short.MaxValue - (int)sampled.Turn);
+                command.Turn = (short)(sampled.Turn + frameTurn);
+                pendingTurn -= frameTurn;
                 if (pendingUse && sentUse)
                     command.Use = false; // Preserve a release between two sampled presses.
                 else

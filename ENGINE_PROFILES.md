@@ -2245,3 +2245,27 @@ production launch, saves and multiplayer remain gated.
 Validation: focused and full regression suites pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Frame-sampled preview mouse turning
+
+The preview now supports horizontal mouse turning while holding the right mouse
+button, with MouseTurning and MouseSensitivity properties. Arrow-key turning
+continues to work. The host samples MouseDelta once per rendered frame, rejects
+nonfinite motion and bounds spikes before adding turn units to the frame stepper.
+
+Mouse turn accumulates fractionally until a simulation tick consumes it; subsequent
+ticks from the same frame do not repeat it. Composition with keyboard turning is
+bounded to the command's short range and retains excess for later ticks. Pending
+mouse input is bounded, clears on pause, and is discarded when the right button is
+released, mouse turning is disabled or the automap is open. Fresh map/restart
+steppers also start without queued motion. This adds horizontal turning only;
+vertical mouse look, cursor capture and shell binding integration remain separate.
+
+Focused --frames tests cover 30/60/144/240 FPS totals, multi-tick frames, fractions,
+pause/clear, saturation with keyboard input and nonfinite rejection. Editor input
+feel/binding playtesting is still needed. Heretic remains preview-only; production
+launch, saves and multiplayer remain gated.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.

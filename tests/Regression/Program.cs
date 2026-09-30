@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using static Sandbox.SboxManagedDoomShellBridgeService;
 
 var root = Path.GetFullPath(args.Length > 0 ? args[0] : ".");
+if (args.Contains("--frames")) { HereticFrameChecks.Verify(); return; }
 if (args.Contains("--campaign")) { HereticCampaignExitChecks.Verify(root); return; }
 if (args.Contains("--chase")) { HereticEnemyMovementChecks.Verify(root); HereticAttackCadenceChecks.Verify(root); HereticAcquisitionChecks.Verify(root); HereticInfightingChecks.Verify(root); HereticNoiseChecks.Verify(root); HereticGhostFacingChecks.Verify(root); HereticChaseSoundChecks.Verify(root); HereticDeathActionChecks.Verify(root); HereticCampaignExitChecks.Verify(root); HereticMonsterDoorChecks.Verify(root); return; }
 if (args.Contains("--sorcerer")) { HereticSorcererChecks.Verify(root); HereticMountedSorcererChecks.Verify(root); HereticSorcererPhaseChecks.Verify(root); HereticSorcererBossChecks.Verify(root); HereticSorcererMapChecks.Verify(root); HereticSummoningChecks.Verify(root); return; }
