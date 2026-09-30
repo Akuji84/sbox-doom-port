@@ -1692,3 +1692,25 @@ and out-of-range candidates, network exclusion and chase recovery after death.
 Validation: focused and full regressions pass, including the 48-map smoke test
 and unchanged simulation/render hashes for all five production Doom WADs.
 Build: zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Explicit enemy death drops and boss death sound volume
+
+The shared A_NoBlocking handler now lists each supported single-ammo-drop family
+explicitly instead of defaulting unlisted actors to Golem ammunition. Actors
+without a native drop rule clear solidity without a loot roll or random-number
+consumption. Existing independent Disciple, Iron Lich and Maulotaur drop rolls
+are retained. This hardens the action handler; Gargoyle death animations normally
+use their separate crash actions.
+
+Maulotaur death screams now use the full-volume local sound path, as mounted
+Sorcerer deaths already do. Sound routing checks the current actor type.
+Other monster death screams remain positional.
+
+Focused regression coverage exercises nine single-drop variants, failed rolls,
+no-drop actors and random consumption, and full-volume/positional death sounds.
+Heretic remains preview-only; campaign, saves and multiplayer remain unfinished.
+No editor playtest is claimed.
+
+Validation: focused and full regressions pass, including 48-map smoke and unchanged
+simulation/render hashes for all five production Doom WADs. Build: zero errors,
+seven existing warnings. Licensed asset and pinned definition checks pass.

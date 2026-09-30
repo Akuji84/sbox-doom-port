@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, explicit native death drops and boss death volume.
 // s&Doom modification: 2026-09-29, single-player post-death monster acquisition.
 // s&Doom modification: 2026-09-29, native Gargoyle range bias and chase sounds.
 // s&Doom modification: 2026-09-29, native shadow-target aim and ambush clearing.
@@ -246,7 +247,7 @@ namespace ManagedDoom
                 case HereticAction.A_ChicPain:
                 case HereticAction.A_Pain: Sound(def.PainSound); break;
                 case HereticAction.A_Scream:
-                    if (OriginalType == HereticActorType.MT_SORCERER1) session.RequestSound(def.DeathSound,session.Body);
+                    if (Combatant.Type is HereticActorType.MT_SORCERER1 or HereticActorType.MT_MINOTAUR) session.RequestSound(def.DeathSound,session.Body);
                     else Sound(def.DeathSound);
                     break;
                 case HereticAction.A_NoBlocking:
@@ -265,16 +266,19 @@ namespace ManagedDoom
                         if (random.Next() <= (OriginalType == HereticActorType.MT_HEAD ? 51 : 4)) { var drop = session.SpawnEnemyAmmoDrop(Body, OriginalType == HereticActorType.MT_HEAD ? HereticActorType.MT_ARTIEGG : HereticActorType.MT_ARTITOMEOFPOWER, 0); DropRequested?.Invoke(drop); }
                         break;
                     }
-                    if (random.Next() <= 84)
+                    var item = Combatant.Type switch
                     {
-                        var drop = OriginalType switch
-                        {
-                            HereticActorType.MT_CLINK => session.SpawnClinkAmmoDrop(Body),
-                            HereticActorType.MT_SNAKE => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMPHRDWIMPY, 5),
-                            HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMCBOWWIMPY, 5),
-                            HereticActorType.MT_BEAST => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMCBOWWIMPY, 10),
-                            _ => session.SpawnEnemyAmmoDrop(Body, HereticActorType.MT_AMGWNDWIMPY, 3)
-                        };
+                        HereticActorType.MT_CLINK => (HereticActorType.MT_AMSKRDWIMPY, 20),
+                        HereticActorType.MT_SNAKE => (HereticActorType.MT_AMPHRDWIMPY, 5),
+                        HereticActorType.MT_KNIGHT or HereticActorType.MT_KNIGHTGHOST => (HereticActorType.MT_AMCBOWWIMPY, 5),
+                        HereticActorType.MT_BEAST => (HereticActorType.MT_AMCBOWWIMPY, 10),
+                        HereticActorType.MT_MUMMY or HereticActorType.MT_MUMMYGHOST or
+                        HereticActorType.MT_MUMMYLEADER or HereticActorType.MT_MUMMYLEADERGHOST => (HereticActorType.MT_AMGWNDWIMPY, 3),
+                        _ => ((HereticActorType)(-1), 0)
+                    };
+                    if (item.Item1 != (HereticActorType)(-1) && random.Next() <= 84)
+                    {
+                        var drop = session.SpawnEnemyAmmoDrop(Body, item.Item1, item.Item2);
                         DropRequested?.Invoke(drop);
                     }
                     break;
