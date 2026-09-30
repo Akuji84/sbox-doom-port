@@ -1739,3 +1739,29 @@ exit specials, snapshot stability and stopped simulation after completion.
 Validation: focused and full regression suites pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Single-player campaign carry and next-session creation
+
+A living single player now freezes campaign inventory at exit. The next-session
+API loads the routed map from the same GameContent and difficulty, restores
+health, armor, all weapon ownership/ammo and the Bag of Holding, and resumes map
+combat when enabled in the source. Repeated calls return the same next session.
+Construction/restoration finishes before publishing the result, leaving the old
+completed session intact if loading fails. Network transitions are rejected.
+
+Carry follows G_PlayerFinishLevel: artifact stacks become one each, Wings of Wrath
+are removed, and keys, active powers, map scroll, look/flight state, palette flashes
+and per-map counters reset. Chicken exits restore the pre-morph weapon with a normal
+new player body and retain current health. Weapon attack/pending/powered test state,
+projectiles, actors and event subscribers are not copied. The snapshot does not alias
+the old player's inventory or weapon controller.
+
+Focused tests perform real E1M1-to-E1M2 construction with combat, inventory/weapon
+carry, cleanup, snapshot isolation, chicken restoration and repeat-call identity.
+Intermission/finale presentation and host integration are still required; this API
+is not yet wired into normal game launching. Saves and multiplayer remain unfinished.
+Heretic stays preview-only. No editor playtest is claimed.
+
+Validation: focused and full regressions pass, including 48-map smoke and unchanged
+simulation/render hashes for all five production Doom WADs. Build: zero errors,
+seven existing warnings. Licensed asset and pinned definition checks pass.

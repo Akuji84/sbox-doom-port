@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, freeze campaign carry and retain source content.
 // s&Doom modification: 2026-09-29, native episode exit routing and immutable completion.
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -46,6 +47,8 @@ namespace ManagedDoom
             var route = HereticCampaignRoutes.Resolve(campaignEpisode, campaignMap, secret);
             Completion = new HereticCampaignExit(campaignEpisode, campaignMap, secret,
                 route.Kind, route.NextMap, tic, State.Secrets);
+            if (State.Health > 0 && !World.Options.NetGame)
+                campaignCarry = new HereticCampaignCarry(this, State.ChickenTics > 0 ? preChickenWeapon : GoldWand?.ReadyWeapon ?? HereticWeapon.wp_goldwand);
             ExitRequested = true;
             SecretExitRequested = secret;
             State.Message = route.Kind switch

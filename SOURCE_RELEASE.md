@@ -1,12 +1,12 @@
-# Source release: sdoom-heretic-campaign-exits-2026-09-29
+# Source release: sdoom-heretic-campaign-carry-2026-09-29
 
 Source snapshot for s&Doom, including multiplayer, save/input improvements
 the Heretic asset/geometry, navigation, actor-definition and map-scenery checkpoints, and bundled WAD licenses and credits.
 
-https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-campaign-exits-2026-09-29
+https://github.com/Akuji84/sbox-doom-port/tree/sdoom-heretic-campaign-carry-2026-09-29
 
 Source ZIP:
-https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-campaign-exits-2026-09-29.zip
+https://github.com/Akuji84/sbox-doom-port/archive/refs/tags/sdoom-heretic-campaign-carry-2026-09-29.zip
 
 ## Contents and build
 

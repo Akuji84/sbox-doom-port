@@ -33,6 +33,28 @@ static class HereticCampaignExitChecks
             line.Special=(LineSpecial)(secret?52:105);s.CrossLine(line,0,s.Body);
             Check(s.Completion==result && s.SecretExitRequested==secret && s.Body.X==x && s.Body.Y==y,"Repeated exit changed completion or resumed simulation.");
         }
+        var source=new HereticWorldSession(content,1,1);source.StartMapCombat();
+        source.State.Health=73;source.Body.Health=73;source.State.ArmorType=2;source.State.ArmorPoints=87;
+        source.State.Keys=HereticKeys.Blue;source.State.QuartzFlasks=9;source.State.MysticUrns=4;source.State.WingsOfWrath=3;
+        source.State.TorchTics=100;source.State.FlightTics=100;source.State.WeaponPowerTics=100;
+        source.State.HasMapScroll=true;source.State.DamageFlash=20;source.State.Secrets=5;
+        source.GoldWand.GrantTestCrossbow(17);source.GoldWand.GrantTestBlaster(31);source.GoldWand.GiveBagOfHolding(false);
+        var ammo=source.GoldWand.CrossbowAmmo;var gold=source.GoldWand.Ammo;
+        var exit=source.World.Map.Lines[0];exit.Special=(LineSpecial)52;source.CrossLine(exit,0,source.Body);
+        source.State.Health=1;source.GoldWand.Ammo=1; // Frozen carry must not alias old mutable state.
+        var next=source.CreateNextCampaignSession();
+        Check(next.State.Health==73 && next.Body.Health==73 && next.State.ArmorPoints==87 && next.State.ArmorType==2,"Health/armor carry lost.");
+        Check(next.State.QuartzFlasks==1 && next.State.MysticUrns==1 && next.State.WingsOfWrath==0,"Native artifact carry rules failed.");
+        Check(next.State.Keys==HereticKeys.None && next.State.FlightTics==0 && next.State.WeaponPowerTics==0 && next.State.TorchTics==0 && !next.State.HasMapScroll && next.State.Secrets==0 && next.State.DamageFlash==0,"Level-local state leaked.");
+        Check(next.GoldWand.HasCrossbow && next.GoldWand.HasBlaster && next.GoldWand.HasBagOfHolding && next.GoldWand.CrossbowAmmo==ammo && next.GoldWand.Ammo==gold,"Weapons/ammo/bag lost or aliased.");
+        Check(next.Completion==null && !next.ExitRequested && next.TestEnemyCount>0 && ReferenceEquals(next,source.CreateNextCampaignSession()),"Next session not playable/idempotent.");
+        var chicken=new HereticWorldSession(content);chicken.StartMapCombat();chicken.MorphPlayer();
+        var chickenHealth=chicken.State.Health;var chickenExit=chicken.World.Map.Lines[0];chickenExit.Special=(LineSpecial)52;chicken.CrossLine(chickenExit,0,chicken.Body);
+        var restored=chicken.CreateNextCampaignSession();
+        Check(restored.State.ChickenTics==0 && restored.Body.Height==Fixed.FromInt(56) && restored.GoldWand.ReadyWeapon==HereticWeapon.wp_goldwand && restored.State.Health==chickenHealth,"Chicken exit did not restore native body/weapon carry.");
+        bool rejected=false;try { restored.CreateNextCampaignSession(); }catch(InvalidOperationException){rejected=true;}
+        Check(rejected,"Transition without exit accepted.");
+        Console.WriteLine("PASS campaign carry: immutable health/armor/weapons/ammo, native artifact cleanup, fresh map combat, chicken restore and idempotent transition");
         Console.WriteLine("PASS campaign exit routing: five episodes, secret returns/finales, unknown route guard, all four exit specials, immutable stats and stopped simulation");
     }
 }
