@@ -5,6 +5,8 @@ static class HereticCampaignExitChecks
     static void Check(bool ok,string text){if(!ok)throw new Exception(text);}
     public static void Verify(string root)
     {
+        Check(HereticMusic.MapTrack(2,5)=="MUS_E1M4" && HereticMusic.MapTrack(3,8)=="MUS_E1M9" && HereticMusic.MapTrack(4,1)=="MUS_E1M6" && HereticMusic.MapTrack(5,9)=="MUS_E2M9" && HereticMusic.MapTrack(6,3)=="MUS_E1M6","Native music aliases changed.");
+        Check(HereticMusic.MapTrack(0,1)==null && HereticMusic.MapTrack(6,4)==null && HereticMusic.MapTrack(1,10)==null,"Invalid music map accepted.");
         int[] returns={7,5,5,5,4};
         for(int episode=1;episode<=5;episode++)
         for(int map=1;map<=9;map++)
@@ -18,14 +20,22 @@ static class HereticCampaignExitChecks
         foreach(var pair in new[]{(0,1),(6,1),(1,0),(1,10)})
             Check(HereticCampaignRoutes.Resolve(pair.Item1,pair.Item2,false)==(HereticExitKind.UnsupportedRoute,(int?)null),"Unknown campaign route guessed.");
         using var content=GameContent.CreateHereticPreview(Path.Combine(root,"Assets/doom/blasphem.wad"));
+        for(int ep=1;ep<=6;ep++)for(int map=1;map<=(ep==6?3:9);map++)
+        {
+            var name=HereticMusic.MapTrack(ep,map);var data=content.Wad.ReadLump(name);
+            Check(data.Length>=16 && ((data[0]=='M' && data[1]=='U' && data[2]=='S' && data[3]==26) || (data[0]=='M' && data[1]=='T' && data[2]=='h' && data[3]=='d')),"Missing/unsupported mapped music: "+name);
+        }
+        foreach(var track in new[]{"MUS_INTR","MUS_CPTD"})Check(content.Wad.ReadLump(track).Length>=16,"Missing transition music.");
         foreach(var code in new[]{11,51,52,105})
         {
             var s=new HereticWorldSession(content,1,2);s.Tick(default);s.State.Secrets=3;
             Check(s.Completion==null,"Completion exists before exit.");
+            Check(HereticMusic.TrackFor(s)=="MUS_E1M2","Live session music mismatch.");
             var line=s.World.Map.Lines[0];line.Special=(LineSpecial)code;
             if(code==11 || code==51)s.UseLine(line);else s.CrossLine(line,0,s.Body);
             bool secret=code==51 || code==105;
             Check(s.ExitRequested && s.SecretExitRequested==secret && s.Completion.HasValue,"Exit action did not publish completion.");
+            Check(HereticMusic.TrackFor(s)=="MUS_INTR","Completion music did not switch.");
             var result=s.Completion.Value;
             Check(result.Episode==1 && result.Map==2 && result.Secret==secret && result.NextMap==(secret?9:3) && result.ElapsedTics==1 && result.Secrets==3,"Completion snapshot lost route/stats.");
             var x=s.Body.X;var y=s.Body.Y;

@@ -1,3 +1,4 @@
+@* s&Doom modification: 2026-09-29, map/intermission music through shared MUS/MIDI playback. *@
 @* s&Doom modification: 2026-09-29, death restart and release-gated transition input. *@
 @* s&Doom modification: 2026-09-29, preview campaign completion and transactional host replacement. *@
 @using System
@@ -42,6 +43,7 @@
             }
         </div>
     }
+    @if (!string.IsNullOrEmpty(_musicError)) { <div style="color: #ffaaaa;">@_musicError</div> }
     <SboxManagedDoomLicenses />
 </root>
 
@@ -71,6 +73,10 @@
     [Property] public bool TestFlight { get; set; }
     private HereticWorldSession _session;
     private SboxHereticSound _sound;
+    private SboxManagedDoomMusic _music;
+    private string _musicError, _failedMusicTrack;
+    [Property] public int MusicVolume { get; set; } = 8;
+    [Property] public bool MusicEnabled { get; set; } = true;
     [Property] public float SoundVolume { get; set; } = 0.4f;
     private HereticFrameStepper _stepper = new();
     private string _transitionError;
@@ -117,10 +123,13 @@
             _texture = global::Sandbox.Texture.Create(HereticMapPreview.Width, HereticMapPreview.Height, ImageFormat.RGBA8888)
                 .WithDynamicUsage().Finish();
             _message = _preview.Report;
+            try { _music = new SboxManagedDoomMusic(new Config(), _content); }
+            catch (Exception ex) { _musicError = "Music unavailable: " + ex.Message; }
         }
         catch (Exception ex)
         {
             _sound?.Dispose(); _sound = null;
+            _music?.StartMusic(Bgm.NONE, false); _music = null;
             _content?.Dispose();
             _content = null;
             _preview = null;
@@ -134,6 +143,7 @@
         if (_preview is null) return;
         try
         {
+            UpdateMusic();
             if (_sound != null) { _sound.Volume = SoundVolume; _sound.Update(); }
             if (_session != null && !_session.ExitRequested && _session.State.Health <= 0 && Input.Keyboard.Pressed("ENTER"))
             {
@@ -195,9 +205,28 @@
         catch (Exception ex)
         {
             _sound?.Dispose(); _sound = null;
+            _music?.StartMusic(Bgm.NONE, false); _music = null;
             _preview = null;
             _message = "Heretic preview: " + ex.Message;
             StateHasChanged();
+        }
+    }
+
+    private void UpdateMusic()
+    {
+        if (_music == null) return;
+        var track = MusicEnabled ? (_session == null ? HereticMusic.MapTrack(Episode, Map) : HereticMusic.TrackFor(_session)) : null;
+        try
+        {
+            if (track != _failedMusicTrack || track == null) _music.StartLumpMusic(track, true);
+            _music.Volume = MusicVolume;
+            _music.Update();
+        }
+        catch (Exception ex)
+        {
+            _failedMusicTrack = track;
+            _music.StartMusic(Bgm.NONE, false);
+            _musicError = "Music unavailable: " + ex.Message;
         }
     }
 
@@ -234,6 +263,7 @@
             _elapsed = 0; _lastTic = -1; _lastYaw = float.NaN;
             _transitionError = null;
             _message = nextPreview.Report;
+            _failedMusicTrack = null; _musicError = null;
             oldSound?.Dispose();
         }
         catch (Exception ex)
@@ -260,6 +290,7 @@
     {
         _preview = null;
         _sound?.Dispose(); _sound = null;
+        _music?.StartMusic(Bgm.NONE, false); _music = null;
         _texture?.Dispose();
         _content?.Dispose();
         base.OnDestroy();

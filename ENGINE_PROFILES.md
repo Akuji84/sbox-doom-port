@@ -2198,3 +2198,27 @@ visual playtest is claimed.
 Validation: focused and full regression suites pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Heretic preview map and completion music
+
+The preview now selects the original Heretic track aliases for all 48 standard
+and bonus maps, MUS_INTR at ordinary/secret completion and MUS_CPTD at episode
+completion. Selection follows the current session after continuation/restart.
+Unknown map ranges return no track instead of indexing outside the music table.
+
+The existing MUS/MIDI synthesizer accepts explicit lump names while retaining
+Doom's D_ lookup through its original StartMusic API. A replacement track is decoded
+before stopping the old track. Repeated selection of the same track/loop is ignored.
+The preview exposes music enable/volume independently of sound effects, updates
+streaming during completion panels, and stops music on destruction/fatal preview
+failure. Missing/unusable music reports a separate error without closing gameplay.
+No new music or soundfont assets were added.
+
+Focused tests check representative native aliases, invalid maps, all 48 mapped
+asset headers, transition music assets and live/completed session selection.
+Actual audio playback/mixing requires an editor listening test. Heretic remains
+preview-only; production launch, saves and multiplayer remain gated.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.
