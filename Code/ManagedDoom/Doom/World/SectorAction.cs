@@ -1,6 +1,3 @@
-// s&Doom modification: 2026-09-22, Heretic test-enemy contact, crush and telefrag routing.
-// s&Doom modification: 2026-09-22, carry Heretic scenery riders with sector planes.
-// s&Doom modification: 2026-09-18, Heretic geometry damage and stair speed.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28.
@@ -106,27 +103,6 @@ namespace ManagedDoom
 				return true;
 			}
 
-            if (world.HereticSession != null)
-            {
-                if (thing == world.HereticSession.Body)
-                {
-                    noFit = true;
-                    if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageEnvironment(10);
-                }
-                else if ((thing.Flags & MobjFlags.Shootable) != 0)
-                {
-                    noFit = true;
-                    if (crushChange && (world.LevelTime & 3) == 0) world.HereticSession.DamageTestEnemy(thing, 10, environment: true);
-                }
-                else if (thing.Health <= 0)
-                {
-                    thing.Flags &= ~MobjFlags.Solid;
-                    thing.Height = thing.Radius = Fixed.Zero;
-                }
-                // Heretic test enemies never enter Doom corpse/damage actions.
-                return true;
-            }
-
 			// Crunch bodies to giblets.
 			if (thing.Health <= 0)
 			{
@@ -199,39 +175,7 @@ namespace ManagedDoom
 		/// <summary>
 		/// Move a plane (floor or ceiling) and check for crushing.
 		/// </summary>
-        public SectorActionResult MovePlane(Sector sector, Fixed speed, Fixed dest, bool crush, int floorOrCeiling, int direction)
-        {
-            var session = world.HereticSession;
-            var support = session?.SupportingActor;
-            if (support == null || (support.Subsector.Sector != sector && session.Body.Subsector.Sector != sector)) return MovePlaneCore(sector, speed, dest, crush, floorOrCeiling, direction);
-            var oldFloor = sector.FloorHeight;
-            var oldCeiling = sector.CeilingHeight;
-            var oldZ = session.Body.Z;
-            var health = session.State.Health;
-            var result = MovePlaneCore(sector, speed, dest, crush, floorOrCeiling, direction);
-            var desiredZ = support.Z + support.Height;
-            if (desiredZ + session.Body.Height > session.Body.CeilingZ)
-            {
-                if (!crush)
-                {
-                    // Roll back the same sector and recompute its actor heights, including the rider.
-                    sector.FloorHeight = oldFloor;
-                    sector.CeilingHeight = oldCeiling;
-                    ChangeSector(sector, false);
-                    session.Body.Z = oldZ;
-                }
-                else
-                {
-                    session.Body.Z = desiredZ;
-                    if (session.State.Health == health && (world.LevelTime & 3) == 0) session.DamageEnvironment(10);
-                }
-                return SectorActionResult.Crushed;
-            }
-            session.Body.Z = desiredZ;
-            return result;
-        }
-
-		private SectorActionResult MovePlaneCore(
+		public SectorActionResult MovePlane(
 			Sector sector,
 			Fixed speed,
 			Fixed dest,
@@ -438,7 +382,7 @@ namespace ManagedDoom
 			return floor;
 		}
 
-		internal Fixed FindLowestCeilingSurrounding(Sector sector)
+		private Fixed FindLowestCeilingSurrounding(Sector sector)
 		{
 			var height = Fixed.MaxValue;
 
@@ -1108,7 +1052,7 @@ namespace ManagedDoom
 						floor.Sector = sector;
 						floor.Speed = floorSpeed * 4;
 						floor.FloorDestHeight = FindHighestFloorSurrounding(sector);
-						if (world.HereticSession != null || floor.FloorDestHeight != sector.FloorHeight)
+						if (floor.FloorDestHeight != sector.FloorHeight)
 						{
 							floor.FloorDestHeight += Fixed.FromInt(8);
 						}
@@ -1239,7 +1183,7 @@ namespace ManagedDoom
 		}
 
 
-		public bool BuildStairs(LineDef line, StairType type, bool heretic = false)
+		public bool BuildStairs(LineDef line, StairType type)
 		{
 			var sectors = world.Map.Sectors;
 			var sectorNumber = -1;
@@ -1269,11 +1213,11 @@ namespace ManagedDoom
 				switch (type)
 				{
 					case StairType.Build8:
-						speed = heretic ? floorSpeed : floorSpeed / 4;
+						speed = floorSpeed / 4;
 						stairSize = Fixed.FromInt(8);
 						break;
 					case StairType.Turbo16:
-						speed = heretic ? floorSpeed : floorSpeed * 4;
+						speed = floorSpeed * 4;
 						stairSize = Fixed.FromInt(16);
 						break;
 					default:

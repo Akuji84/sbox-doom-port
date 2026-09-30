@@ -1,5 +1,3 @@
-// s&Doom modification: 2026-09-24, base-only content signatures for game profiles.
-// Additional modification: 2026-09-18, game-profile selection before content initialization.
 // Additional modification: 2026-09-18, Freedom Scoops five-map campaign support.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
@@ -44,11 +42,8 @@ namespace ManagedDoom
         public bool HasFiveMapCampaign => isChexQuest || IsFreedomScoops;
         private readonly List<string> contentHashes = new();
         public string ContentIdentity { get; private set; }
-        public GameProfile Profile { get; private set; }
 
-        public Wad(params string[] fileNames) : this(null, fileNames) { }
-
-        public Wad(GameProfile profile, params string[] fileNames)
+        public Wad(params string[] fileNames)
         {
             try
             {
@@ -69,7 +64,6 @@ namespace ManagedDoom
                 gameMode = GetGameMode();
                 missionPack = GetMissionPack(names);
                 gameVersion = GetGameVersion();
-                Profile = GameProfile.Select(this, profile);
 
             }
             catch
@@ -127,10 +121,6 @@ namespace ManagedDoom
                 }
             }
         }
-
-        // Never let add-on lumps select the base game's family, including an empty base.
-        internal bool BaseContainsLump(string name) => streams.Count > 0 &&
-            lumpInfos.Any(lump => ReferenceEquals(lump.Stream, streams[0]) && lump.Name == name);
 
         public int GetLumpNumber(string name)
         {

@@ -1,4 +1,3 @@
-// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
 // Additional modification: 2026-09-18, Freedom Scoops missing multiplayer starts.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
@@ -75,7 +74,6 @@ namespace ManagedDoom
 
         public World(GameContent resorces, GameOptions options, DoomGame game)
         {
-            resorces.Profile.EnsureRuntimeSupported();
             this.options = options;
             this.game = game;
             this.random = options.Random;
@@ -176,7 +174,6 @@ namespace ManagedDoom
 
         public UpdateResult Update()
         {
-            if (IsGeometryPreview) throw new InvalidOperationException("Geometry previews cannot simulate gameplay.");
             var players = options.Players;
 
             for (var i = 0; i < Player.MaxPlayerCount; i++)

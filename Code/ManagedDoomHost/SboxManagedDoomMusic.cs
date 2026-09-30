@@ -1,4 +1,3 @@
-// s&Doom modification: 2026-09-29, explicit music lumps for Heretic preview.
 using System;
 using System.IO;
 using MeltySynth;
@@ -24,7 +23,7 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
 
     private SoundStream currentStream;
     private SoundHandle currentHandle;
-    private string currentLump;
+    private ManagedDoom.Bgm currentBgm;
     private bool currentLoop;
     private IDecoder currentDecoder;
     private float queuedSeconds;
@@ -48,25 +47,29 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
         left = new float[ChunkFrames];
         right = new float[ChunkFrames];
         interleavedChunk = new short[ChunkFrames * 2];
-        currentLump = null;
+        currentBgm = ManagedDoom.Bgm.NONE;
     }
 
     public void StartMusic( ManagedDoom.Bgm bgm, bool loop )
     {
-        StartLumpMusic(bgm == ManagedDoom.Bgm.NONE ? null :
-            "D_" + ManagedDoom.DoomInfo.BgmNames[(int)bgm].ToString().ToUpperInvariant(), loop);
-    }
+        if ( bgm == currentBgm && loop == currentLoop )
+        {
+            return;
+        }
 
-    public void StartLumpMusic(string lumpName, bool loop)
-    {
-        if (lumpName == currentLump && loop == currentLoop) return;
-        // Decode before replacing the currently playing track.
-        var decoder = lumpName == null ? null : CreateDecoder(content.Wad.ReadLump(lumpName), loop);
         StopCurrent();
-        currentLump = lumpName;
+
+        currentBgm = bgm;
         currentLoop = loop;
-        if (decoder == null) return;
-        currentDecoder = decoder;
+
+        if ( bgm == ManagedDoom.Bgm.NONE )
+        {
+            return;
+        }
+
+        var lumpName = "D_" + ManagedDoom.DoomInfo.BgmNames[(int)bgm].ToString().ToUpperInvariant();
+        var data = content.Wad.ReadLump( lumpName );
+        currentDecoder = CreateDecoder( data, loop );
 
         synthesizer.Reset();
 
@@ -81,7 +84,7 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
 
     public void Update()
     {
-        if ( currentDecoder is null )
+        if ( currentBgm == ManagedDoom.Bgm.NONE || currentDecoder is null )
         {
             return;
         }
@@ -102,7 +105,7 @@ public sealed class SboxManagedDoomMusic : ManagedDoom.Audio.IMusic
         {
             if ( !currentLoop && currentDecoder.Ended && queuedSeconds <= 0.0f )
             {
-                currentLump = null;
+                currentBgm = ManagedDoom.Bgm.NONE;
                 StopCurrent();
                 return;
             }

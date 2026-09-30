@@ -1,4 +1,3 @@
-// Additional modification: 2026-09-18, game-profile runtime guard.
 // Additional modification: 2026-09-18, Freedom Scoops five-map campaign support.
 // s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
@@ -49,7 +48,6 @@ namespace ManagedDoom
 
 		public DoomGame(GameContent content, GameOptions options)
 		{
-			content.Profile.EnsureRuntimeSupported();
 			this.content = content;
 			this.options = options;
 
@@ -676,7 +674,6 @@ namespace ManagedDoom
         }
 
 		public GameOptions Options => options;
-		public GameProfile Profile => content.Profile;
 		public GameState State => gameState;
 		public int GameTic => gameTic;
 		public World World => world;

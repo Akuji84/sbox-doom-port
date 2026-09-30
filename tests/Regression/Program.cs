@@ -4,12 +4,6 @@ using System.Security.Cryptography;
 using static Sandbox.SboxManagedDoomShellBridgeService;
 
 var root = Path.GetFullPath(args.Length > 0 ? args[0] : ".");
-if (args.Contains("--frames")) { HereticFrameChecks.Verify(); return; }
-if (args.Contains("--campaign")) { HereticCampaignExitChecks.Verify(root); return; }
-if (args.Contains("--chase")) { HereticEnemyMovementChecks.Verify(root); HereticAttackCadenceChecks.Verify(root); HereticAcquisitionChecks.Verify(root); HereticInfightingChecks.Verify(root); HereticNoiseChecks.Verify(root); HereticGhostFacingChecks.Verify(root); HereticChaseSoundChecks.Verify(root); HereticDeathActionChecks.Verify(root); HereticCampaignExitChecks.Verify(root); HereticMonsterDoorChecks.Verify(root); return; }
-if (args.Contains("--sorcerer")) { HereticSorcererChecks.Verify(root); HereticMountedSorcererChecks.Verify(root); HereticSorcererPhaseChecks.Verify(root); HereticSorcererBossChecks.Verify(root); HereticSorcererMapChecks.Verify(root); HereticSummoningChecks.Verify(root); return; }
-if (args.Contains("--maulotaur")) { HereticMaulotaurChecks.Verify(root); HereticMaulotaurChargeChecks.Verify(root); HereticMaulotaurBossChecks.Verify(root); return; }
-if (args.Contains("--iron-lich")) { HereticIronLichCombatChecks.Verify(root); return; }
 foreach (var length in new[] {0,1,55,56,63,64,65,127,128,1024})
 {
     var bytes = new byte[length]; new Random(length).NextBytes(bytes);
@@ -210,72 +204,4 @@ foreach (var name in new[] { "fsfc1", "fssc1" })
     Assert(freedoomBaseline.SequenceEqual(RunFreedoomAfterWadSwitch()),
         "switching from " + name + " back to Freedoom restores original simulation behavior");
 }
-CompatibilitySnapshots.Verify(root, args.Contains("--record-compatibility"));
-GameProfileChecks.Verify(root);
-HereticPreviewChecks.Verify(root);
-HereticMovementChecks.Verify(root);
-HereticActorChecks.Verify(root);
-HereticSpawnChecks.Verify(root);
-HereticHeightChecks.Verify(root);
-HereticDamageChecks.Verify(root);
-HereticClinkChecks.Verify(root);
-HereticGolemChecks.Verify(root);
-HereticNitrogolemChecks.Verify(root);
-HereticBeastChecks.Verify(root);
-HereticKnightChecks.Verify(root);
-HereticOphidianChecks.Verify(root);
-HereticWizardChecks.Verify(root);
-HereticGargoyleChecks.Verify(root);
-HereticIronLichChecks.Verify(root);
-HereticWhirlwindChecks.Verify(root);
-HereticIronLichCombatChecks.Verify(root);
-HereticMaulotaurChecks.Verify(root);
-HereticMaulotaurChargeChecks.Verify(root);
-HereticMaulotaurBossChecks.Verify(root);
-HereticEnemyMovementChecks.Verify(root); HereticAttackCadenceChecks.Verify(root); HereticAcquisitionChecks.Verify(root); HereticInfightingChecks.Verify(root); HereticNoiseChecks.Verify(root); HereticGhostFacingChecks.Verify(root); HereticChaseSoundChecks.Verify(root); HereticDeathActionChecks.Verify(root); HereticCampaignExitChecks.Verify(root); HereticMonsterDoorChecks.Verify(root);
-HereticSorcererChecks.Verify(root); HereticMountedSorcererChecks.Verify(root); HereticSorcererPhaseChecks.Verify(root); HereticSorcererBossChecks.Verify(root); HereticSorcererMapChecks.Verify(root);
-HereticSummoningChecks.Verify(root);
-HereticWandChecks.Verify(root);
-HereticImpactChecks.Verify(root);
-HereticShootChecks.Verify(root);
-HereticSoundChecks.Verify(root);
-HereticAmmoChecks.Verify(root);
-HereticArmorChecks.Verify(root);
-HereticFeedbackChecks.Verify(root);
-HereticCrossbowChecks.Verify(root);
-HereticSkullRodChecks.Verify(root);
-HereticPhoenixChecks.Verify(root);
-HereticTerrainChecks.Verify(root);
-HereticMaceProjectileChecks.Verify(root);
-HereticMaceWeaponChecks.Verify(root);
-HereticDropChecks.Verify(root);
-HereticArtifactChecks.Verify(root);
-HereticAutoHealChecks.Verify(root);
-HereticWingsChecks.Verify(root);
-HereticRingChecks.Verify(root);
-HereticTorchChecks.Verify(root);
-HereticChaosChecks.Verify(root);
-HereticTimeBombChecks.Verify(root);
-        HereticShadowsphereChecks.Verify(root);
-HereticTranslucencyChecks.Verify(root);
-HereticBagChecks.Verify(root);
-HereticPoweredStaffChecks.Verify(root);
-HereticPoweredGauntletChecks.Verify(root);
-HereticPoweredCrossbowChecks.Verify(root);
-HereticPoweredWandChecks.Verify(root);
-HereticPoweredBlasterChecks.Verify(root);
-HereticPoweredPhoenixChecks.Verify(root);
-HereticPoweredMaceChecks.Verify(root);
-HereticSeekerChecks.Verify(root);
-HereticPoweredSkullRodChecks.Verify(root);
-HereticTomeChecks.Verify(root);
-HereticArtifactHudChecks.Verify(root);
-HereticStatusHudChecks.Verify(root);
-HereticEggChecks.Verify(root);
-HereticChickenChecks.Verify(root);
-HereticOvumChecks.Verify(root);
-HereticBeakChecks.Verify(root);
-HereticPlayerMorphChecks.Verify(root);
-HereticAutomapChecks.Verify(root);
-CompatibilitySnapshots.Verify(root, false); // Switching back after Heretic must preserve Doom definitions.
 Console.WriteLine("All regression checks passed.");

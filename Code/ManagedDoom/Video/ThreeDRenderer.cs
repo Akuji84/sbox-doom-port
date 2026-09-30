@@ -1,8 +1,4 @@
-// s&Doom modification: 2026-09-22, Heretic world-sprite TINTTAB translucency.
-// s&Doom modification: 2026-09-22, opt-in Heretic ghost weapon tint and lighting.
-// s&Doom modification: 2026-09-22, expose shared weapon lighting for the Heretic overlay.
-// s&Doom modification: 2026-09-18, isolated Heretic asset/geometry preview.
-//
+﻿//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
 //
@@ -40,19 +36,11 @@ namespace ManagedDoom.Video
         private int drawScale;
 
         private int windowSize;
-        private readonly bool geometryPreview;
-        private readonly byte[] hereticTintTable;
 
         private Fixed frameFrac;
 
         public ThreeDRenderer(GameContent content, DrawScreen screen, int windowSize)
         {
-            geometryPreview = content.Profile.Family == GameFamily.Heretic;
-            if (geometryPreview)
-            {
-                hereticTintTable = content.Wad.ReadLump(content.Wad.GetLumpNumber("TINTTAB"));
-                if (hereticTintTable.Length != 65536) throw new ArgumentException("Heretic TINTTAB must contain 65536 bytes.");
-            }
             colorMap = content.ColorMap;
             textures = content.Textures;
             flats = content.Flats;
@@ -75,14 +63,13 @@ namespace ManagedDoom.Video
             InitWeaponRendering();
             InitFuzzEffect();
             InitColorTranslation();
-            if (content.Profile.Family == GameFamily.Doom) InitWindowBorder(content.Wad);
+            InitWindowBorder(content.Wad);
 
             SetWindowSize(windowSize);
         }
 
         private void SetWindowSize(int size)
         {
-            if (geometryPreview && size < 8) throw new ArgumentException("Heretic preview requires a full-screen viewport.");
             var scale = screenWidth / 320;
             if (size < 7)
             {
@@ -271,7 +258,7 @@ namespace ManagedDoom.Video
         {
             for (int i = 0; i < windowHeight; i++)
             {
-                var dy = Fixed.FromInt(i - centerY) + Fixed.One / 2;
+                var dy = Fixed.FromInt(i - windowHeight / 2) + Fixed.One / 2;
                 dy = Fixed.Abs(dy);
                 planeYSlope[i] = Fixed.FromInt(windowWidth / 2) / dy;
             }
@@ -308,8 +295,7 @@ namespace ManagedDoom.Video
 
         private void InitSkyRendering()
         {
-            // Heretic uses a 200-unit sky origin (Chocolate Doom src/heretic/r_plane.c).
-            skyTextureAlt = Fixed.FromInt(geometryPreview ? 200 : 100);
+            skyTextureAlt = Fixed.FromInt(100);
         }
 
         private void ResetSkyRendering()
@@ -723,16 +709,9 @@ namespace ManagedDoom.Video
 
 
 
-        public void Render(Player player, Fixed frameFrac, int lookDirection = 0)
+        public void Render(Player player, Fixed frameFrac)
         {
             this.frameFrac = frameFrac;
-            var horizon = windowHeight / 2 + (geometryPreview ? Math.Clamp(lookDirection, -110, 90) * windowHeight / 200 : 0);
-            if (centerY != horizon)
-            {
-                centerY = horizon;
-                centerYFrac = Fixed.FromInt(centerY);
-                ResetPlaneRendering();
-            }
 
             world = player.Mobj.World;
 
@@ -2266,8 +2245,7 @@ namespace ManagedDoom.Video
             int y1,
             int y2,
             Fixed invScale,
-            Fixed textureAlt,
-            bool translucent = false)
+            Fixed textureAlt)
         {
             if (y2 - y1 < 0)
             {
@@ -2293,9 +2271,7 @@ namespace ManagedDoom.Video
             {
                 // Re-map color indices from wall texture column
                 // using a lighting/special effects LUT.
-                var mapped = map[source[offset + ((frac.Data >> Fixed.FracBits) & 127)]];
-                // Heretic r_draw.c blends the lit source index with the destination.
-                screenData[pos] = translucent ? hereticTintTable[(screenData[pos] << 8) + mapped] : mapped;
+                screenData[pos] = map[source[offset + ((frac.Data >> Fixed.FracBits) & 127)]];
                 frac += fracStep;
             }
         }
@@ -2392,8 +2368,7 @@ namespace ManagedDoom.Video
             Fixed invScale,
             Fixed textureAlt,
             int upperClip,
-            int lowerClip,
-            bool translucent = false)
+            int lowerClip)
         {
             foreach (var column in columns)
             {
@@ -2408,7 +2383,7 @@ namespace ManagedDoom.Video
                 if (y1 <= y2)
                 {
                     var alt = new Fixed(textureAlt.Data - (column.TopDelta << Fixed.FracBits));
-                    DrawColumn(column, map, x, y1, y2, invScale, alt, translucent);
+                    DrawColumn(column, map, x, y1, y2, invScale, alt);
                 }
             }
         }
@@ -2752,18 +2727,7 @@ namespace ManagedDoom.Video
                 }
             }
 
-            if (hereticTintTable != null && (sprite.MobjFlags & MobjFlags.Shadow) != 0)
-            {
-                var frac = sprite.StartFrac;
-                for (var x = sprite.X1; x <= sprite.X2; x++)
-                {
-                    DrawMaskedColumn(sprite.Patch.Columns[frac.ToIntFloor()], sprite.ColorMap,
-                        x, centerYFrac - sprite.TextureAlt * sprite.Scale, sprite.Scale,
-                        Fixed.Abs(sprite.InvScale), sprite.TextureAlt, upperClip[x], lowerClip[x], true);
-                    frac += sprite.InvScale;
-                }
-            }
-            else if ((sprite.MobjFlags & MobjFlags.Shadow) != 0)
+            if ((sprite.MobjFlags & MobjFlags.Shadow) != 0)
             {
                 var frac = sprite.StartFrac;
                 for (var x = sprite.X1; x <= sprite.X2; x++)
@@ -2947,14 +2911,6 @@ namespace ManagedDoom.Video
 
 
 
-        internal byte[] GetWeaponColorMap(int sectorLight, bool fullBright, bool ghost = false)
-        {
-            if (!ghost && fixedColorMap != 0) return colorMap[fixedColorMap];
-            if (!ghost && fullBright) return colorMap.FullBright;
-            var level = Math.Clamp((sectorLight >> lightSegShift) + extraLight, 0, lightLevelCount - 1);
-            return scaleLight[level][maxScaleLight - 1];
-        }
-
         private void DrawPlayerSprites(Player player)
         {
             // Get light level.
@@ -3008,8 +2964,8 @@ namespace ManagedDoom.Video
 
             set
             {
-                SetWindowSize(value);
                 windowSize = value;
+                SetWindowSize(windowSize);
             }
         }
 

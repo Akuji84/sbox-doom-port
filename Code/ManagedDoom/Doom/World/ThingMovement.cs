@@ -1,10 +1,3 @@
-// s&Doom modification: 2026-09-29, Heretic flying-monster species collision.
-// s&Doom modification: 2026-09-24, native Maulotaur slam contact routing.
-// s&Doom modification: 2026-09-24, route Gargoyle charge contacts through native Heretic states.
-// s&Doom modification: 2026-09-22, isolated native Heretic crossbow collision and sky routing.
-// s&Doom modification: 2026-09-22, Heretic test-enemy contact, crush and telefrag routing.
-// s&Doom modification: 2026-09-22, Heretic player/scenery height collision.
-// s&Doom modification: 2026-09-18, isolated Heretic movement dispatch.
 ﻿// s&Doom modification notice (added 2026-09-16).
 // This file has been modified from Managed Doom for the s&Doom port.
 // Recorded project revision dates: 2026-03-28, 2026-04-30.
@@ -68,7 +61,6 @@ namespace ManagedDoom
         private bool floatOk;
 
         private LineDef currentCeilingLine;
-        internal bool HereticMissileHitSky => currentCeilingLine?.BackSector?.CeilingFlat == world.Map.SkyFlatNumber;
 
         public int crossedSpecialCount;
         public LineDef[] crossedSpecials;
@@ -299,22 +291,6 @@ namespace ManagedDoom
                 return true;
             }
 
-            if (world.HereticSession?.FindProjectile(currentThing) is HereticProjectile projectile)
-                return projectile.Contact(thing);
-
-            // Heretic player/scenery contacts use height as well as the blockmap footprint.
-            // Keep this dispatch ahead of Doom's missile, pickup and damage actions.
-            if (world.HereticSession != null && (currentThing == world.HereticSession.Body || world.HereticSession.IsTestEnemy(currentThing)))
-            {
-                if (world.HereticSession.BlocksFlyingMonsterPassage(currentThing,thing)) return false;
-                if (currentThing.Z >= thing.Z + thing.Height || currentThing.Z + currentThing.Height <= thing.Z)
-                    return true;
-                foreach (var enemy in world.HereticSession.CombatEnemies)
-                    if (enemy.Body == currentThing && (enemy.GargoyleCharging || enemy.MaulotaurCharging))
-                    { if (enemy.MaulotaurCharging) enemy.MaulotaurChargeContact(thing); else enemy.GargoyleChargeContact(thing); return false; }
-                return (thing.Flags & MobjFlags.Solid) == 0;
-            }
-
             // Check for skulls slamming into things.
             if ((currentThing.Flags & MobjFlags.SkullFly) != 0)
             {
@@ -531,12 +507,6 @@ namespace ManagedDoom
                 }
 
                 floatOk = true;
-                if (world.HereticSession?.State.Flying == true && thing == world.HereticSession.Body)
-                {
-                    if (thing.Z + thing.Height > currentCeilingZ) { thing.MomZ = Fixed.FromInt(-8); return false; }
-                    if (thing.Z < currentFloorZ && currentFloorZ - currentDropoffZ > Fixed.FromInt(24))
-                    { thing.MomZ = Fixed.FromInt(8); return false; }
-                }
 
                 if ((thing.Flags & MobjFlags.Teleport) == 0 &&
                     currentCeilingZ - thing.Z < thing.Height)
@@ -586,8 +556,7 @@ namespace ManagedDoom
                     {
                         if (line.Special != 0)
                         {
-                            if (world.HereticSession != null) world.HereticSession.CrossLine(line, oldSide, thing);
-                            else world.MapInteraction.CrossSpecialLine(line, oldSide, thing);
+                            world.MapInteraction.CrossSpecialLine(line, oldSide, thing);
                         }
                     }
                 }
@@ -999,7 +968,7 @@ namespace ManagedDoom
         /// Find the first line hit, move flush to it, and slide along it.
         /// This is a kludgy mess.
         /// </summary>
-        internal void SlideMove(Mobj thing)
+        private void SlideMove(Mobj thing)
         {
             var pt = world.PathTraversal;
 
@@ -1151,13 +1120,6 @@ namespace ManagedDoom
             if (thing == currentThing)
             {
                 return true;
-            }
-
-            if (world.HereticSession != null)
-            {
-                if (currentThing != world.HereticSession.Body) return false;
-                world.HereticSession.DamageTestEnemy(thing, 10000);
-                return (thing.Flags & MobjFlags.Shootable) == 0;
             }
 
             // Monsters don't stomp things except on boss level.

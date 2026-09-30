@@ -18,25 +18,7 @@ are in freedomscoops-COPYING.txt. Credits, music credits and inherited Freedoom
 credits are in the accompanying freedomscoops-* files. No endorsement is implied.
 Upstream: https://github.com/FreedomScoops/FreedomScoops/releases/tag/dev
 
-Blasphemer 0.1.8 is bundled for the Heretic geometry preview under BSD-3-Clause.
-Copyright and contributor notices are preserved in `Assets/doom/blasphemer-COPYING.txt`
-and `blasphemer-CREDITS.txt`. No endorsement is implied.
-Upstream: https://github.com/Blasphemer/blasphemer/releases/tag/v0.1.8
-
 ### Program code
-
-Heretic asset names and animation definitions are adapted from Chocolate Doom
-commit 895f581c5d91497bdda0516612da803fe5843e28, `src/heretic/info.c` and
-`src/heretic/p_spec.c`, under GPL-2.0-or-later. Copyright 1993-1996 Id Software,
-1993-2008 Raven Software and 2005-2014 Simon Howard. Original notices remain
-in `HereticAssets.cs`.
-
-Heretic navigation and interaction code also adapts that revision's `p_user.c`,
-`p_mobj.c`, `p_map.c`, `p_inter.c`, `p_spec.c`, `p_switch.c`, `p_floor.c` and
-`p_telept.c`, under the same GPL-2.0-or-later terms and copyright notices. Adapted
-files identify the source revision and modification date. Doom's sector and
-collision infrastructure remains derived from Managed Doom.
-
 
 This project includes code derived from or based on:
 

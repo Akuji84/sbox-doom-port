@@ -1,5 +1,3 @@
-// s&Doom modification: 2026-09-22, opt-in Heretic ghost weapon tint and lighting.
-// s&Doom modification: 2026-09-22, optional palette mapping for lit Heretic weapon overlays.
 ﻿//
 // Copyright (C) 1993-1996 Id Software, Inc.
 // Copyright (C) 2019-2020 Nobuaki Tanaka
@@ -48,7 +46,7 @@ namespace ManagedDoom.Video
             }
         }
 
-        public void DrawPatch(Patch patch, int x, int y, int scale, byte[] colorMap = null, byte[] tintTable = null)
+        public void DrawPatch(Patch patch, int x, int y, int scale)
         {
             var drawX = x - scale * patch.LeftOffset;
             var drawY = y - scale * patch.TopOffset;
@@ -73,12 +71,12 @@ namespace ManagedDoom.Video
 
             for (; i < drawWidth; i++)
             {
-                DrawColumn(patch.Columns[frac.ToIntFloor()], drawX + i, drawY, scale, colorMap, tintTable);
+                DrawColumn(patch.Columns[frac.ToIntFloor()], drawX + i, drawY, scale);
                 frac += step;
             }
         }
 
-        public void DrawPatchFlip(Patch patch, int x, int y, int scale, byte[] colorMap = null, byte[] tintTable = null)
+        public void DrawPatchFlip(Patch patch, int x, int y, int scale)
         {
             var drawX = x - scale * patch.LeftOffset;
             var drawY = y - scale * patch.TopOffset;
@@ -104,12 +102,12 @@ namespace ManagedDoom.Video
             for (; i < drawWidth; i++)
             {
                 var col = patch.Width - frac.ToIntFloor() - 1;
-                DrawColumn(patch.Columns[col], drawX + i, drawY, scale, colorMap, tintTable);
+                DrawColumn(patch.Columns[col], drawX + i, drawY, scale);
                 frac += step;
             }
         }
 
-        private void DrawColumn(Column[] source, int x, int y, int scale, byte[] colorMap = null, byte[] tintTable = null)
+        private void DrawColumn(Column[] source, int x, int y, int scale)
         {
             var step = Fixed.One / scale;
 
@@ -142,9 +140,7 @@ namespace ManagedDoom.Video
 
                 for (; i < drawLength; i++)
                 {
-                    var pixel = column.Data[sourceIndex + frac.ToIntFloor()];
-                    var mapped = colorMap == null ? pixel : colorMap[pixel];
-                    data[p] = tintTable == null ? mapped : tintTable[(data[p] << 8) + mapped];
+                    data[p] = column.Data[sourceIndex + frac.ToIntFloor()];
                     p++;
                     frac += step;
                 }
