@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, stop active preview effects while retaining session subscription.
 // Copyright (C) 2026 s&Doom contributors; SPDX-License-Identifier: GPL-2.0-or-later
 using System;
 using System.Collections.Generic;
@@ -50,10 +51,15 @@ public sealed class SboxHereticSound : IDisposable
         stream.WriteData(HereticSoundAttenuation.Stereo(data.Samples, HereticSoundAttenuation.Separation(source, session.Body))); stream.Close();
         active.Add((stream, handle, source));
     }
+    public void StopEffects()
+    {
+        foreach (var sound in active) { sound.handle.Stop(); sound.stream.Close(); }
+        active.Clear();
+    }
     public void Dispose()
     {
         session.SoundRequested -= Play;
-        foreach (var sound in active) { sound.handle.Stop(); sound.stream.Close(); }
-        active.Clear(); cache.Clear();
+        StopEffects();
+        cache.Clear();
     }
 }

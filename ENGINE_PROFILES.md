@@ -2222,3 +2222,26 @@ preview-only; production launch, saves and multiplayer remain gated.
 Validation: focused and full regression suites pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Local preview pause and safe resume
+
+Escape toggles pause in an unfinished single-player preview session; a Resume
+button is also available. Paused frames do not advance simulation or gameplay
+input, so monsters, powers, environment and level time remain frozen. The frame
+stepper discards fractional time and queued use/attack/artifact/weapon actions
+when pause changes, avoiding stale input and catch-up on resume. Host attack/use
+release gating also applies after resume. Network sessions cannot use this local
+pause control, and completed-map continuation remains separate.
+
+Active effect streams stop on pause without losing the session sound subscription;
+music continues. Death restart cannot run underneath the paused overlay. Fresh
+map/restart replacements create an unpaused frame stepper.
+
+Focused tests cover long paused intervals, frozen power duration, no catch-up,
+queued-action discard, fresh post-resume use input and repeated pause-state calls.
+Editor input/visual/audio playtesting is still needed. Heretic remains preview-only;
+production launch, saves and multiplayer remain gated.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.

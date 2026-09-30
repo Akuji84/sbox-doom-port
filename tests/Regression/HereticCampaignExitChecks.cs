@@ -7,6 +7,15 @@ static class HereticCampaignExitChecks
     {
         Check(HereticMusic.MapTrack(2,5)=="MUS_E1M4" && HereticMusic.MapTrack(3,8)=="MUS_E1M9" && HereticMusic.MapTrack(4,1)=="MUS_E1M6" && HereticMusic.MapTrack(5,9)=="MUS_E2M9" && HereticMusic.MapTrack(6,3)=="MUS_E1M6","Native music aliases changed.");
         Check(HereticMusic.MapTrack(0,1)==null && HereticMusic.MapTrack(6,4)==null && HereticMusic.MapTrack(1,10)==null,"Invalid music map accepted.");
+        var pauseStepper=new HereticFrameStepper();var sent=new List<HereticCommand>();
+        pauseStepper.Advance(0.001,new HereticCommand{Use=true,TestAttack=true,UseArtifact=HereticArtifact.QuartzFlask,SelectWeapon=HereticWeapon.wp_staff},sent.Add);
+        pauseStepper.SetPaused(true);
+        pauseStepper.Advance(3600,new HereticCommand{Use=true,TestAttack=true},sent.Add);
+        Check(sent.Count==0 && pauseStepper.TickCount==0,"Paused time advanced simulation.");
+        pauseStepper.SetPaused(false);pauseStepper.Advance(1.0/35,default,sent.Add);
+        Check(sent.Count==1 && !sent[0].Use && !sent[0].TestAttack && sent[0].UseArtifact==null && sent[0].SelectWeapon==null && pauseStepper.TickCount==1,"Resume replayed queued input or caught up paused time.");
+        pauseStepper.SetPaused(false);pauseStepper.Advance(1.0/35,new HereticCommand{Use=true},sent.Add);
+        Check(sent.Count==2 && sent[1].Use,"Fresh post-resume input lost.");
         int[] returns={7,5,5,5,4};
         for(int episode=1;episode<=5;episode++)
         for(int map=1;map<=9;map++)
@@ -88,6 +97,13 @@ static class HereticCampaignExitChecks
         Check(rejected,"Network respawn leaked into single-player restart.");
         reborn.Tick(default);var rebornExit=reborn.World.Map.Lines[0];rebornExit.Special=(LineSpecial)52;reborn.CrossLine(rebornExit,0,reborn.Body);
         Check(reborn.Completion.Value.Map==2 && reborn.Completion.Value.ElapsedTics==1 && reborn.CreateNextCampaignSession().State.Health==100,"Restarted map cannot continue campaign.");
+        var frozen=new HereticWorldSession(content,1,1);frozen.State.InvulnerabilityTics=70;
+        var frozenStepper=new HereticFrameStepper();frozenStepper.SetPaused(true);
+        frozenStepper.Advance(10,new HereticCommand{Forward=50},frozen.Tick);
+        Check(frozen.State.InvulnerabilityTics==70,"Pause consumed power timer.");
+        frozenStepper.SetPaused(false);frozenStepper.Advance(1.0/35,default,frozen.Tick);
+        Check(frozen.State.InvulnerabilityTics==69,"Resume did not advance exactly one power tick.");
+        Console.WriteLine("PASS preview pause: frozen time/powers, no catch-up, discarded queued actions and fresh input after resume");
         var stats=new HereticWorldSession(content,1,1);var secrets=stats.World.Map.Sectors.Count(sector=>(int)sector.Special==9);
         stats.StartMapCombat();var totalKills=stats.TotalKills;var totalItems=stats.TotalItems;
         Check(totalKills==stats.CombatEnemies.Count(enemy=>(enemy.Body.Flags&MobjFlags.CountKill)!=0) && stats.TotalSecrets==secrets,"Map totals do not match initial world.");

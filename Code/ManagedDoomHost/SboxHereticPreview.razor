@@ -1,3 +1,4 @@
+@* s&Doom modification: 2026-09-29, local preview pause and input reset. *@
 @* s&Doom modification: 2026-09-29, map/intermission music through shared MUS/MIDI playback. *@
 @* s&Doom modification: 2026-09-29, death restart and release-gated transition input. *@
 @* s&Doom modification: 2026-09-29, preview campaign completion and transactional host replacement. *@
@@ -44,6 +45,13 @@
         </div>
     }
     @if (!string.IsNullOrEmpty(_musicError)) { <div style="color: #ffaaaa;">@_musicError</div> }
+    @if (_stepper.Paused)
+    {
+        <div style="position: absolute; background-color: #111e; padding: 24px; color: white; flex-direction: column; align-items: center; pointer-events: all;">
+            <div style="font-size: 28px;">Paused</div>
+            <button style="padding: 12px;" onclick="@TogglePause">Resume — Escape</button>
+        </div>
+    }
     <SboxManagedDoomLicenses />
 </root>
 
@@ -144,6 +152,8 @@
         try
         {
             UpdateMusic();
+            if (_session != null && !_session.ExitRequested && Input.Keyboard.Pressed("ESCAPE")) TogglePause();
+            if (_stepper.Paused) { StateHasChanged(); return; }
             if (_sound != null) { _sound.Volume = SoundVolume; _sound.Update(); }
             if (_session != null && !_session.ExitRequested && _session.State.Health <= 0 && Input.Keyboard.Pressed("ENTER"))
             {
@@ -191,7 +201,7 @@
                 };
                 _stepper.Advance(Time.Delta, command, StepNavigation);
                 tic = _stepper.TickCount;
-                _message = "Navigation test: Tab automap; Z/X zoom; O follow/free pan; arrows pan; M mark; C clear; WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
+                _message = "Navigation test: Escape pauses; Tab automap; Z/X zoom; O follow/free pan; arrows pan; M mark; C clear; WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; armor " + _session.State.ArmorPoints + "; keys " + _session.State.Keys + ". " + _session.State.Message +
                     " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Combat preview: 1 selects staff (powered with Test Powered Staff), 2 Gold Wand (Test Powered Gold Wand enables powered shots), 3 Crossbow (Test Powered Crossbow enables powered shots), 4 Dragon Claw (pickup, Test Blaster or Test Powered Blaster); 5 Hellstaff (pickup, Test Skull Rod or Test Powered Skull Rod); 6 Phoenix Rod (pickup, Test Phoenix or Test Powered Phoenix); 7 Firemace (pickup, Test Mace or Test Powered Mace); 8 Gauntlets (pickup, Test Gauntlets or Test Powered Gauntlets); Space attacks; mace ammo " + _session.GoldWand?.MaceAmmo + "; Phoenix ammo " + _session.GoldWand?.PhoenixAmmo + "; Hellstaff ammo " + _session.GoldWand?.SkullRodAmmo + "; crossbow ammo " + _session.GoldWand?.CrossbowAmmo + "; claw ammo " + _session.GoldWand?.BlasterAmmo + "; wand ammo " + _session.GoldWand?.Ammo + "; Bag of Holding " + (_session.GoldWand?.HasBagOfHolding == true ? "yes" : "no") + "; kills " + _session.TestKills + ". Local encounter sounds enabled; Supported enemy ammo drops are collectible. Q uses Flask; U uses Urn; G uses Wings (R/F fly, End land); I uses Ring; T uses Torch; H uses Chaos Device; B places Time Bomb; J uses Shadowsphere; K uses Tome of Power; L uses Morph Ovum; V toggles artifact inventory. Morph Ovums " + _session.State.MorphOvums + ". Tomes " + _session.State.TomesOfPower + "; power seconds " + ((_session.State.WeaponPowerTics + 34) / 35) + ". Shadowspheres " + _session.State.Shadowspheres + "; ghost seconds " + ((_session.State.InvisibilityTics + 34) / 35) + ". Flasks " + _session.State.QuartzFlasks + "; urns " + _session.State.MysticUrns + "; wings " + _session.State.WingsOfWrath + "; bombs " + _session.State.TimeBombs + "; Chaos Devices " + _session.State.ChaosDevices + "; torches " + _session.State.Torches + "; torch seconds " + ((_session.State.TorchTics + 34) / 35) + "; rings " + _session.State.RingsOfInvincibility + "; invincibility seconds " + ((_session.State.InvulnerabilityTics + 34) / 35) + "; flight seconds " + ((_session.State.FlightTics + 34) / 35) + ". " : "Combat is disabled. ") + "Combat actors: " + _session.TestEnemyCount + "; blocked placements: " + _session.BlockedMapEnemies + ". Test Player Chicken enables timed player morphing. Campaign continuation is available at exits; saves and multiplayer are not active.";
                 StateHasChanged();
@@ -210,6 +220,16 @@
             _message = "Heretic preview: " + ex.Message;
             StateHasChanged();
         }
+    }
+
+    private void TogglePause()
+    {
+        if (_session == null || _session.ExitRequested || _session.World.Options.NetGame) return;
+        _stepper.SetPaused(!_stepper.Paused);
+        _releaseActions = true;
+        // Stop already playing effects so combat sounds do not outlive the frozen world.
+        if (_stepper.Paused) _sound?.StopEffects();
+        StateHasChanged();
     }
 
     private void UpdateMusic()
@@ -238,7 +258,7 @@
 
     private void RestartLevel()
     {
-        if (_session == null || _session.ExitRequested || _session.State.Health > 0) return;
+        if (_stepper.Paused || _session == null || _session.ExitRequested || _session.State.Health > 0) return;
         ReplaceSession(_session.RestartAfterDeath);
     }
 

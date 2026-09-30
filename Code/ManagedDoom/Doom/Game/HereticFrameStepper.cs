@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, pause without queued input or simulation catch-up.
 // s&Doom modification: 2026-09-22, opt-in native Clink test encounter integration.
 // Copyright (C) 2026 s&Doom contributors.
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -12,11 +13,22 @@ namespace ManagedDoom
         private HereticArtifact? pendingArtifact;
         private bool observedUse, sentUse, pendingUse, pendingCenter, pendingLand, pendingTestAttack;
         public int TickCount { get; private set; }
+        public bool Paused { get; private set; }
+        public void SetPaused(bool paused)
+        {
+            if (Paused == paused) return;
+            Paused = paused;
+            remainder = 0;
+            pendingWeapon = null;
+            pendingArtifact = null;
+            observedUse = sentUse = pendingUse = pendingCenter = pendingLand = pendingTestAttack = false;
+        }
         public void Advance(double elapsedSeconds, HereticCommand sampled, Action<HereticCommand> tick)
         {
             if (!double.IsFinite(elapsedSeconds) || elapsedSeconds < 0)
                 throw new ArgumentOutOfRangeException(nameof(elapsedSeconds));
             if (tick == null) throw new ArgumentNullException(nameof(tick));
+            if (Paused) return;
             pendingUse |= sampled.Use && !observedUse;
             observedUse = sampled.Use;
             pendingCenter |= sampled.CenterLook;
