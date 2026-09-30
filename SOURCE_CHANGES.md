@@ -1714,3 +1714,28 @@ No editor playtest is claimed.
 Validation: focused and full regressions pass, including 48-map smoke and unchanged
 simulation/render hashes for all five production Doom WADs. Build: zero errors,
 seven existing warnings. Licensed asset and pinned definition checks pass.
+
+## 2026-09-29: Campaign exit routing and completion snapshots
+
+All four Heretic exit actions now publish a stable completion record containing
+source episode/map, secret-exit flag, route kind, destination map, elapsed tics
+and secrets found. The first exit wins; subsequent triggers cannot overwrite it.
+The completed session remains frozen by the existing exit gate.
+
+Routing follows pinned g_game.c G_DoCompleted for episodes 1-5: ordinary maps
+advance, secret exits lead to map 9, secret returns lead to maps 7/5/5/5/4,
+and ordinary map-8 exits finish the episode. Secret exits take precedence.
+Unsupported episode/map ranges return an explicit unsupported result instead of
+indexing outside the native table or inventing a route for bonus/custom maps.
+
+This is the exit-routing foundation, not automatic campaign transitions. Next-map
+asset validation, player-state carryover, intermission/finale presentation and
+session replacement are still required. Saves and multiplayer remain unfinished;
+production Heretic loading remains gated. No editor playtest is claimed.
+
+Focused --campaign checks cover all standard routes, invalid ranges, all four
+exit specials, snapshot stability and stopped simulation after completion.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.

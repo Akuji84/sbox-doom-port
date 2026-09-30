@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, preserve campaign identity for exit completion.
 // s&Doom modification: 2026-09-29, propagate selected difficulty to shared world.
 // s&Doom modification: 2026-09-24, monsters reopen but never close manual doors.
 // s&Doom modification: 2026-09-24, preserve dropped Phoenix ammo quantities.
@@ -58,6 +59,7 @@ namespace ManagedDoom
         {
             if ((uint)skill > (uint)GameSkill.Nightmare) throw new ArgumentOutOfRangeException(nameof(skill));
             this.skill = skill;
+            campaignEpisode = episode; campaignMap = map;
             Actors = actors.AsReadOnly();
             world = World.CreateGeometryPreview(content, episode, map);
             world.Options.Skill = skill;
@@ -581,6 +583,5 @@ namespace ManagedDoom
                 if (TryTeleportPlayer(start.X, start.Y, start.Angle)) return;
             }
         }
-        private void RequestExit(bool secret) { ExitRequested = true; SecretExitRequested = secret; State.Message = "Level exit reached (campaign progression is a later chunk)."; }
     }
 }
