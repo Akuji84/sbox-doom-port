@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, single-player post-death monster acquisition.
 // s&Doom modification: 2026-09-29, native Gargoyle range bias and chase sounds.
 // s&Doom modification: 2026-09-29, native shadow-target aim and ambush clearing.
 // s&Doom modification: 2026-09-29, sound-target acquisition and ambush sight guard.
@@ -70,6 +71,8 @@ namespace ManagedDoom
         // Single-player P_LookForPlayers visibility rules; multiplayer scanning is separate.
         internal bool LookForPlayer(bool allAround)
         {
+            if (!session.World.Options.NetGame && session.State.Health <= 0)
+                return session.LookForMonsterTarget(Body);
             if (!CanSee) return false;
             var target = session.Body;
             var distance = Geometry.AproxDistance(target.X - Body.X, target.Y - Body.Y);
@@ -309,6 +312,26 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         private readonly List<HereticClinkTestEnemy> testEnemies = new();
+        internal bool LookForMonsterTarget(Mobj actor)
+        {
+            var sight = new VisibilityCheck(World);
+            if (!sight.CheckSight(Body, actor)) return false;
+            int count = 0;
+            // Scan the preview actor registry; newly spawned actors are appended.
+            foreach (var enemy in testEnemies)
+            {
+                var candidate = enemy.Body;
+                if (candidate == actor || candidate.Health <= 0 || (candidate.Flags & MobjFlags.CountKill) == 0) continue;
+                if (Geometry.AproxDistance(actor.X-candidate.X, actor.Y-candidate.Y) > Fixed.FromInt(1280)) continue;
+                if (World.Random.Next() < 16) continue;
+                if (count++ > 64) return false;
+                if (!sight.CheckSight(actor, candidate)) continue;
+                actor.Target = candidate;
+                return true;
+            }
+            return false;
+        }
+
         public int TestEnemyCount => testEnemies.Count;
         public int TestKills { get; private set; }
         public HereticGoldWand GoldWand { get; private set; }

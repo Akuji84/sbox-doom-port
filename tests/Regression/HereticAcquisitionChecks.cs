@@ -23,6 +23,29 @@ static class HereticAcquisitionChecks
         e.Body.Angle=Angle.Ang180;Check(e.LookForPlayer(false),"Close player failed rear detection exception.");
         s.DamageEnvironment(10000);e.Body.Target=s.Body;e.Execute(HereticAction.A_Chase,e.Combatant.Animation);
         Check(e.Body.Target==null && e.Combatant.Animation.State==HereticDefinitions.Actors[(int)e.Combatant.Type].SpawnState,"Dead player retained as target.");
+        var battle=new HereticWorldSession(content,1,2);
+        var hunter=battle.StartClinkTest();var victim=battle.StartEnemyTest(HereticActorType.MT_MUMMY);
+        Check(hunter!=null && victim!=null,"Missing post-death fixtures.");
+        // Co-locate the fixture bodies to guarantee sight; no movement is performed here.
+        battle.World.ThingMovement.UnsetThingPosition(victim.Body);
+        victim.Body.X=hunter.Body.X;victim.Body.Y=hunter.Body.Y;victim.Body.Z=hunter.Body.Z;
+        battle.World.ThingMovement.SetThingPosition(victim.Body);
+        battle.DamageEnvironment(10000);hunter.Body.Target=null;
+        battle.World.Random.Clear();
+        Check(!hunter.LookForPlayer(true) && battle.World.Random.Index==1,"Native low-roll monster skip missing.");
+        Check(hunter.LookForPlayer(true) && hunter.Body.Target==victim.Body && battle.World.Random.Index==2,"Dead-player monster acquisition failed.");
+        hunter.Body.Target=null;victim.Body.Flags&=~MobjFlags.CountKill;var before=battle.World.Random.Index;
+        Check(!hunter.LookForPlayer(true) && battle.World.Random.Index==before,"Non-kill actor considered as monster target.");
+        victim.Body.Flags|=MobjFlags.CountKill;victim.Body.Health=0;
+        Check(!hunter.LookForPlayer(true) && battle.World.Random.Index==before,"Dead monster considered as target.");
+        victim.Body.Health=100;victim.Body.X=hunter.Body.X+Fixed.FromInt(1281);
+        Check(!hunter.LookForPlayer(true) && battle.World.Random.Index==before,"Out-of-range monster consumed selection randomness.");
+        victim.Body.X=hunter.Body.X;battle.World.Options.NetGame=true;
+        Check(!hunter.LookForPlayer(true) && hunter.Body.Target==null && battle.World.Random.Index==before,"Single-player fallback leaked into multiplayer.");
+        battle.World.Options.NetGame=false;hunter.Body.Target=battle.Body;battle.World.Random.Index=1;
+        hunter.Execute(HereticAction.A_Chase,hunter.Combatant.Animation);
+        Check(hunter.Body.Target==victim.Body,"Chase did not switch from dead player to living monster.");
+        Console.WriteLine("PASS post-death monster acquisition: random skip, living kill-count targets, range, multiplayer exclusion and chase recovery");
         Console.WriteLine("PASS player acquisition: front/rear view, close exception, all-around recovery, dead targets and invisibility rolls");
     }
 }

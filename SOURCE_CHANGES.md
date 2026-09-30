@@ -1671,3 +1671,24 @@ Validation: focused and full regression suites pass, including the 48-map smoke
 test and unchanged simulation/render hashes for all five production Doom WADs.
 Build: zero errors, seven existing warnings. Licensed assets and pinned definition
 reproduction checks pass.
+
+## 2026-09-29: Single-player post-death monster acquisition
+
+When the single player is dead, idle or targetless Heretic enemies can now seek
+other living kill-count monsters. The fallback requires sight from the player's
+body to the searching monster, excludes self/dead/non-monster actors, limits
+approximate distance to 1280 units, applies the native random skip and bounded
+candidate search, and requires sight to the selected target. The fallback is
+excluded from network games. Lost-target chase recovery uses the same path.
+
+The search traverses the preview actor registry, including summoned actors.
+Exact native thinker ordering across morph replacements is not yet guaranteed;
+multiplayer player scanning remains unfinished. Heretic campaign, saves and
+production loading remain gated. No editor playtest is claimed.
+
+Focused checks cover successful selection, random skip and consumption, invalid
+and out-of-range candidates, network exclusion and chase recovery after death.
+
+Validation: focused and full regressions pass, including the 48-map smoke test
+and unchanged simulation/render hashes for all five production Doom WADs.
+Build: zero errors, seven existing warnings. Asset and pinned definition checks pass.
