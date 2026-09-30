@@ -1,3 +1,4 @@
+@* s&Doom modification: 2026-09-29, preview campaign completion and transactional host replacement. *@
 @using System
 @using ManagedDoom
 @using Sandbox.UI
@@ -9,6 +10,25 @@
         <Image Texture="@_texture" style="width: 80%; height: 80%; image-rendering: pixelated;" />
     }
     <div style="color: white; font-size: 18px; padding: 12px;">@_message</div>
+    @if (_session?.Completion is HereticCampaignExit completed)
+    {
+        <div style="position: absolute; background-color: #111e; padding: 24px; color: white; flex-direction: column; align-items: center; pointer-events: all;">
+            <div style="font-size: 28px;">@(completed.Kind == HereticExitKind.EpisodeComplete ? "Episode complete" : "Level complete")</div>
+            <div>E@(completed.Episode)M@(completed.Map) · Time @(completed.ElapsedTics / 35 / 60):@((completed.ElapsedTics / 35 % 60).ToString("D2")) · Secrets @completed.Secrets</div>
+            @if (completed.Kind == HereticExitKind.NextMap && _session.State.Health > 0)
+            {
+                <button style="padding: 12px; margin-top: 12px;" onclick="@ContinueCampaign">Continue to E@(completed.Episode)M@(completed.NextMap) — Enter</button>
+            }
+            else if (completed.Kind == HereticExitKind.UnsupportedRoute)
+            {
+                <div>No campaign route is defined for this map.</div>
+            }
+            @if (!string.IsNullOrEmpty(_transitionError))
+            {
+                <div style="color: #ffaaaa;">@_transitionError</div>
+            }
+        </div>
+    }
     <SboxManagedDoomLicenses />
 </root>
 
@@ -39,7 +59,8 @@
     private HereticWorldSession _session;
     private SboxHereticSound _sound;
     [Property] public float SoundVolume { get; set; } = 0.4f;
-    private readonly HereticFrameStepper _stepper = new();
+    private HereticFrameStepper _stepper = new();
+    private string _transitionError;
     [Property] public float Yaw { get; set; }
     private GameContent _content;
     private HereticMapPreview _preview;
@@ -100,6 +121,13 @@
         try
         {
             if (_sound != null) { _sound.Volume = SoundVolume; _sound.Update(); }
+            if (_session?.ExitRequested == true)
+            {
+                if (Input.Keyboard.Pressed("ENTER")) ContinueCampaign();
+                // Keep the completed frame, stats and pending inputs frozen during intermission.
+                StateHasChanged();
+                return;
+            }
             if (_session != null)
             {
                 if (TestCombat && Input.Keyboard.Pressed("V")) { _preview.InventoryVisible = !_preview.InventoryVisible; _lastTic = -1; }
@@ -136,7 +164,7 @@
                 tic = _stepper.TickCount;
                 _message = "Navigation test: Tab automap; Z/X zoom; O follow/free pan; arrows pan; M mark; C clear; WASD move; Shift run; arrows turn/look; E use; Home center; R/F fly (Test Flight); End land. " +
                     "Health " + _session.State.Health + "; armor " + _session.State.ArmorPoints + "; keys " + _session.State.Keys + ". " + _session.State.Message +
-                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Combat preview: 1 selects staff (powered with Test Powered Staff), 2 Gold Wand (Test Powered Gold Wand enables powered shots), 3 Crossbow (Test Powered Crossbow enables powered shots), 4 Dragon Claw (pickup, Test Blaster or Test Powered Blaster); 5 Hellstaff (pickup, Test Skull Rod or Test Powered Skull Rod); 6 Phoenix Rod (pickup, Test Phoenix or Test Powered Phoenix); 7 Firemace (pickup, Test Mace or Test Powered Mace); 8 Gauntlets (pickup, Test Gauntlets or Test Powered Gauntlets); Space attacks; mace ammo " + _session.GoldWand?.MaceAmmo + "; Phoenix ammo " + _session.GoldWand?.PhoenixAmmo + "; Hellstaff ammo " + _session.GoldWand?.SkullRodAmmo + "; crossbow ammo " + _session.GoldWand?.CrossbowAmmo + "; claw ammo " + _session.GoldWand?.BlasterAmmo + "; wand ammo " + _session.GoldWand?.Ammo + "; Bag of Holding " + (_session.GoldWand?.HasBagOfHolding == true ? "yes" : "no") + "; kills " + _session.TestKills + ". Local encounter sounds enabled; Supported enemy ammo drops are collectible. Q uses Flask; U uses Urn; G uses Wings (R/F fly, End land); I uses Ring; T uses Torch; H uses Chaos Device; B places Time Bomb; J uses Shadowsphere; K uses Tome of Power; L uses Morph Ovum; V toggles artifact inventory. Morph Ovums " + _session.State.MorphOvums + ". Tomes " + _session.State.TomesOfPower + "; power seconds " + ((_session.State.WeaponPowerTics + 34) / 35) + ". Shadowspheres " + _session.State.Shadowspheres + "; ghost seconds " + ((_session.State.InvisibilityTics + 34) / 35) + ". Flasks " + _session.State.QuartzFlasks + "; urns " + _session.State.MysticUrns + "; wings " + _session.State.WingsOfWrath + "; bombs " + _session.State.TimeBombs + "; Chaos Devices " + _session.State.ChaosDevices + "; torches " + _session.State.Torches + "; torch seconds " + ((_session.State.TorchTics + 34) / 35) + "; rings " + _session.State.RingsOfInvincibility + "; invincibility seconds " + ((_session.State.InvulnerabilityTics + 34) / 35) + "; flight seconds " + ((_session.State.FlightTics + 34) / 35) + ". " : "Combat is disabled. ") + "Combat actors: " + _session.TestEnemyCount + "; blocked placements: " + _session.BlockedMapEnemies + ". Test Player Chicken enables timed player morphing. Campaign, saves and multiplayer are not active.";
+                    " Actors: " + _session.Actors.Count + "; unsupported map things: " + _session.UnsupportedMapThings + "; unknown: " + _session.UnknownMapThings + ". " + (TestCombat ? "Combat preview: 1 selects staff (powered with Test Powered Staff), 2 Gold Wand (Test Powered Gold Wand enables powered shots), 3 Crossbow (Test Powered Crossbow enables powered shots), 4 Dragon Claw (pickup, Test Blaster or Test Powered Blaster); 5 Hellstaff (pickup, Test Skull Rod or Test Powered Skull Rod); 6 Phoenix Rod (pickup, Test Phoenix or Test Powered Phoenix); 7 Firemace (pickup, Test Mace or Test Powered Mace); 8 Gauntlets (pickup, Test Gauntlets or Test Powered Gauntlets); Space attacks; mace ammo " + _session.GoldWand?.MaceAmmo + "; Phoenix ammo " + _session.GoldWand?.PhoenixAmmo + "; Hellstaff ammo " + _session.GoldWand?.SkullRodAmmo + "; crossbow ammo " + _session.GoldWand?.CrossbowAmmo + "; claw ammo " + _session.GoldWand?.BlasterAmmo + "; wand ammo " + _session.GoldWand?.Ammo + "; Bag of Holding " + (_session.GoldWand?.HasBagOfHolding == true ? "yes" : "no") + "; kills " + _session.TestKills + ". Local encounter sounds enabled; Supported enemy ammo drops are collectible. Q uses Flask; U uses Urn; G uses Wings (R/F fly, End land); I uses Ring; T uses Torch; H uses Chaos Device; B places Time Bomb; J uses Shadowsphere; K uses Tome of Power; L uses Morph Ovum; V toggles artifact inventory. Morph Ovums " + _session.State.MorphOvums + ". Tomes " + _session.State.TomesOfPower + "; power seconds " + ((_session.State.WeaponPowerTics + 34) / 35) + ". Shadowspheres " + _session.State.Shadowspheres + "; ghost seconds " + ((_session.State.InvisibilityTics + 34) / 35) + ". Flasks " + _session.State.QuartzFlasks + "; urns " + _session.State.MysticUrns + "; wings " + _session.State.WingsOfWrath + "; bombs " + _session.State.TimeBombs + "; Chaos Devices " + _session.State.ChaosDevices + "; torches " + _session.State.Torches + "; torch seconds " + ((_session.State.TorchTics + 34) / 35) + "; rings " + _session.State.RingsOfInvincibility + "; invincibility seconds " + ((_session.State.InvulnerabilityTics + 34) / 35) + "; flight seconds " + ((_session.State.FlightTics + 34) / 35) + ". " : "Combat is disabled. ") + "Combat actors: " + _session.TestEnemyCount + "; blocked placements: " + _session.BlockedMapEnemies + ". Test Player Chicken enables timed player morphing. Campaign continuation is available at exits; saves and multiplayer are not active.";
                 StateHasChanged();
             }
             if (tic == _lastTic && Yaw == _lastYaw) return;
@@ -152,6 +180,37 @@
             _message = "Heretic preview: " + ex.Message;
             StateHasChanged();
         }
+    }
+
+    private void ContinueCampaign()
+    {
+        if (_session?.Completion?.Kind != HereticExitKind.NextMap || _session.State.Health <= 0) return;
+        SboxHereticSound nextSound = null;
+        try
+        {
+            var next = _session.CreateNextCampaignSession();
+            var nextPreview = new HereticMapPreview(_content, next);
+            if (TestCombat) nextSound = new SboxHereticSound(_content, next) { Volume = SoundVolume };
+            // Validate/render before swapping any live host objects.
+            nextPreview.Render(_pixels, 0, Yaw);
+            _texture.Update(_pixels, 0, 0, HereticMapPreview.Width, HereticMapPreview.Height);
+            var oldSound = _sound;
+            _session = next;
+            _preview = nextPreview;
+            _sound = nextSound;
+            nextSound = null;
+            _stepper = new HereticFrameStepper();
+            _elapsed = 0; _lastTic = -1; _lastYaw = float.NaN;
+            _transitionError = null;
+            _message = nextPreview.Report;
+            oldSound?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            nextSound?.Dispose();
+            _transitionError = "Unable to continue: " + ex.Message;
+        }
+        StateHasChanged();
     }
 
     private void StepNavigation(HereticCommand command)

@@ -48,6 +48,15 @@ static class HereticCampaignExitChecks
         Check(next.State.Keys==HereticKeys.None && next.State.FlightTics==0 && next.State.WeaponPowerTics==0 && next.State.TorchTics==0 && !next.State.HasMapScroll && next.State.Secrets==0 && next.State.DamageFlash==0,"Level-local state leaked.");
         Check(next.GoldWand.HasCrossbow && next.GoldWand.HasBlaster && next.GoldWand.HasBagOfHolding && next.GoldWand.CrossbowAmmo==ammo && next.GoldWand.Ammo==gold,"Weapons/ammo/bag lost or aliased.");
         Check(next.Completion==null && !next.ExitRequested && next.TestEnemyCount>0 && ReferenceEquals(next,source.CreateNextCampaignSession()),"Next session not playable/idempotent.");
+        var nextView=new HereticMapPreview(content,next);
+        var pixels=new byte[HereticMapPreview.Width*HereticMapPreview.Height*4];
+        nextView.Render(pixels,0,0);
+        Check(pixels.Any(value=>value!=0),"Transition renderer produced an empty frame.");
+        var stepper=new HereticFrameStepper();stepper.Advance(1.0/35,default,next.Tick);
+        var secondExit=next.World.Map.Lines[0];secondExit.Special=(LineSpecial)52;next.CrossLine(secondExit,0,next.Body);
+        Check(next.Completion.Value.Map==2 && next.Completion.Value.NextMap==3 && next.Completion.Value.ElapsedTics==1,"Second-map completion retained old identity/time.");
+        var third=next.CreateNextCampaignSession();
+        Check(third!=next && third.Completion==null && third.GoldWand.HasCrossbow,"Chained host transition failed.");
         var chicken=new HereticWorldSession(content);chicken.StartMapCombat();chicken.MorphPlayer();
         var chickenHealth=chicken.State.Health;var chickenExit=chicken.World.Map.Lines[0];chickenExit.Special=(LineSpecial)52;chicken.CrossLine(chickenExit,0,chicken.Body);
         var restored=chicken.CreateNextCampaignSession();

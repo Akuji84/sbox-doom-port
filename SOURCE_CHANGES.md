@@ -1765,3 +1765,26 @@ Heretic stays preview-only. No editor playtest is claimed.
 Validation: focused and full regressions pass, including 48-map smoke and unchanged
 simulation/render hashes for all five production Doom WADs. Build: zero errors,
 seven existing warnings. Licensed asset and pinned definition checks pass.
+
+## 2026-09-29: Preview host campaign continuation
+
+The native Heretic preview panel now presents a completion overlay with source
+map, elapsed time and secrets. Next-map exits offer an Enter/button continuation;
+episode endings show completion, and undefined routes show an explanatory message.
+Simulation/input stepping is suspended while the completion panel is open.
+
+Continuation prepares the next session, renderer and sound adapter before replacing
+the live host references. A failed preparation leaves the completed session and
+its overlay available for retry. Successful replacement disposes old audio, resets
+the frame stepper/render timing and uses a fresh automap/inventory view. Test grants
+are not replayed. Existing next-session creation preserves native campaign carry.
+
+Regression coverage now renders the new map, ticks it, completes it with its own
+map/time identity and advances E1M1 through E1M2 to E1M3. This is a functional preview
+completion panel, not the original animated Heretic intermission/finale presentation.
+Production launch remains gated; saves and multiplayer are unfinished. No editor
+visual/input/audio playtest is claimed.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.
