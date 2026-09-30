@@ -63,6 +63,22 @@ static class HereticCampaignExitChecks
         Check(restored.State.ChickenTics==0 && restored.Body.Height==Fixed.FromInt(56) && restored.GoldWand.ReadyWeapon==HereticWeapon.wp_goldwand && restored.State.Health==chickenHealth,"Chicken exit did not restore native body/weapon carry.");
         bool rejected=false;try { restored.CreateNextCampaignSession(); }catch(InvalidOperationException){rejected=true;}
         Check(rejected,"Transition without exit accepted.");
+        var doomed=new HereticWorldSession(content,1,2,GameSkill.Hard);doomed.StartMapCombat();
+        var originalEnemies=doomed.TestEnemyCount;
+        doomed.GoldWand.GrantTestCrossbow(40);doomed.GoldWand.GiveBagOfHolding(false);
+        doomed.State.MysticUrns=4;doomed.State.Keys=HereticKeys.Blue;doomed.State.Secrets=3;
+        doomed.DamageEnvironment(10000);
+        var reborn=doomed.RestartAfterDeath();
+        Check(reborn.State.Health==100 && reborn.Body.Health==100 && reborn.State.ArmorPoints==0 && reborn.State.Keys==HereticKeys.None && reborn.State.MysticUrns==0 && reborn.State.Secrets==0,"Restart retained inventory or did not revive.");
+        Check(reborn.GoldWand.Ammo==50 && reborn.GoldWand.ReadyWeapon==HereticWeapon.wp_goldwand && !reborn.GoldWand.HasCrossbow && !reborn.GoldWand.HasBagOfHolding,"Restart did not restore starting loadout.");
+        Check(reborn.World.Options.Skill==GameSkill.Hard && reborn.TestEnemyCount==originalEnemies && reborn.TestKills==0 && !reborn.ExitRequested && ReferenceEquals(reborn,doomed.RestartAfterDeath()),"Restart lost difficulty/roster or repeated reload.");
+        rejected=false;try { reborn.RestartAfterDeath(); }catch(InvalidOperationException){rejected=true;}
+        Check(rejected,"Living-player restart accepted.");
+        doomed.World.Options.NetGame=true;rejected=false;try { doomed.RestartAfterDeath(); }catch(NotSupportedException){rejected=true;}
+        Check(rejected,"Network respawn leaked into single-player restart.");
+        reborn.Tick(default);var rebornExit=reborn.World.Map.Lines[0];rebornExit.Special=(LineSpecial)52;reborn.CrossLine(rebornExit,0,reborn.Body);
+        Check(reborn.Completion.Value.Map==2 && reborn.Completion.Value.ElapsedTics==1 && reborn.CreateNextCampaignSession().State.Health==100,"Restarted map cannot continue campaign.");
+        Console.WriteLine("PASS death restart: fresh health/loadout/inventory, restored map roster, skill, idempotence, live/network guards and campaign continuation");
         Console.WriteLine("PASS campaign carry: immutable health/armor/weapons/ammo, native artifact cleanup, fresh map combat, chicken restore and idempotent transition");
         Console.WriteLine("PASS campaign exit routing: five episodes, secret returns/finales, unknown route guard, all four exit specials, immutable stats and stopped simulation");
     }

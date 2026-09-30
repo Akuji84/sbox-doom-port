@@ -1788,3 +1788,28 @@ visual/input/audio playtest is claimed.
 Validation: focused and full regression suites pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Single-player death restart in the preview host
+
+Dead players can now restart the current map with Enter or the preview death
+panel button. Restart recreates the same episode/map/difficulty from the same
+content, repopulates enabled map combat, and starts with 100 health, the staff
+and Gold Wand, and 50 wand ammo. Armor, acquired weapons, inventory, Bag of Holding,
+powers, map changes and per-level counters reset. Live players, completed maps
+and network sessions cannot use this single-player restart API. Repeated calls
+on one dead source session reuse the prepared replacement.
+
+The host shares renderer/audio replacement between restart and continuation,
+retains the old session on preparation failure and resets frame/input timing.
+Attack/use must be released after replacement before those actions resume.
+The dead world continues ticking until restart; it is not paused by the overlay.
+Debug test grants and isolated spawned test encounters are not replayed.
+
+Regression coverage checks fresh loadout/inventory, restored monster count,
+difficulty, duplicate calls, live/network rejection, new level time and campaign
+continuation after restart. Editor visual/input/audio playtesting is still needed.
+Heretic remains preview-only; production launch, saves and multiplayer remain gated.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.

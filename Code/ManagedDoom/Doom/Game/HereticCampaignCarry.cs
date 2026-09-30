@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, single-player death restart with fresh loadout.
 // s&Doom modification: 2026-09-29, native single-player campaign inventory carry.
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
@@ -102,6 +103,24 @@ namespace ManagedDoom
         private HereticCampaignCarry campaignCarry;
         private readonly GameContent campaignContent;
         private HereticWorldSession nextCampaignSession;
+        private HereticWorldSession restartedSession;
+        public HereticWorldSession RestartAfterDeath()
+        {
+            if (World.Options.NetGame)
+                throw new System.NotSupportedException("Heretic multiplayer respawn is not implemented.");
+            if (State.Health > 0 || ExitRequested)
+                throw new System.InvalidOperationException("Only an unfinished dead-player session can restart.");
+            if (restartedSession != null) return restartedSession;
+            var next = new HereticWorldSession(campaignContent, campaignEpisode, campaignMap, skill);
+            if (mapCombatEnabled) next.StartMapCombat();
+            else if (GoldWand != null)
+            {
+                next.GoldWand = new HereticGoldWand(next);
+                next.EnableCombatAmmo();
+            }
+            restartedSession = next;
+            return next;
+        }
         internal void RestoreCampaignWeapons(HereticWeaponCarry carry)
         {
             GoldWand = new HereticGoldWand(this);

@@ -1,3 +1,4 @@
+@* s&Doom modification: 2026-09-29, death restart and release-gated transition input. *@
 @* s&Doom modification: 2026-09-29, preview campaign completion and transactional host replacement. *@
 @using System
 @using ManagedDoom
@@ -23,6 +24,17 @@
             {
                 <div>No campaign route is defined for this map.</div>
             }
+            @if (!string.IsNullOrEmpty(_transitionError))
+            {
+                <div style="color: #ffaaaa;">@_transitionError</div>
+            }
+        </div>
+    }
+    @if (_session != null && !_session.ExitRequested && _session.State.Health <= 0)
+    {
+        <div style="position: absolute; background-color: #111e; padding: 24px; color: white; flex-direction: column; align-items: center; pointer-events: all;">
+            <div style="font-size: 28px;">You died</div>
+            <button style="padding: 12px;" onclick="@RestartLevel">Restart level — Enter</button>
             @if (!string.IsNullOrEmpty(_transitionError))
             {
                 <div style="color: #ffaaaa;">@_transitionError</div>
@@ -61,6 +73,7 @@
     [Property] public float SoundVolume { get; set; } = 0.4f;
     private HereticFrameStepper _stepper = new();
     private string _transitionError;
+    private bool _releaseActions;
     [Property] public float Yaw { get; set; }
     private GameContent _content;
     private HereticMapPreview _preview;
@@ -121,6 +134,11 @@
         try
         {
             if (_sound != null) { _sound.Volume = SoundVolume; _sound.Update(); }
+            if (_session != null && !_session.ExitRequested && _session.State.Health <= 0 && Input.Keyboard.Pressed("ENTER"))
+            {
+                RestartLevel();
+                return;
+            }
             if (_session?.ExitRequested == true)
             {
                 if (Input.Keyboard.Pressed("ENTER")) ContinueCampaign();
@@ -185,10 +203,21 @@
     private void ContinueCampaign()
     {
         if (_session?.Completion?.Kind != HereticExitKind.NextMap || _session.State.Health <= 0) return;
+        ReplaceSession(_session.CreateNextCampaignSession);
+    }
+
+    private void RestartLevel()
+    {
+        if (_session == null || _session.ExitRequested || _session.State.Health > 0) return;
+        ReplaceSession(_session.RestartAfterDeath);
+    }
+
+    private void ReplaceSession(Func<HereticWorldSession> createSession)
+    {
         SboxHereticSound nextSound = null;
         try
         {
-            var next = _session.CreateNextCampaignSession();
+            var next = createSession();
             var nextPreview = new HereticMapPreview(_content, next);
             if (TestCombat) nextSound = new SboxHereticSound(_content, next) { Volume = SoundVolume };
             // Validate/render before swapping any live host objects.
@@ -200,6 +229,7 @@
             _sound = nextSound;
             nextSound = null;
             _stepper = new HereticFrameStepper();
+            _releaseActions = true;
             _elapsed = 0; _lastTic = -1; _lastYaw = float.NaN;
             _transitionError = null;
             _message = nextPreview.Report;
@@ -208,13 +238,19 @@
         catch (Exception ex)
         {
             nextSound?.Dispose();
-            _transitionError = "Unable to continue: " + ex.Message;
+            _transitionError = "Unable to load level: " + ex.Message;
         }
         StateHasChanged();
     }
 
     private void StepNavigation(HereticCommand command)
     {
+        if (_releaseActions)
+        {
+            if (!command.Use && !command.TestAttack) _releaseActions = false;
+            command.Use = command.TestAttack = false;
+            command.UseArtifact = null; command.SelectWeapon = null;
+        }
         if (TestFlight) _session.GrantFlight(2);
         _session.Tick(command);
     }
