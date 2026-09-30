@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, immutable completion kill/item/secret statistics.
 // s&Doom modification: 2026-09-29, freeze campaign carry and retain source content.
 // s&Doom modification: 2026-09-29, native episode exit routing and immutable completion.
 // Copyright(C) 1993-1996 Id Software, Inc.
@@ -21,7 +22,7 @@ namespace ManagedDoom
 {
     public enum HereticExitKind { NextMap, EpisodeComplete, UnsupportedRoute }
     public readonly record struct HereticCampaignExit(int Episode, int Map, bool Secret,
-        HereticExitKind Kind, int? NextMap, int ElapsedTics, int Secrets);
+        HereticExitKind Kind, int? NextMap, int ElapsedTics, int Secrets, int Kills, int TotalKills, int Items, int TotalItems, int TotalSecrets);
     public static class HereticCampaignRoutes
     {
         public static (HereticExitKind Kind, int? NextMap) Resolve(int episode, int map, bool secret)
@@ -40,13 +41,22 @@ namespace ManagedDoom
     public sealed partial class HereticWorldSession
     {
         private readonly int campaignEpisode, campaignMap;
+        public int TotalKills { get; private set; }
+        public int TotalItems { get; private set; }
+        public int TotalSecrets { get; private set; }
+        public int ItemsCollected { get; private set; }
+        private void CountCollectedItem(HereticMapActor actor)
+        {
+            if ((HereticDefinitions.Actors[(int)actor.Type].Flags & HereticActorFlags.MF_COUNTITEM) != 0)
+                ItemsCollected++;
+        }
         public HereticCampaignExit? Completion { get; private set; }
         private void RequestExit(bool secret)
         {
             if (ExitRequested) return;
             var route = HereticCampaignRoutes.Resolve(campaignEpisode, campaignMap, secret);
             Completion = new HereticCampaignExit(campaignEpisode, campaignMap, secret,
-                route.Kind, route.NextMap, tic, State.Secrets);
+                route.Kind, route.NextMap, tic, State.Secrets, TestKills, TotalKills, ItemsCollected, TotalItems, TotalSecrets);
             if (State.Health > 0 && !World.Options.NetGame)
                 campaignCarry = new HereticCampaignCarry(this, State.ChickenTics > 0 ? preChickenWeapon : GoldWand?.ReadyWeapon ?? HereticWeapon.wp_goldwand);
             ExitRequested = true;

@@ -2173,3 +2173,28 @@ Heretic remains preview-only; production launch, saves and multiplayer remain ga
 Validation: focused and full regression suites pass, including 48-map smoke and
 unchanged simulation/render hashes for all five production Doom WADs. Build:
 zero errors, seven existing warnings. Asset and pinned definition checks pass.
+
+## 2026-09-29: Completion kill/item/secret statistics
+
+Completion snapshots and the preview overlay now show kills/items/secrets with
+their map totals. Kill totals count successfully placed map monsters with COUNTKILL;
+item totals count map-spawned actors with COUNTITEM; secret totals are captured
+before secret-sector specials are consumed. Repeated combat initialization does
+not duplicate totals. Blocked placements are not included in spawned-monster totals.
+
+Accepted item pickups use the native actor definition's COUNTITEM flag, including
+the artifact pickup path. Failed/full-inventory attempts do not count; artifact
+pickup effects cannot be collected again. Runtime drops do not increase map totals,
+so dropped counted artifacts can legitimately take collected items above that total.
+Kills retain the existing single-player combat accounting, including runtime monsters.
+
+The first exit freezes all statistics. Fresh maps/restarts get new per-level
+counters. Regression coverage checks initial totals, repeat setup, corpse damage,
+rejected/accepted artifact pickups, frozen snapshots and next-map reset.
+Animated native intermission/finale presentation remains unfinished. Heretic remains
+preview-only; production launch, saves and multiplayer remain gated. No editor
+visual playtest is claimed.
+
+Validation: focused and full regression suites pass, including 48-map smoke and
+unchanged simulation/render hashes for all five production Doom WADs. Build:
+zero errors, seven existing warnings. Asset and pinned definition checks pass.

@@ -15,7 +15,8 @@
     {
         <div style="position: absolute; background-color: #111e; padding: 24px; color: white; flex-direction: column; align-items: center; pointer-events: all;">
             <div style="font-size: 28px;">@(completed.Kind == HereticExitKind.EpisodeComplete ? "Episode complete" : "Level complete")</div>
-            <div>E@(completed.Episode)M@(completed.Map) · Time @(completed.ElapsedTics / 35 / 60):@((completed.ElapsedTics / 35 % 60).ToString("D2")) · Secrets @completed.Secrets</div>
+            <div>E@(completed.Episode)M@(completed.Map) · Time @(completed.ElapsedTics / 35 / 60):@((completed.ElapsedTics / 35 % 60).ToString("D2"))</div>
+            <div>Kills @completed.Kills / @completed.TotalKills · Items @completed.Items / @completed.TotalItems · Secrets @completed.Secrets / @completed.TotalSecrets</div>
             @if (completed.Kind == HereticExitKind.NextMap && _session.State.Health > 0)
             {
                 <button style="padding: 12px; margin-top: 12px;" onclick="@ContinueCampaign">Continue to E@(completed.Episode)M@(completed.NextMap) — Enter</button>

@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, count successfully placed map monsters for intermission.
 // s&Doom modification: 2026-09-29, native Gargoyle/Disciple vertical blocking.
 // s&Doom modification: 2026-09-24, mounted Sorcerer map encounters.
 // s&Doom modification: 2026-09-24, Maulotaur boss rules and map combat.
@@ -66,6 +67,7 @@ namespace ManagedDoom
                 if (decision.Disposition != HereticSpawnDisposition.Unsupported || !SupportsMapEnemy(decision.Type)) continue;
                 var enemy = TrySpawnSupportedEnemy(decision.Type, thing.X, thing.Y);
                 if (enemy == null) { BlockedMapEnemies++; if (decision.Type == HereticActorType.MT_HEAD) blockedIronLiches++; if (decision.Type == HereticActorType.MT_MINOTAUR) blockedMaulotaurs++; if (decision.Type == HereticActorType.MT_SORCERER1) blockedSorcerers++; continue; }
+                if ((enemy.Body.Flags & MobjFlags.CountKill) != 0) TotalKills++;
                 enemy.Body.Angle = thing.Angle;
                 if (((int)thing.Flags & 8) != 0) enemy.Body.Flags |= MobjFlags.Ambush;
                 enemy.Body.UpdateFrameInterpolationInfo();

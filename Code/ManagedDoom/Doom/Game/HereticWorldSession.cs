@@ -1,3 +1,4 @@
+// s&Doom modification: 2026-09-29, map item/secret totals and accepted pickup counts.
 // s&Doom modification: 2026-09-29, freeze campaign carry and retain source content.
 // s&Doom modification: 2026-09-29, preserve campaign identity for exit completion.
 // s&Doom modification: 2026-09-29, propagate selected difficulty to shared world.
@@ -89,6 +90,7 @@ namespace ManagedDoom
             }
             foreach (var sector in world.Map.Sectors)
             {
+                if ((int)sector.Special == 9) TotalSecrets++;
                 switch ((int)sector.Special)
                 {
                     case 1: world.LightingChange.SpawnLightFlash(sector); break;
@@ -417,6 +419,7 @@ namespace ManagedDoom
                     State.PickupFlash = Math.Min(int.MaxValue - 6, State.PickupFlash) + 6;
                     body.Flags &= ~MobjFlags.Special;
                     actor.Animation.SetState(HereticStateId.S_DEADARTI1);
+                    CountCollectedItem(actor);
                     impactEffects.Add(actor); actors.RemoveAt(i);
                     RequestSound(HereticSoundId.sfx_artiup, body);
                     continue;
@@ -483,6 +486,7 @@ namespace ManagedDoom
                     State.Message = ammo.blaster ? "Dragon Claw ammo" : "Gold Wand ammo";
                     RequestSound(HereticSoundId.sfx_itemup, Body);
                 }
+                CountCollectedItem(actor);
                 State.PickupFlash = actor.Key != HereticKeys.None ? 6 : Math.Min(int.MaxValue - 6, State.PickupFlash) + 6;
                 world.ThingMovement.UnsetThingPosition(body);
                 actor.Animation.SetState(HereticStateId.S_NULL);
@@ -512,6 +516,7 @@ namespace ManagedDoom
             body.Z = (flags & MobjFlags.SpawnCeiling) != 0 ? body.CeilingZ - body.Height : body.FloorZ;
             body.UpdateFrameInterpolationInfo();
             actors.Add(new HereticMapActor(type, body, animation));
+            if ((def.Flags & HereticActorFlags.MF_COUNTITEM) != 0) TotalItems++;
         }
         private void Use()
         {
